@@ -2,15 +2,17 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ SSOT Inteligentnego Kosztorysanta** · **★★ JEDYNY cold-start IK dla nowego GPT/Cursor**
-> **Data:** 2026-08-31 (**G3 Final Bid DF+IMPLEMENT+PERSIST** · Owner GO path A) · prior docs-only 56/0 · prior 2026-08-30 (G2 Labor m²) · prior 2026-08-28 (CHROBREGO G1/G2 partial)
+> **Data:** 2026-09-03 (**EPIC A0.2 ŚRODA Work Catalog Coverage** · code+KV LIVE · frontend PV **NOT VERIFIED**) · prior 2026-08-31 (G3 Final Bid CHROBREGO) · prior 2026-08-30 (G2 Labor m²)
 > **Doc hash (pre-edit baseline):** see git before this session · **post-edit:** see git after this session
-> **★★ G3 UPDATE (2026-08-31 · Owner GO):** CHROBREGO **56/0** · G1/G2 **CLOSED** · **G3 Final Bid PERSISTED** (`ikFinalBid` **159000** net / **36570** VAT / **195570** gross) · DF [`IK-AUTONOMY-08-P4-G3-FINAL-BID-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P4-G3-FINAL-BID-DESIGN-FREEZE.md) · **≠** submittedBidPln · **≠** Experience Phase 5 / global IK PV · **≠** commit/push/deploy
-> **Mode:** thin G3 IMPLEMENT + docs · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **FULL IK E2E harness = GREEN** (CODE/TEST) · **≠** global IK Production Verified signoff · **AUTONOMY-08 epic NOT CLOSED**
+> **★★ A0.2 UPDATE (2026-09-03 · Owner GO):** ŚRODA real-source · **8 CatalogWork** · commit **`590f95e9`** · KV **rev 56→57** · **8/8×2 regions** · idempotency **PASS** · **cloud KV = LIVE** · frontend tip last check **2.66.136 / f3ec166** · **A0.2 frontend PV = NOT VERIFIED** · **≠** mapper/F5/scoring/P1–P3 · **≠** AUTONOMY-08 close · **≠** Experience Phase 5
+> **★★ G3 UPDATE (2026-08-31 · Owner GO):** CHROBREGO **56/0** · G1/G2 **CLOSED** · **G3 Final Bid PERSISTED** (`ikFinalBid` **159000** net / **36570** VAT / **195570** gross) · DF [`IK-AUTONOMY-08-P4-G3-FINAL-BID-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P4-G3-FINAL-BID-DESIGN-FREEZE.md) · **≠** submittedBidPln · **≠** Experience Phase 5 / global IK PV
+> **Mode:** docs closeout A0.2 · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **FULL IK E2E harness = GREEN** (CODE/TEST) · **≠** global IK Production Verified signoff · **AUTONOMY-08 epic NOT CLOSED**
 > **★★ DECISION TREE = PRIMARY CONTINUITY CONTRACT** — §10.0 · §17 · §22 · **Decision Tree > report > artifact > chat memory**
 > **★★ MASTER CONNECTIVITY CONTRACT:** **§2A** — Orchestra = single sequencer · Host = adapter · **OD-W0-GO GRANTED** (governance) · W3–W6 **NOT** auto-authorized · **≠** Production Verified
 > **Experience DF:** [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md) · Phase 4 amend §21
-> **A08-P3:** impl **`3822acb`** · UI tip via [`09`](../AI/09_PRODUCTION_BASELINE.md) · DF [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · harness **27/0** · **P3 OPEN** (epic) · G1/G2 **APPROVED** · **CHROBREGO G1+G2 CLOSED/PASS · 56/0** · **G3 CHROBREGO PERSISTED** · Experience **NOT STARTED** · APF **FROZEN** (OD-P3-7)
-> **★★ CHROBREGO CURRENT CHECKPOINT:** §10.0 · §22 — tender `08df0363-7b22-e462-ab56-940001283cba` · OCDS `ocds-148610-6f859612-6631-426b-83fc-830bfec1c888` · BZP `2026/BZP 00408278/01` · **56/0 PASS** · **G3 159000 net**
+> **A08-P3:** impl **`3822acb`** · UI tip via [`09`](../AI/09_PRODUCTION_BASELINE.md) · DF [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md) · harness **27/0** · **P3 OPEN** (epic) · G1/G2 **APPROVED** · **CHROBREGO G1+G2+G3 CLOSED/PASS · 56/0** · Experience Phase 5 **NOT AUTHORIZED** · APF **FROZEN** (OD-P3-7)
+> **★★ CURRENT CASE BRANCH:** **ŚRODA A0.2** — §10.0 · tender `08deff6c-bc34-619e-b346-0300010ce2e5` · Work Catalog coverage · **KV rev 57 LIVE** · frontend PV **WAITING / NOT VERIFIED**
+> **★★ CHROBREGO (CLOSED CASE):** §10.0 · tender `08df0363-7b22-e462-ab56-940001283cba` · **56/0 PASS** · **G3 159000 net** · **NIE reopen** · **NIE** flow Środy przez CHROBREGO
 > **Live tip:** wyłącznie [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` (nie hardcoduj SHA/UI tu przy driftcie)
 > **AI Owner Authority (pointer only):** [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLICY.md) · gate [`OD-IK-AI-OWNER-AUTHORITY-1-GATE.md`](./OD-IK-AI-OWNER-AUTHORITY-1-GATE.md) **COMPLETE** · Level A **IMPLEMENTATION = NOT AUTHORIZED**
 > **Owner Map slices (latest):** A01-S1 **`3e4adfff`** · A01-LP5 **`f012d39a`** · A01-S3 OUR RATE **`e7774ca5`** · **A01 F5 MARGIN **`82f3520e`**** · A09-PACKAGE-S1 **`8ccb3e9b`**
@@ -368,9 +370,16 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **AUTONOMY-05…07** | COMPLETE / CLOSED · P5–P8 `"AUTO"\|"OFF"\|"ON"` · Research **CONDITIONAL** |
 | **AUTONOMY-08 P0–P2** | **COMPLETE / CLOSED** |
 | **AUTONOMY-08 P3 Owner Gates** | **IMPLEMENTED** @ **`3822acb`** · harness **27 PASS / 0 FAIL** · **P3 OPEN** (epic) · **≠** cały G2 globalnie CLOSED |
-| **AUTONOMY-08 epic** | **NOT CLOSED** |
+| **AUTONOMY-08 epic** | **NOT CLOSED** (**≠** A0.2 closeout) |
 | **G1 durable persist PV** | **PASS** (Paczka VII · LS OfferBoq · reload) |
-| **★★ CHROBREGO (2026-08-31)** | **CURRENT CHECKPOINT** — §10.0 · §22 · tender `08df0363-…` · **56/0 CUTOVER PASS** |
+| **★★ ŚRODA A0.2 (2026-09-03)** | **CURRENT CASE BRANCH** — §10.0 · §22 · tender `08deff6c-…` · Work Catalog coverage |
+| **A0.2 code / release** | **committed + pushed** · **`590f95e9`** · changelog **2.66.137** |
+| **A0.2 KV** | **LIVE** · revision **56→57** · work **862→878** · **8/8** wrocław + **8/8** dolnyslask · 2nd execute **SKIPPED_NO_CHANGE** |
+| **A0.2 frontend PV** | **NOT VERIFIED** · last live `/version.json` = **2.66.136 / f3ec166** · **DEPLOY PROPAGATING** |
+| **A0.2 CatalogWork** | **8/8** · `descriptionPl=""` · metadata-induced FP **0** · podejście objectMarkers ≠ ustęp · **≠** mapper/F5/scoring/P1–P3 |
+| **A0.2 baseline (Środa)** | raw **168** · composed **84** · TRUE_OWNER **44** · WEAK **40** · F5 **84** · **F5 delta ≠ acceptance** |
+| **A0.2 residual** | structural **L+T+U admission noise** · accepted / **outside A0.2** |
+| **★★ CHROBREGO (2026-08-31)** | **CLOSED CASE** — §10.0 · tender `08df0363-…` · **56/0 CUTOVER PASS** · **NIE reopen** |
 | **CHROBREGO G1 AUTO-SAFE** | **CLOSED / PASS** · **22/22** |
 | **CHROBREGO G1 OWNER_REVIEW + NO_SAFE** | **CLOSED / PASS** (final 56/0) |
 | **CHROBREGO G2 Labor m²** | **CLOSED / PASS** · LP **7/8/12/13/14** · OUR RATE **22.90** · margin **20%** owner |
@@ -379,9 +388,10 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **CHROBREGO LP30 kpl** | **CLOSED / PASS** · `p2b-demontaz-wanny-kpl` · OUR RATE **200** · SELL **250** · LABOR_ONLY |
 | **CHROBREGO LP22 material** | **CLOSED / PASS** · `p2b-skrzydla-drzwiowe-wewnetrzne-m2` · material **200** · margin **0%** · SELL **200** |
 | **CHROBREGO cutover** | **PASS** · `completeLineCount=56` · `gapLineCount=0` |
+| **CHROBREGO G3 Final Bid** | **CLOSED / PERSISTED** · net **159000** / gross **195570** |
 | **FULL IK E2E harness** | **GREEN** · exit **0** · child suites **63/0 · 69/0 · 41/0** · **CODE/TEST** · **≠** global prod PV |
 | **G2 material (global / other tenders)** | **case-by-case** · CHROBREGO LP22 **CLOSED** |
-| **G3 / Experience Phase 5** | **NOT STARTED** · **NOT AUTHORIZED** |
+| **Experience Phase 5** | **NOT AUTHORIZED** |
 | **KNR Slice A** | catalogBasis evidence · **PRODUCTION VERIFIED** (tip historia `93eb41be`) |
 | **Historical Host Wiring** | `64f38479` · **PRODUCTION EXISTING** |
 | **Historical EC reveal** | `b31169be` · **PRODUCTION VERIFIED** (2026-08-21) |
@@ -427,22 +437,27 @@ Handoff: [`IK-OWNER-A09-PACKAGE-S1-IMPLEMENTATION.md`](./IK-OWNER-A09-PACKAGE-S1
 
 **Nie** generalizuj tych liczb na cały IK / wszystkie przetargi.
 
-### 8.3 CURRENT READINESS (2026-08-31 · source-verified)
+### 8.3 CURRENT READINESS (2026-09-03 · source-verified)
 
 | Dimension | Current |
 |-----------|---------|
-| Decision Tree | **ACTIVE / PRIMARY** (§10.0) |
-| Orchestra | **CONNECTED** |
+| Decision Tree | **ACTIVE / PRIMARY** (§10.0) · **jeden** systemowy tree · case branches poniżej |
+| CURRENT case branch | **ŚRODA A0.2** |
+| Orchestra | **CONNECTED** · **single sequencer** |
+| Host | **IkEntryHost = adapter/consumer** · **≠** sequencer |
 | Core E2E harness | **GREEN** (exit 0) |
 | Composite suite | **GREEN** (63 PASS / 0 FAIL) |
 | Autonomy P0 | **GREEN** (69 PASS / 0 FAIL) |
 | BOM coverage | **GREEN** (41 PASS / 0 FAIL) |
-| CHROBREGO | **CLOSED / 56/0** |
+| ŚRODA A0.2 | **code+KV LIVE** · frontend PV **NOT VERIFIED** |
+| CHROBREGO | **CLOSED / 56/0** · G3 **PERSISTED** · **NIE reopen** |
 | Protected invariants | **PASS** (harness regression) |
 | Production writes during E2E | **0** (batchSet/accept/OUR RATE/…) |
-| Catalog fingerprint (E2E run) | **stable** `57\|2026-08-30T21:02:53.721Z` |
-| G3 Final Bid | **CHROBREGO PERSISTED** (`ikFinalBid` 159000) · **≠** global PV |
+| Catalog fingerprint (E2E run hist.) | **stable** `57\|2026-08-30T21:02:53.721Z` · **A0.2 KV now rev 57 / work 878** |
+| G3 Final Bid | **CHROBREGO PERSISTED** (`ikFinalBid` 159000) · **≠** global PV · **≠** Środa Final Bid |
 | Experience Phase 5 | **NOT AUTHORIZED** |
+| AUTONOMY-08 epic | **OPEN** |
+| W3–W6 connectivity | **NOT auto-authorized** |
 | Global Production IK signoff | **NOT CLAIMED** — harness GREEN ≠ prod PV |
 
 **Distinction (HARD):**
@@ -492,33 +507,37 @@ LP22 MATERIAL: 0% (owner) — does NOT change global labor 25%
 
 Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT (gdy Decision Tree wymaga GO).
 
-**★★ CHROBREGO CURRENT NODE (2026-08-31):**  
-**`CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS — CODE PUSHED — WAIT FOR DEPLOY/PV OWNER GO`**  
-(SSOT: **§10.0** — szczegóły LP tylko tam; nie duplikuj tu).
+**★★ CURRENT NODE (2026-09-03):**
+**`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV WAITING / NOT VERIFIED`**
+(SSOT: **§10.0** — szczegóły LP/coverage tylko tam; nie duplikuj tu).
+
+**CLOSED CASE (NIE CURRENT):**
+**`CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS`** — benchmark / history · **NIE reopen** · **NIE** przepinaj Środy.
 
 Legalne następne gałęzie (wymagają Owner GO — AI **nie** wybiera sam):
 
 | # | Gałąź | Status | Wymaga |
 |---|--------|--------|--------|
+| A0 | **A0.2 frontend Production Verify** | **WAITING / NOT VERIFIED** | live tip = **2.66.137 / 590f95e9** · **≠** claim PV przy tip **2.66.136 / f3ec166** |
 | A | **G3 Final Bid** (CHROBREGO) | **CLOSED / PERSISTED** | `ikFinalBid` 159000/36570/195570 · **≠** reopen |
-| B | **Experience Phase 5** | **NOT AUTHORIZED** | osobny Owner GO · **≠** auto po G3 |
-| C | **Global IK Production signoff** | **NOT CLAIMED** | osobny PV / Owner GO · harness GREEN **≠** prod PV · G3 **≠** global PV |
-| D | **Inny tender / case** | per audit | nowy Decision Tree case · **≠** reopen CHROBREGO |
-| E | **AUTONOMY-08 epic closeout** | **OPEN** | pozostałe gates + Owner · **≠** auto po CHROBREGO G3 |
+| B | **Experience Phase 5** | **NOT AUTHORIZED** | osobny Owner GO · **≠** auto po A0.2 / G3 |
+| C | **Global IK Production signoff** | **NOT CLAIMED** | osobny PV / Owner GO · harness GREEN **≠** prod PV |
+| D | **Dalszy Środa / inny REAL SOURCE** | per audit | **ten sam** Decision Tree · nowy case branch · **≠** reopen CHROBREGO · **≠** invent Expert |
+| E | **AUTONOMY-08 epic closeout** | **OPEN** | pozostałe gates + Owner · **≠** auto po A0.2 / CHROBREGO G3 |
 | F | **W3–W6 connectivity waves** | **NOT auto-authorized** | governance §2A |
 
 **CLOSED — NIE POWTARZAĆ bez nowego Owner Decision Gate:**
 
-- CHROBREGO **cała ścieżka G1/G2** doprowadzona do **56/0** (identity · labor · material · quantities)
+- CHROBREGO **cała ścieżka G1/G2/G3** → **56/0** + Final Bid **159000** (identity · labor · material · quantities · bid)
 - F1 catalog-name m² · F2 margin **20%** · G2 Accept LP **7/8/12/13/14** · LP20/22/30/48 · OUR RATE writes dla closed workIds
-- **G3 Final Bid** CHROBREGO — `ikFinalBid` **159000** netto (Owner override vs P7 152900)
 - Idempotent/no-op **≠** reopen gałęzi
+- **A0.2 CatalogWork CREATE** (8 ids) — **nie** redo seed bez nowego GO · 2nd execute już **SKIPPED_NO_CHANGE**
 
 **HISTORY / progression evidence (NIE CURRENT):** cutover progression `48/8` → `49/7` → `50/6` → `54/2` → `55/1` → **`56/0`** — zachowane w audit artefacts only.
 
 **IK AUTONOMY-08 P2:** **COMPLETE / CLOSED**. **Nie** reopen.
 
-**IK AUTONOMY-08 P3:** **IMPLEMENTED** @ **`3822acb`**. **P3 OPEN** (epic) — G1 PV **PASS** · **CHROBREGO G1+G2 CLOSED/PASS · 56/0**. **Nie** zamykaj całego P3/epic tylko dlatego, że CHROBREGO PASS. **Nie** fabricuj candidate.
+**IK AUTONOMY-08 P3:** **IMPLEMENTED** @ **`3822acb`**. **P3 OPEN** (epic) — G1 PV **PASS** · **CHROBREGO G1+G2+G3 CLOSED/PASS · 56/0**. **Nie** zamykaj całego P3/epic tylko dlatego, że CHROBREGO PASS albo A0.2 PASS. **Nie** fabricuj candidate.
 
 **IK-MIGRATION-01:** P0–P9 LOCKED — **nie** wracaj do „GO P1 entry shell” / „GO P2 Document Expert” jako next.
 
@@ -539,47 +558,118 @@ Kandydaci poza CHROBREGO / A08 (post-A09):
 
 **NIE** invent S10 / drugiego TenderModule / auto-Accept / global D=ON jako IK / REMOVE NG-10 / auto-start G3 po G2 m².
 
-Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md).  
-**CHROBREGO live checkpoint:** **§10.0 · §22** (ten plik).
+Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md).
+**CURRENT live case:** **ŚRODA A0.2 — §10.0 · §22**. **CHROBREGO CLOSED case:** **§10.0**.
 
-### 9.1 Roadmap (post-CHROBREGO 56/0 · wymaga Owner GO)
+### 9.1 Roadmap (post-A0.2 · wymaga Owner GO)
 
 | Priorytet | Track | Status | Uwagi |
 |-----------|-------|--------|-------|
+| 0 | **A0.2 frontend PV** | **WAITING / NOT VERIFIED** | tip must show **2.66.137 / 590f95e9** · KV already LIVE |
 | 1 | **G3 Final Bid** persist | **CHROBREGO CLOSED** | DF A08-P4 · `ikFinalBid` · inne tendery: osobny GO |
 | 2 | **Experience Phase 5** | **NOT AUTHORIZED** | ETA / Final Wrap-up · DF exists · no impl |
 | 3 | **Global IK Production signoff** | **NOT CLAIMED** | harness GREEN ≠ prod PV |
-| 4 | **AUTONOMY-08 epic closeout** | **OPEN** | pozostałe gates poza CHROBREGO |
+| 4 | **AUTONOMY-08 epic closeout** | **OPEN** | pozostałe gates · **≠** A0.2 alone |
 | 5 | **W3–W6 connectivity** | **NOT auto-authorized** | Chief/Hub convergence §2A |
 | 6 | **KNR full catalog / Phase 2E** | **PARTIAL / OPEN** | Global KNR on-MISS discovery+reanalysis **LANDED** (`0d9880fb`) · full Phase 2E catalog product **OPEN** |
-| 7 | **Inny tender / REAL SOURCE** | per audit | nowy Decision Tree case |
+| 7 | **Środa follow-up / inny REAL SOURCE** | per audit | coverage residual L+T+U · LP20 rank1 not required · **≠** invent Expert |
 | 8 | **TM-01 residuals C1–C6** | backlog | Owner GO only |
 
-**Realne GAP-y (nie invent):** global material G2 Accept when Chief OFF · full Phase 2E catalog (beyond Global KNR discovery LANDED) · A09 Owner-priced rate · unit proof (pkt≠mb global) · interactive UI smoke residuals (Owner) · **≠** CHROBREGO billable lines.
+**Realne GAP-y (nie invent):** global material G2 Accept when Chief OFF · full Phase 2E catalog (beyond Global KNR discovery LANDED) · A09 Owner-priced rate · unit proof (pkt≠mb global) · interactive UI smoke residuals (Owner) · structural L+T+U admission noise (Środa · outside A0.2) · **≠** CHROBREGO billable lines · **≠** A0.2 F5 “fix”.
 
 ---
 
 ## 10. Pełne drzewo IK (CURRENT · source-verified)
 
-### 10.0 ★★ CURRENT DECISION TREE — CHROBREGO (2026-08-31)
+### 10.0 ★★ CURRENT DECISION TREE — ŚRODA A0.2 (2026-09-03) · CHROBREGO CLOSED CASE
 
-> **SSOT continuity node for case CHROBREGO.**  
-> Architecture/module tree poniżej (§10 body) = **SYSTEM / ARCHITECTURE MODULE MAP** — **nie** mylić z **CASE DECISION TREE** poniżej.  
-> **Jeden** Decision Tree case'a = ten podrozdział. **Nie** twórz drugiego.
+> **Jeden systemowy Decision Tree** — **nie** twórz drugiego globalnego drzewa.
+> **CURRENT case branch** = **ŚRODA A0.2**.
+> **CLOSED case branch** = **CHROBREGO** (benchmark / history · **NIE reopen** · **NIE** flow Środy przez CHROBREGO).
+> Architecture/module tree poniżej (§10 body) = **SYSTEM / ARCHITECTURE MODULE MAP** — **nie** mylić z **CASE DECISION TREE**.
 
-| Pole | Wartość (source-verified 2026-08-31) |
+| Pole | Wartość (source-verified 2026-09-03) |
 |------|--------------------------------------|
+| **PRIMARY CONTRACT** | **Decision Tree (§10.0) = PRIMARY CONTINUITY CONTRACT** · HISTORY/LEGACY ≠ CURRENT · chat memory ≠ SSOT |
+| **CURRENT NODE** | **`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV WAITING / NOT VERIFIED`** |
+| **CURRENT tender** | `08deff6c-bc34-619e-b346-0300010ce2e5` · Gmina Środa Śląska |
+| **A0.2 commit** | **`590f95e9`** (`fix(ik): seed sroda A0.2 catalog safely`) |
+| **A0.2 code/release** | **committed + pushed** · UI changelog **2.66.137** |
+| **A0.2 KV** | **LIVE** · revision **56→57** · workCount **862→878** · regions **wrocław 8/8** · **dolnyslask 8/8** · 2nd execute **SKIPPED_NO_CHANGE** |
+| **A0.2 frontend PV** | **NOT VERIFIED** · last `/version.json` = **2.66.136 / f3ec166** · **DEPLOY PROPAGATING** |
+| **F5 baseline** | **84** · **F5 delta = not acceptance criterion** · **≠** F5 fixed/reduced/solved |
+| **Baseline BOQ** | raw **168** · composed **84** · TRUE_OWNER **44** · WEAK **40** |
+| **metadata-induced FP** | **0** · `descriptionPl=""` · podejście objectMarkers ≠ ustęp |
+| **Mapper / F5 / scoring / P1–P3** | **UNCHANGED** by A0.2 |
+| **Residual (outside A0.2)** | structural **L+T+U admission noise** · accepted |
+| **CHROBREGO (CLOSED)** | tender `08df0363-7b22-e462-ab56-940001283cba` · **56/0** · Final Bid **159000/195570** · **NIE reopen** |
+| **Session artefacts** | `.tmp/catalog-ik-owner-sroda-a02-*.json` · TEMP audits · evidence only · **nie** drugi SSOT |
+| **Impl pointer** | `src/lib/work-catalog/ik-owner-create-sroda-a02-catalog.ts` · OPS `ik-owner-create-sroda-a02-ops.ts` · script `scripts/catalog-ik-owner-sroda-a02-ops.mjs` · tests **84/84** |
+
+#### CASE BRANCH — ŚRODA A0.2 (CURRENT)
+
+```text
+ŚRODA A0.2
+│
+├── REAL SOURCE
+│   └── tender 08deff6c-bc34-619e-b346-0300010ce2e5
+│
+├── WORK CATALOG COVERAGE (≠ new Expert · ≠ F5 scoring fix)
+│   ├── 8 CatalogWork implemented
+│   │   ├── p2b-wymiana-brodzika-kabiny-kpl
+│   │   ├── p2b-wymiana-syfonu-szt
+│   │   ├── p2b-wymiana-podejscia-pvc-szt
+│   │   ├── p2b-wymiana-ustepu-kompakt-kpl
+│   │   ├── p2b-wypelnienie-spoin-silikonem-mb
+│   │   ├── p2b-wymiana-okien-m2
+│   │   ├── p2b-demontaz-oscieznic-krat-okiennych-m2
+│   │   └── p2b-wymiana-parapetow-zewnetrznych-mb
+│   ├── descriptionPl = ""
+│   ├── metadata-induced FP = 0
+│   └── podejście objectMarkers ≠ ustęp
+│
+├── KV
+│   └── rev 56 → 57 · LIVE · 8/8 + 8/8 · idempotency PASS
+│
+├── FRONTEND
+│   └── DEPLOY PROPAGATING / NOT VERIFIED (tip still 2.66.136 / f3ec166 @ last check)
+│
+├── COVERAGE AFTER KV (read-only evidence)
+│   ├── LP3  rank1
+│   ├── LP4  rank1
+│   ├── LP5  rank1
+│   ├── LP10 rank1
+│   ├── LP11 rank2
+│   ├── LP12 rank1
+│   ├── LP13 rank1
+│   ├── LP16 rank1
+│   ├── LP18 rank1
+│   └── LP20 rank2
+│       └── CATALOG COVERAGE PRESENT / RANK1 NOT GUARANTEED
+│           · NIE przedstawiaj LP20 jako failure
+│
+├── F5
+│   └── baseline 84 · delta NOT acceptance · NIE claim F5 fixed/reduced/solved
+│
+└── OUT OF SCOPE (accepted residual)
+    └── structural L+T+U admission noise
+```
+
+**A0.2 HARD:** Work Catalog coverage improvement only · **no** new Expert · **no** second Orchestra/Host/Decision Tree/Chief/Accept path/refresh bus · **no** mapper/F5/scoring/P1/P2/P3 changes.
+
+#### CASE BRANCH — CHROBREGO (CLOSED · 2026-08-31)
+
+| Pole | Wartość |
+|------|---------|
 | **Tender (pipeline)** | `08df0363-7b22-e462-ab56-940001283cba` |
 | **OCDS** | `ocds-148610-6f859612-6631-426b-83fc-830bfec1c888` |
 | **BZP** | `2026/BZP 00408278/01` · Chrobrego 34a |
 | **Cutover** | **`completeLineCount=56` · `gapLineCount=0` · `pass=true`** |
-| **CURRENT NODE** | **`CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS — CODE PUSHED — WAIT FOR DEPLOY/PV OWNER GO`** |
+| **CLOSED NODE** | **`CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS`** |
 | **G3 Final Bid** | **`ikFinalBid`** · net **159000** · VAT **36570** · gross **195570** · kind `ik_g3_final_bid` · **≠** submittedBidPln |
-| **PRIMARY CONTRACT** | **Decision Tree (§10.0) = PRIMARY CONTINUITY CONTRACT** · HISTORY/LEGACY ≠ CURRENT · chat memory ≠ SSOT |
-| **Session artefacts** | `.tmp-chrobrego-g1-audit/*` · `ik-full-pipeline-e2e-report.json` — evidence only · **nie** drugi SSOT |
-| **Catalog live count** | **57** CatalogWork (E2E fingerprint) · **HISTORY:** DF lock **471** superseded — **nie** używać jako CURRENT |
+| **Session artefacts** | `.tmp-chrobrego-g1-audit/*` · `ik-full-pipeline-e2e-report.json` — evidence only |
 
-#### CASE DECISION TREE
+#### CASE DECISION TREE (CHROBREGO — CLOSED)
 
 ```text
 CHROBREGO
@@ -672,15 +762,15 @@ CHROBREGO
 **HISTORY / progression evidence (NIE CURRENT):**
 
 ```text
-48/8 → 49/7 → 50/6 → 54/2 → 55/1 → 56/0 (CURRENT)
+48/8 → 49/7 → 50/6 → 54/2 → 55/1 → 56/0 (CHROBREGO CLOSED)
 ```
 
 **CLOSED BRANCH PROTECTION (CHROBREGO):**
 
-Nie wolno bez **nowego** Owner Decision Gate: ponownie zamknięte identity · labor Accept · material Accept · quantity decisions · OUR RATE writes · margin overrides dla closed workIds.  
-**Idempotent/no-op ≠ reopen.**
+Nie wolno bez **nowego** Owner Decision Gate: ponownie zamknięte identity · labor Accept · material Accept · quantity decisions · OUR RATE writes · margin overrides · Final Bid dla closed workIds.
+**Idempotent/no-op ≠ reopen.** **NIE** powtarzaj G1/G2/G3 · LP20/22/30/48 · m² · quantity · final bid bez nowego GO.
 
-**Owner Decision Contract (reminder):** Owner = jedyne źródło workId · classification · marginPct · Accept · quantity · Final Bid. AI = analyze / diagnose / propose / WHAT-IF — **nie** invent decision / margin / auto-Accept / bypass gate.
+**Owner Decision Contract (reminder):** Owner = jedyne źródło workId · classification · marginPct · Accept · quantity · Final Bid. AI = analyze / diagnose / propose / WHAT-IF — **nie** invent decision / margin / auto-Accept / bypass gate. **A0.2 nie zmienił tej zasady.**
 
 ### 10.0.1 FULL IK E2E — harness status (2026-08-31)
 
@@ -1368,7 +1458,7 @@ CLASSIFICATION
         G3 FINAL BID        ← separate Owner GO · persist · **NOT STARTED**
 ```
 
-**Orchestra = jedyny IK sequencer** (`IkOrchestraPageBridge` → `useIkOrchestra` → engine/runtime).  
+**Orchestra = jedyny IK sequencer** (`IkOrchestraPageBridge` → `useIkOrchestra` → engine/runtime).
 **IkEntryHost = adapter.** Chief ≠ IK sequencer. Experience ≠ second IK engine.
 
 KNR dostarcza: kontekst normatywny · R/M/S evidence · historyczne porównania.
@@ -1420,20 +1510,23 @@ AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW
 ## 17. COLD START — NEW GPT / NEW CURSOR AGENT (obowiązkowe)
 
 ```text
-CHECKPOINT (2026-08-31 · CHROBREGO 56/0 + FULL IK E2E GREEN):
-  ★★ FIRST: CURRENT DECISION TREE = §10.0 (CHROBREGO)
-  ★★ CURRENT NODE = CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS — CODE PUSHED — WAIT FOR DEPLOY/PV OWNER GO
+CHECKPOINT (2026-09-03 · ŚRODA A0.2 CURRENT · CHROBREGO CLOSED · FULL IK E2E GREEN):
+  ★★ FIRST: CURRENT DECISION TREE = §10.0 (ŚRODA A0.2 CURRENT · CHROBREGO CLOSED case)
+  ★★ CURRENT NODE = ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV WAITING / NOT VERIFIED
+  ★★ CHROBREGO = CLOSED CASE — 56/0 — FINAL BID 159000/195570 — NIE reopen · NIE flow Środy przez CHROBREGO
   Decision Tree = PRIMARY CONTINUITY CONTRACT (header · §10.0 · §22)
   §22-LEGACY / HISTORY WAIT ≠ CURRENT · chat history ≠ SSOT (przy sprzeczności: zgłoś, nie zgaduj)
   Master Connectivity Contract = §2A ACTIVE · OD-W0-GO GRANTED (governance only)
   Orchestra = single IK sequencer (IkOrchestraPageBridge → useIkOrchestra → engine/runtime)
   IkEntryHost = UI adapter/consumer — NOT sequencer
+  Expert chain intact: Document/BOQ → Classification → KNR → Labor → Material → Composite → P7 → P8 → Owner Gates → Final Bid
+  A0.2 = Work Catalog coverage · ≠ new Expert · ≠ mapper/F5/scoring/P1–P3
   A08-P3 IMPLEMENTED · P3 OPEN (epic) · G1 PV PASS · CHROBREGO G1+G2+G3 CLOSED 56/0 · FINAL BID 159000
-  FULL IK E2E harness GREEN (§10.0.1) · **≠** global prod PV · **≠** G3 · **≠** Phase 5
-  G3 Final Bid NOT STARTED · Experience Phase 5 NOT AUTHORIZED
+  FULL IK E2E harness GREEN (§10.0.1) · **≠** global prod PV · **≠** Phase 5
+  Experience Phase 5 NOT AUTHORIZED · AUTONOMY-08 OPEN · W3–W6 NOT auto-authorized
   Tip UI/commit = docs/AI/09_PRODUCTION_BASELINE.md + live version.json (nie hardcoduj tu)
   Protected invariants = §8.4 · regression harness test-ik-full-pipeline-e2e.mjs
-  W3–W6 connectivity waves NOT auto-authorized · CONNECTED ≠ Production Verified
+  REUSE: SEARCH → TRACE → REUSE → CONNECT → VERIFY → NEW only if proven GAP
 ```
 
 ### COLD START PROCEDURE (obowiązkowa kolejność)
@@ -1442,24 +1535,24 @@ Nowy agent (Cursor / ChatGPT) **MUSI**:
 
 ```text
 1. Przeczytaj TEN Master SSOT (całość) — zwłaszcza DECISION TREE primacy (header) + §10.0 + §22
-2. Ustal CURRENT DECISION TREE (§10.0 CHROBREGO) + CURRENT NODE
+2. Ustal CURRENT DECISION TREE (§10.0 ŚRODA A0.2) + CURRENT NODE + CLOSED CHROBREGO case
 3. Przeczytaj CLOSED BRANCHES + OPEN BRANCHES (§10.0 · §9 · §22)
 4. Przeczytaj ostatni verified checkpoint (§22 CURRENT) — nie mylić z HISTORY/PRIOR STATE
 5. Przeczytaj Decision Framework W0 — IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md (OD-W0-GO)
-6. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + live version.json
+6. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + live version.json (rozdziel REPO tip vs LIVE tip)
 7. Dopiero potem: grep/repo audit (REUSE MAP · orchestra · ownerGate)
 8. Trace Orchestra: IkOrchestraPageBridge → useIkOrchestra → engine/runtime → ownerGate
 9. git status — rozpoznaj pre-existing WIP · NIE stage WIP · NIE git add -A
 10. Classify: REUSE / CONNECT / VERIFY vs NEW (§2A · 15-question gate)
-11. NIE powtarzaj CLOSED CHROBREGO operations (G1/G2 · LP20/22/30/48 · m² · quantities · 56/0)
+11. NIE powtarzaj CLOSED CHROBREGO operations (G1/G2/G3 · LP20/22/30/48 · m² · quantities · 56/0 · Final Bid)
 12. NIE wybieraj sam Owner Decision · NIE przechodź do kolejnej gałęzi bez wymaganego GO
 13. Jeżeli chat/historia ≠ §10.0 Decision Tree → **zgłoś sprzeczność** · drzewo ma pierwszeństwo · NIE zgaduj
 14. Obtain explicit Owner GO for the next OPEN branch — dopiero potem IMPLEMENT → TEST → VERIFY
 ```
 
-**Pierwsze pytanie po cold starcie NIE jest:** „co robić od początku?”  
-**Jest:** „jaki jest CURRENT NODE w Decision Tree i jakie są legalne następne przejścia?”  
-(**CURRENT NODE** = `CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS — CODE PUSHED — WAIT FOR DEPLOY/PV OWNER GO`)
+**Pierwsze pytanie po cold starcie NIE jest:** „co robić od początku?”
+**Jest:** „jaki jest CURRENT NODE w Decision Tree i jakie są legalne następne przejścia?”
+(**CURRENT NODE** = `ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV WAITING / NOT VERIFIED`)
 
 **Po przeczytaniu SSOT agent MUSI rozumieć:**
 
@@ -1473,12 +1566,13 @@ Nowy agent (Cursor / ChatGPT) **MUSI**:
 8. **Eksperci IK** już istnieją (Document → KNR → Class → Labor → Material → Composite → P7 → P8).
 9. Work Catalog / Price Memory / Evidence / F5 / Bid / PDF **już istnieją**.
 10. **Expert Conversation + Live Viz** Phases **1–4 CLOSED GREEN** · Phase **5 NOT AUTHORIZED**.
-11. G3 Final Bid persist = **OUT OF P3** — osobny Owner GO · **nie** auto po G2 m².
+11. CHROBREGO G3 Final Bid = **CLOSED** · inne tendery Final Bid = osobny Owner GO.
 12. Statusy connectivity (§2A.2): CONNECTED ≠ Production Verified.
 13. **Owner jest decydentem** (OUR RATE / Accept / classification / margin / Final Bid).
 14. Workflow: **AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO → IMPLEMENT → TEST → VERIFY → COMMIT → PUSH → PRODUCTION VERIFY**.
 15. **SEARCH BEFORE CREATE · REUSE → CONNECT → VERIFY · ZERO DUPLICATE LOGIC / PARALLEL ACCEPT.**
 16. Never reopen CLOSED GREEN / CLOSED CHROBREGO branches (56/0) without explicit Owner request.
+17. A0.2 = catalog coverage · **≠** new Expert · **≠** F5 fix · frontend PV may lag KV.
 
 **KONTYNUUJ WGDOM IK — NIE BUDUJ OD NOWA. NIE POWTARZAJ CLOSED.**
 
@@ -1533,29 +1627,33 @@ Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phas
 
 ---
 
-## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-08-31 · CHROBREGO 56/0 CLOSED)
+## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-09-03 · ŚRODA A0.2 CURRENT)
 
 ### CURRENT HEAD
 
 | Pole | Wartość |
 |------|---------|
-| **CURRENT CHECKPOINT** | **CHROBREGO** · §10.0 Decision Tree · **56/0 PASS** |
-| **Pipeline tenderId** | `08df0363-7b22-e462-ab56-940001283cba` |
-| **OCDS** | `ocds-148610-6f859612-6631-426b-83fc-830bfec1c888` |
-| **BZP** | `2026/BZP 00408278/01` |
+| **CURRENT CHECKPOINT** | **ŚRODA A0.2** · §10.0 Decision Tree · Work Catalog coverage |
+| **Pipeline tenderId** | `08deff6c-bc34-619e-b346-0300010ce2e5` |
+| **A0.2 commit** | **`590f95e9`** |
+| **A0.2 KV** | **LIVE** · rev **57** · **8/8×2** · idempotency **PASS** |
+| **A0.2 frontend PV** | **NOT VERIFIED** · live tip last check **2.66.136 / f3ec166** |
+| **Repo / changelog tip** | **2.66.137** / **`590f95e9`** (awaiting Vercel propagate) |
+| **CLOSED CASE** | **CHROBREGO** · `08df0363-7b22-e462-ab56-940001283cba` · **56/0** · Final Bid **159000/195570** |
 | **P3 deploy commit (gates)** | **`3822acb3724493b349c08a33bc584c7afe5dde31`** |
-| **UI version / repo tip** | czytaj [`09`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` |
+| **UI version / tip SSOT** | czytaj [`09`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` |
 | **Production** | https://www.wgdom.fun |
 | **Master SSOT** | **TEN PLIK** |
-| **E2E report** | `.tmp-chrobrego-g1-audit/ik-full-pipeline-e2e-report.json` |
+| **Impl / tests** | `ik-owner-create-sroda-a02-catalog.ts` · `test-ik-owner-sroda-a02-catalog.mjs` **84/84** |
 
 ### CURRENT PHASE / CURRENT NODE
 
-**`CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS — CODE PUSHED — WAIT FOR DEPLOY/PV OWNER GO`**  
-(pełne drzewo + LP = **§10.0** — nie odtwarzaj z historii czatu).  
-A08-P3 epic: **IMPLEMENTED · nadal OPEN** (G3/Experience NOT STARTED · epic NOT CLOSED).  
-**Nie** zamykaj całego AUTONOMY-08 tylko dlatego, że CHROBREGO 56/0 PASS.  
-**Nie** claimuj global IK Production Verified tylko dlatego, że harness GREEN.
+**`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV WAITING / NOT VERIFIED`**
+(pełne drzewo + LP coverage = **§10.0** — nie odtwarzaj z historii czatu).
+A08-P3 epic: **IMPLEMENTED · nadal OPEN**.
+**Nie** zamykaj całego AUTONOMY-08 tylko dlatego, że A0.2 lub CHROBREGO PASS.
+**Nie** claimuj global IK Production Verified tylko dlatego, że harness GREEN lub KV LIVE.
+**Rozdziel:** A0.2 code/release = committed+pushed · A0.2 KV = LIVE · A0.2 frontend PV = NOT VERIFIED.
 
 ### CLOSED (do not reopen without Owner GO)
 
@@ -1565,62 +1663,67 @@ A08-P3 epic: **IMPLEMENTED · nadal OPEN** (G3/Experience NOT STARTED · epic NO
 - **CHROBREGO G2 Material** — **LP22** (material 200 · margin 0% · SELL 200)
 - **CHROBREGO quantities** — LP3/5/18/20/45
 - **CHROBREGO cutover** — **56/0 PASS**
+- **CHROBREGO G3 Final Bid** — **159000** net / **195570** gross · **PERSISTED**
 - **FULL IK E2E harness** — GREEN (read-only · zero prod writes)
+- **A0.2 CatalogWork CREATE** — 8 ids seeded · **nie** redo bez nowego GO
 
 ### OPEN / NOT STARTED / NOT AUTHORIZED
 
-- **G3 Final Bid** persist — **NOT STARTED** (osobny Owner GO · **≠** P7/P8)
+- **A0.2 frontend Production Verify** — **WAITING / NOT VERIFIED**
 - **Experience Phase 5** — **NOT AUTHORIZED**
 - **Global IK Production signoff** — **NOT CLAIMED**
-- **A08-P3 epic slice / AUTONOMY-08 epic** — not closed
-- Phase 2E full catalog (Global KNR on-MISS discovery **LANDED** `0d9880fb` · **≠** full 2E CLOSED) · TM-01 residuals · W3–W6 connectivity — per audit · Owner GO
+- **A08-P3 epic slice / AUTONOMY-08 epic** — **OPEN** (**≠** closed by A0.2)
+- Phase 2E full catalog · TM-01 residuals · W3–W6 connectivity · A09 Owner-priced rate · unit-proof gaps — per audit · Owner GO
+- Structural L+T+U admission noise (Środa) — residual accepted / outside A0.2
 
 ### BLOCKED / WAITING FOR
 
-- **G3 / Experience Phase 5** — not authorized / not started
-- **Next case / tender** — requires new Decision Tree + Owner GO
-- **HISTORY note:** „LP48 OPEN” / „G1 OWNER_REVIEW OPEN” / „G2 material WAIT” (2026-08-28) = **PRIOR STATE** — superseded by **56/0**
+- **Frontend tip propagate** — live `version.json` must reach **2.66.137 / 590f95e9** before A0.2 frontend PV PASS
+- **Experience Phase 5** — not authorized
+- **HISTORY note:** CHROBREGO jako CURRENT NODE (2026-08-31) = **PRIOR** — superseded by ŚRODA A0.2 CURRENT (CHROBREGO remains CLOSED case)
 
 ### DO NOT TOUCH / DO NOT REPEAT
 
-- Mock/seed candidate · fabricated identity · reopen closed CHROBREGO branches
+- Mock/seed candidate · fabricated identity · reopen closed CHROBREGO branches (G1/G2/G3 · LP20/22/30/48 · m² · quantity · final bid)
+- Claim F5 fixed/reduced/solved from A0.2 · invent A0.2 Expert · second Orchestra/Host/Decision Tree
 - Apply m² OUR RATE / catalog-name override to **LP48 mb**
-- G3 / Experience / commit / push / deploy bez Owner GO
-- S6/P4 closed code · payroll/cloud-sync without PAYROLL_SAFETY_GATE · `git add -A`
-- Treat harness GREEN as global prod PV
+- Experience Phase 5 / commit/push/deploy bez Owner GO
+- S6/P4 closed code · payroll/cloud-sync without PAYROLL_SAFETY_GATE · `git add -A` · `vercel deploy`
+- Treat harness GREEN or KV LIVE as global / frontend prod PV
 
 ### NEXT LEGAL ACTION
 
-Owner GO na **jedną** gałąź z §9 (np. **G3 Final Bid** · **Experience Phase 5** · **inny tender** · **epic closeout**) — AI **nie** inventuje wyboru.
+Owner GO na **jedną** gałąź z §9 (np. **A0.2 frontend PV** · **Środa follow-up** · **Experience Phase 5** · **epic closeout**) — AI **nie** inventuje wyboru.
 
 ### OWNER DECISIONS REQUIRED
 
-| Decision | Status (2026-08-31) |
+| Decision | Status (2026-09-03) |
 |----------|---------------------|
 | **OD-P3-1** G1 contract | **APPROVE** |
 | **OD-P3-2** G2 contract | **APPROVE** |
 | **CHROBREGO G1+G2+G3 full path** | **EXECUTED CLOSED** · **56/0** · Final Bid **159000** net / **195570** gross |
 | **CHROBREGO LP20/22/30/48** | **EXECUTED CLOSED** |
 | **FULL IK E2E harness** | **GREEN** (CODE/TEST) |
+| **A0.2 Środa CatalogWork** | **EXECUTED** · code+KV LIVE · frontend PV **WAITING** |
 | **OD-P3-3** G2 material PV (global) | **CHROBREGO LP22 CLOSED** · inne tendery case-by-case |
 | **OD-P3-4** Material Chief | **hard dependency** (material Accept path global) |
 | **OD-P3-5** Prod use | **REQUIRE EVIDENCE BEFORE PROD** (global) |
 | **OD-P3-7** APF boundary | **KEEP SEPARATE** |
-| G3 / Experience Phase 5 | **NOT STARTED** — osobny GO |
-| Close A08-P3 / epic | Only after remaining OPEN gates + Owner |
+| Experience Phase 5 | **NOT AUTHORIZED** — osobny GO |
+| Close A08-P3 / epic | Only after remaining OPEN gates + Owner · **≠** A0.2 alone |
 
 ### SAFETY COUNTERS (E2E verified · read-only run)
 
 | Counter | Value |
 |---------|-------|
-| batchSet / accept / ourRateWrite / g2 / p7 / g3 | **0** |
+| batchSet / accept / ourRateWrite / g2 / p7 / g3 | **0** (E2E harness) |
 | researchHttp | **0** |
-| catalogMutation / priceMemoryWrite / workQuotesWrite | **0** |
-| G3 (process) | **0** |
+| catalogMutation / priceMemoryWrite / workQuotesWrite | **0** (E2E) |
+| A0.2 KV seed (authorized OPS) | **rev 56→57** · LIVE |
 | Experience (process) | **0** |
-| Commit (this docs session) | **0** |
-| Push | **0** |
-| Deploy | **0** |
+| Commit (this docs closeout session) | **0** (pending Owner GO) |
+| Push (this docs closeout) | **0** |
+| Deploy (this docs closeout) | **0** |
 
 ### READ FIRST (ordered)
 
@@ -1629,6 +1732,52 @@ Owner GO na **jedną** gałąź z §9 (np. **G3 Final Bid** · **Experience Phas
 3. [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md)
 4. [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md)
 5. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
+
+### SESSION CLOSEOUT ENTRY — 2026-09-03 · EPIC A0.2 ŚRODA
+
+```text
+2026-09-03
+EPIC A0.2 — ŚRODA Work Catalog Coverage
+
+A0.2 metadata hardening:
+PASS
+
+Implementation:
+8 CatalogWork + OPS + tests
+
+Tests:
+84/84 PASS
+
+Build:
+PASS
+
+KV:
+CAS safe push
+revision 56 → 57
+8/8 × 2 regions
+idempotency PASS
+
+Commit:
+590f95e9
+
+Frontend:
+DEPLOY PROPAGATING at last verification
+/version.json still 2.66.136 / f3ec166
+Production frontend PV NOT VERIFIED
+
+Known residual:
+structural L+T+U admission noise
+accepted / outside A0.2 scope
+
+No mapper/F5/scoring/P1/P2/P3 changes.
+```
+
+### HISTORY / PRIOR STATE — §22 (2026-08-31 · CHROBREGO 56/0 CURRENT)
+
+> **Superseded as CURRENT NODE by ŚRODA A0.2 (2026-09-03).** CHROBREGO pozostaje **CLOSED CASE** w §10.0.
+
+- CURRENT NODE then: *CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS*
+- **Nie** używaj tego bloku jako CURRENT NODE.
 
 ### HISTORY / PRIOR STATE — §22 (2026-08-28 · partial G2 m²)
 
@@ -1737,8 +1886,8 @@ P8 ≠ G3
 Harness GREEN ≠ Production Verified
 ```
 
-**OWNER = DECISION MAKER.** Owner kontroluje: workId · identity overrides · classification · unit decisions · margin · Candidate acceptance · OUR RATE acceptance · Material acceptance · KNR mapping boundaries · Final Bid.  
-IK może: analyze · research · compare · propose · calculate · explain · detect risk · prepare decision · prepare bid (P7/P8 read-only).  
+**OWNER = DECISION MAKER.** Owner kontroluje: workId · identity overrides · classification · unit decisions · margin · Candidate acceptance · OUR RATE acceptance · Material acceptance · KNR mapping boundaries · Final Bid.
+IK może: analyze · research · compare · propose · calculate · explain · detect risk · prepare decision · prepare bid (P7/P8 read-only).
 IK **nie** może samodzielnie przejąć Owner authority.
 
 ### 25.2 Enforcement table
@@ -1781,7 +1930,7 @@ IK **nie** może samodzielnie przejąć Owner authority.
 
 ---
 
-## 27. A08-P3 — DETAIL (CHROBREGO CURRENT + HISTORY blockers)
+## 27. A08-P3 — DETAIL (CHROBREGO CLOSED CASE + HISTORY blockers)
 
 | Milestone | Status |
 |-----------|--------|
@@ -1799,13 +1948,19 @@ IK **nie** może samodzielnie przejąć Owner authority.
 | FULL IK E2E | **GREEN** (harness + child suites · read-only) |
 | P3 closeout | **NOT AUTHORIZED** (epic OPEN) |
 
-**CHROBREGO G1+G2 summary (2026-08-31 · CURRENT):**
+**CHROBREGO G1+G2+G3 summary (2026-08-31 · CLOSED CASE):**
 
 - G1 identity path → **56/0**
 - Labor: paint m² · LP48 mb · LP20 mb · LP30 kpl — **CLOSED**
 - Material: LP22 — **CLOSED**
 - Quantities: LP3/5/18/20/45 — **CLOSED**
 - Cutover **56/0 PASS** · harness protected regression **PASS**
+- G3 Final Bid **159000/195570** — **CLOSED / PERSISTED**
+
+**ŚRODA A0.2 summary (2026-09-03 · CURRENT CASE):**
+
+- 8 CatalogWork · KV rev **57** LIVE · frontend PV **NOT VERIFIED**
+- metadata FP **0** · F5 baseline **84** (delta N/A) · residual L+T+U outside scope
 
 **HISTORY / PRIOR STATE (2026-08-28):** G2 m² only CLOSED · LP48 OPEN · G1 OWNER_REVIEW OPEN — **superseded**.
 
@@ -1840,52 +1995,47 @@ IK **nie** może samodzielnie przejąć Owner authority.
 | 2026-08-26 | **AUTONOMY-08 P3** | **`3822acb`** | **IMPLEMENTED · P3 OPEN · G2 WAIT** (HISTORY) |
 | 2026-08-28 | **CHROBREGO G1+G2 m²** | session · KV OUR RATE | **HISTORY** — G1 22 · G2 m² · LP48 still OPEN then |
 | 2026-08-31 | **CHROBREGO 56/0 + FULL IK E2E** | session · docs + harness | **G1+G2 CLOSED · cutover PASS · E2E GREEN** |
+| 2026-08-31 | **CHROBREGO G3 Final Bid** | session · `ikFinalBid` | **CLOSED / PERSISTED** · 159000/195570 |
+| 2026-09-03 | **EPIC A0.2 ŚRODA CatalogWork** | **`590f95e9`** | **8 works · KV 56→57 LIVE · frontend PV NOT VERIFIED** · tests **84/84** · **≠** AUTONOMY-08 close |
 
 Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md).
 
 ---
 
-## 29. MASTER SSOT COMPLETENESS AUDIT (2026-08-31)
+## 29. MASTER SSOT COMPLETENESS AUDIT (2026-09-03)
 
 | Obszar | Repo | SSOT (this doc) | Status |
 |--------|------|-----------------|--------|
-| IK root / philosophy | ✅ | ✅ §1–2 | **zgodne** |
-| Entry / Host | ✅ | ✅ §10–11.2 | **zgodne** |
-| Orchestra W1/W4/W5 | ✅ | ✅ §10 · §11.15 | **zgodne** |
-| CHROBREGO Decision Tree §10.0 | ✅ session | ✅ §10.0 | **CURRENT 56/0** |
-| FULL IK E2E harness | ✅ | ✅ §10.0.1 · §8.3 | **GREEN** |
-| Protected invariants | ✅ harness | ✅ §8.4 | **PASS** |
-| Owner Gates G1/G2 | ✅ | ✅ §11.16 · §27 | **zgodne** |
-| Persistence LS/KV | ✅ | ✅ §24 | **zgodne** |
-| Feature flags | ✅ | ✅ §23 | **zgodne** |
-| Safety / negative guards | ✅ | ✅ §25 | **zgodne** |
-| Roadmap post-56/0 | — | ✅ §9.1 | **uzupełnione** |
-| New agent handoff | ✅ | ✅ §22 | **zgodne** |
+| SYSTEM TREE (Tenders→…→ownerGate) | ✅ | ✅ §10 body · §2A | **intact** |
+| EXPERT CHAIN | ✅ | ✅ §10–§11 · header | **intact** |
+| Orchestra = single sequencer | ✅ | ✅ §2A · §11.15 | **PASS** |
+| Host = adapter | ✅ | ✅ §11.2 | **PASS** |
+| Owner Gates | ✅ | ✅ §11.16 · §27 | **intact** |
+| REUSE MAP | ✅ | ✅ §12 · §16 | **intact** |
+| CHROBREGO | ✅ closed | ✅ §10.0 CLOSED case | **CLOSED** |
+| ŚRODA A0.2 | ✅ `590f95e9` + KV | ✅ §8 · §10.0 · §22 | **CURRENT BRANCH** |
+| A0.2 8 CatalogWork | ✅ catalog.ts | ✅ §10.0 | **8/8** |
+| KV rev 57 | ✅ ops evidence | ✅ §8 · §10.0 · §22 | **recorded LIVE** |
+| Commit `590f95e9` | ✅ origin/main | ✅ header · §22 | **recorded** |
+| Frontend PV | live tip **2.66.136/f3ec166** | ✅ **NOT VERIFIED** | **honest split** |
+| AUTONOMY-08 | epic OPEN | ✅ OPEN | **OPEN** |
+| Experience Phase 5 | NOT AUTHORIZED | ✅ | **NOT AUTHORIZED** |
+| W3–W6 | NOT auto-auth | ✅ §2A · §9 | **NOT AUTO-AUTHORIZED** |
+| F5 | baseline 84 · unchanged by A0.2 | ✅ | **no false F5-fixed claim** |
 
-### MISSING ITEMS FOUND (pre-edit)
+### ITEMS ADDED / UPDATED (this closeout)
 
-- Orchestra layer not explicit in tree (only Host)
-- Owner Gates G1/G2 module entries absent
-- A08-P3 post-impl state absent
-- Central flag / persistence / safety tables absent
-- G2 WAIT / prod blocker state absent
-- Cold-start checkpoint stale (`82f3520` only)
-
-### ITEMS ADDED TO SSOT (this session)
-
-- §10 tree: Orchestra + Owner Gates branches
-- §11.15 Orchestra module card
-- §11.16 Owner Gates G1/G2 + PV matrix
-- §11.17 KNR-WC bridge pointer
-- §22 full NEW CHAT HANDOFF
-- §23–29 flag/persistence/safety/P3/history/audit
+- Header · §8 · §8.3 · §9 · §9.1 · §10.0 ŚRODA CURRENT + CHROBREGO CLOSED
+- §17 cold-start · §22 handoff · session closeout entry · §28 history · §29 audit
 
 ### UNRESOLVED CONFLICTS
 
 | ID | Source A | Source B | Resolution |
 |----|----------|----------|------------|
-| **C-09-P3** | [`09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) snapshot line 8: «P3 **NOT STARTED**» | Repo **`3822acb`** + harness 27/0 + G1 PV | **RESOLVED** (2026-08-28): `09` synced · P3 **IMPLEMENTED · OPEN** |
-| **C-P3-DF** | P3 DF header «IMPLEMENT NOT AUTHORIZED» (pre-impl doc) | Code on `main` | **RESOLVED** (2026-08-28): governance records **IMPLEMENTED** @ `3822acb` · **not** retroactive IMPLEMENT GO · **OD-P3-5 REQUIRE EVIDENCE BEFORE PROD** |
+| **C-FE-TIP** | Repo/`changelog` **2.66.137 / 590f95e9** | Live `/version.json` **2.66.136 / f3ec166** | **EXPECTED** · A0.2 frontend PV **NOT VERIFIED** · **DEPLOY PROPAGATING** · **nie** claim PV |
+| **C-09-STALE** | [`09`](../AI/09_PRODUCTION_BASELINE.md) tip snapshot may lag until this closeout lands | Master §10.0 / live evidence | Update **09** in same docs closeout (pointer + split LIVE vs REPO) |
+
+*(Prior C-09-P3 / C-P3-DF = RESOLVED 2026-08-28 — retained in git history.)*
 
 ---
 
@@ -1893,6 +2043,7 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 
 | SHA | Scope |
 |-----|-------|
+| `590f95e9` | **A0.2 ŚRODA** — 8 CatalogWork + CAS-safe seed OPS · KV rev 57 · frontend PV pending |
 | `3822acb` | **A08-P3 Owner Gates** — orchestra ownerGate API · IkOwnerGateActionsPanel · labor idempotency |
 | `b857a162` | Master SSOT conflict resolution (pre-P3 doc) |
 | `2fce3caf` | KNR-WC P4 trusted identity seam |
@@ -1917,7 +2068,7 @@ SYSTEM:      Intelligent Estimator (IK)
 
 HISTORY STATE (do not use as CURRENT NODE):
   A08-P3 @ 3822acb IMPLEMENTED · P3 OPEN · G2 WAIT = PRIOR (pre-CHROBREGO m²)
-  Pointer only → live CHROBREGO = §10.0 / §22 (2026-08-31 · 56/0)
+  Pointer only → CURRENT = ŚRODA A0.2 §10.0 / §22 · CHROBREGO = CLOSED CASE (56/0)
 
 BASELINE (frozen at time of legacy block — may drift):
   A08-P3 deploy = 3822acb3724493b349c08a33bc584c7afe5dde31

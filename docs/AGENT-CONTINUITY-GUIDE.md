@@ -1,11 +1,38 @@
 # W&G DOM — przewodnik ciągłości sesji deweloperskiej
 
-> **★★ AI START:** [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) → [`AI/MASTER-AI-HANDOFF.md`](AI/MASTER-AI-HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
-> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — tip UI **2.66.115** · deploy **`85a1ad7`** · **IK-KNR KL-6 CLOSED / PRODUCTION VERIFIED** · Phase 2D frozen ancestor **`77385b0c`** · live `version.json` · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
+> **★★ AI START:** [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) → [`AI/MASTER-AI-HANDOFF.md`](AI/MASTER-AI-HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)
+> **★★ PAYROLL = CRITICAL PROTECTED MODULE:** [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) — GO6.1 / GO8.1 / GO9.2 **FROZEN** · GO10 **NO-FIX** · **NOWY FEATURE ≠** Payroll sync refactor
+> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — REPO **2.66.137 / `590f95e9`** · LIVE last check **2.66.136 / f3ec166** · **A0.2 frontend PV NOT VERIFIED** · live `version.json` · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
+> **★★ IK Master SSOT:** [`architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) — **CURRENT = ŚRODA A0.2** · **CHROBREGO CLOSED**
 > **★★ Session handoff:** [`architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) — Wrocław targets · Połczyn NOT TARGET · NEXT AUDIT ONLY
 > **★★ TM-01 MASTER:** [`architecture/TENDER-MODERNIZATION-01-MASTER.md`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF [`architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)
 > **★★ Foundation Lib Phase 0:** **COMPLETE** (`bed8dd8`) · [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED** · App **nie** używa jeszcze lib.
 > **Cel:** living log *co zrobiliśmy / co robimy / gdzie SSOT* — **po** Entry + Gate, nie zamiast nich.
+
+## EPIC A0.2 — ŚRODA Work Catalog Coverage (2026-09-03)
+
+| | |
+|--|--|
+| **Status** | **code+KV LIVE** · **frontend PV NOT VERIFIED** |
+| **Tender** | `08deff6c-bc34-619e-b346-0300010ce2e5` · Gmina Środa Śląska |
+| **Commit** | **`590f95e9`** |
+| **KV** | rev **56→57** · work **862→878** · **8/8** wrocław + **8/8** dolnyslask · idempotency **PASS** |
+| **8 CatalogWork** | brodzik · syfon · podejście PVC · ustęp kompakt · silikon · okna · ościeżnice/kraty · parapety |
+| **Hard** | `descriptionPl=""` · metadata FP **0** · **≠** mapper/F5/scoring/P1–P3 · **≠** AUTONOMY-08 close |
+| **F5** | baseline **84** · delta **not** acceptance |
+| **SSOT** | Master [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 · §22 |
+| **CHROBREGO** | **CLOSED** 56/0 · **NIE reopen** |
+| **NEXT** | Owner GO · np. frontend PV when tip = 2.66.137 / 590f95e9 |
+
+## Payroll Protected Core — docs hardening (2026-08-30)
+
+| | |
+|--|--|
+| **SSOT** | [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) |
+| **GO9.2** | Single-flight payroll CAS · tip **`96dd9324`** · PRODUCTION VERIFIED |
+| **GO8.1** | Settlement intent · tip **`1f63e5c4`** · FROZEN |
+| **GO10** | Unsettle + historical `payrollSettlement` · **ACCEPTED NO-FIX** |
+| **Zakaz** | FEATURE bez Owner GO nie zmienia Payroll sync / CAS / FIFO / merge / settlement |
 
 ## C2 MOPS KNNR 1305 + Work Catalog P0/P0.1 — production closeout (2026-08-27)
 
@@ -115,7 +142,7 @@ Każde rozszerzenie (2nd source, 2nd key, BY_FAMILY, Edge, corpus, WC mapping) w
 
 > **★ Domknięcie (2026-08-25):** **IK-KNR KL-6 CLOSED** · **PRODUCTION VERIFIED** · deploy tip **`85a1ad7`** / UI **2.66.115** · UI **`ce192b1e`** · sidebar hotfix **`85a1ad7`** · Phase 2D frozen ancestor **`77385b0c`** · SSOT [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) §1 · **NIE** rozszerzać Phase 2D bez Owner GO · **NIE** auto-start Phase 2E ani approve/reject smoke · lokalny WIP (~1794 entries) **zachowany** · **NIE** `git add -A`.
 
-> **★ ZASADA COLD-START (LOCKED):** Nowy agent **nie** zaczyna implementacji na podstawie samego [`CURRENT-TASK.md`](../CURRENT-TASK.md).  
+> **★ ZASADA COLD-START (LOCKED):** Nowy agent **nie** zaczyna implementacji na podstawie samego [`CURRENT-TASK.md`](../CURRENT-TASK.md).
 > Najpierw czyta: [`WGDOM-COLD-START-HANDOFF`](AI/WGDOM-COLD-START-HANDOFF.md) · [`MASTER-AI-HANDOFF`](AI/MASTER-AI-HANDOFF.md) · [`MASTER_HANDOFF`](AI/MASTER_HANDOFF.md) · [`AI_QUICK_START`](AI/AI_QUICK_START.md) · [`TENDER-MODERNIZATION-01-MASTER`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · aktualny **DESIGN-FREEZE** slice/epicu · dopiero potem Entry + Gate + Owner GO.
 
 > **Prod tip:** patrz `docs/AI/09_PRODUCTION_BASELINE.md` · https://www.wgdom.fun · **STABILIZATION WINDOW ACTIVE**
@@ -344,7 +371,7 @@ Każde rozszerzenie (2nd source, 2nd key, BY_FAMILY, Edge, corpus, WC mapping) w
 | **NG-04 BOQ PRO** · **NG-02 Pipeline** · **NG-03 Workspace** | **CLOSED** | 2.63.x |
 | **TEST-INFRA-001** + **TI-B4** smoke Przetargi | **CLOSED** | 2.63.26–27 |
 
-**SSOT epic NG-09:** [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md) · [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md)  
+**SSOT epic NG-09:** [`architecture/NG-09-EPIC-CLOSE-REPORT.md`](architecture/NG-09-EPIC-CLOSE-REPORT.md) · [`SESSION-HANDOFF-NG-09-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-09-EPIC-CLOSE.md)
 **SSOT epic TEUX:** [`architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md`](architecture/NG-06-TEUX-EPIC-CLOSE-REPORT.md) · smoke: `npm run test:infra -- --suite smoke-teux`
 
 ### Co będzie robione (bez nowego epicu — STABILIZATION WINDOW)
@@ -412,7 +439,7 @@ Każde rozszerzenie (2nd source, 2nd key, BY_FAMILY, Edge, corpus, WC mapping) w
 13. AGENTS.md
 ```
 
-Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.  
+Hasło użytkownika **„kontynuuj WGDOM”** → dodatkowo `.cursor/rules/wgdom-stan-projektu.mdc`.
 Hasło **„domknij WGDOM”** → aktualizacja docs ciągłości + commit **tylko** docs (`.cursor/rules/wgdom-domkniecie-sesji.mdc`).
 
 ---
@@ -854,9 +881,9 @@ Faza projektowania procesu Payroll **zamknięta** (PROJECT PROCESS COMPLETE). Do
 | **PAYROLL-JOBS-ASSIGNMENT-SYNC-GUARD P0** | 2.63.16 · `31a687a` | **CLOSED** · `CloudSyncMutationGuard` · unit T11–T13 |
 | **PAYROLL-CLOUD-RECOVERY hotfix P0** | 2.63.15 | **CLOSED** · `mergeWeekEmployees` UNION |
 
-**Epic closeout NG-02 Pipeline:** [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](../audit/NG-02-EPIC-CLOSE-REPORT.md)  
-**Epic closeout Mobile Recovery:** [`SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)  
-**Epic closeout P1 Audit Hub WM:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)  
+**Epic closeout NG-02 Pipeline:** [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · [`audit/NG-02-EPIC-CLOSE-REPORT.md`](../audit/NG-02-EPIC-CLOSE-REPORT.md)
+**Epic closeout Mobile Recovery:** [`SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md`](SESSION-HANDOFF-MOBILE-RECOVERY-EPIC-CLOSE.md)
+**Epic closeout P1 Audit Hub WM:** [`audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md`](../audit/P1-AUDIT-HUB-WM-EPIC-CLOSE-REPORT.md)
 **SSOT techniczny wm_druk:** [`ARCHITECTURE.md`](ARCHITECTURE.md) § **15.6**
 
 ### P1 Audit Hub WM — skrót (4 etapy)
@@ -868,7 +895,7 @@ Faza projektowania procesu Payroll **zamknięta** (PROJECT PROCESS COMPLETE). Do
 | 3 Schematy | 2.62.76 | `36718cc` | `schematic_*` · `measurement_imported` · `pdf_exported` |
 | 4 UX Hub | 2.62.77 | `21d4a1b` | filtr `wm_druk` · chip · deep link labels · Help |
 
-**Rozdzielenie źródeł:** `wm_print` = Odbiory/historia generacji · `wm_druk` = Pomiary/Schematy/Katalog.  
+**Rozdzielenie źródeł:** `wm_print` = Odbiory/historia generacji · `wm_druk` = Pomiary/Schematy/Katalog.
 **Wykluczone świadomie:** `schematic_edited` (anti-flood) — backlog P1.1.
 
 Szczegóły commitów → `docs/PROJECT-HANDOFF-CURRENT.md` § 1a, § 2.
@@ -1030,8 +1057,8 @@ AppInnerWithAuth
 
 ### 4.4 Lista Płac — sync i merge (SSOT po B4 + Resurrection fence)
 
-**Closeout B4:** [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) · Guard: [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](PAYROLL-GUARD-PHASE-CLOSEOUT.md)  
-**Resurrection fence (2.65.35):** [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md)  
+**Closeout B4:** [`PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md`](PAYROLL-CLOUD-RECOVERY-B4-CLOSEOUT.md) · Guard: [`PAYROLL-GUARD-PHASE-CLOSEOUT.md`](PAYROLL-GUARD-PHASE-CLOSEOUT.md)
+**Resurrection fence (2.65.35):** [`architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-CLOUD-RESURRECTION-01-PRODUCTION-VERIFICATION.md)
 **Rollover ALIGN/ROLLOVER (2.65.34):** [`architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md`](architecture/PAYROLL-P0-WEEK-ROLLOVER-01-PRODUCTION-VERIFICATION.md)
 
 ```text
@@ -1055,9 +1082,9 @@ CloudLoader (F5 / pierwszy mount)
 | Guard mutacji | `cloud-sync-mutation-guard.ts` | `kw-week-employees`, `kw-jobs` |
 | Przydziały robót | `PayrollJobAssignmentsPanel.tsx` | `job.workEntries[]` w `kw-jobs` |
 
-**Testy:**  
-`npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs`  
-`npx vite-node scripts/test-payroll-cloud-resurrection-01.mjs`  
+**Testy:**
+`npx vite-node scripts/test-payroll-bootstrap-runtime-parity-b4.mjs`
+`npx vite-node scripts/test-payroll-cloud-resurrection-01.mjs`
 `npx vite-node scripts/test-payroll-p0-week-rollover-01.mjs`
 
 **Nie wolno:** preferować bogatszego LS nad intentional empty Cloud przy bootstrap; klonować archive 13–18 → 20–25 tylko dlatego że „ma dane”.

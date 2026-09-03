@@ -1,36 +1,38 @@
 # WGDOM — MASTER AI HANDOFF
 
-> **ID:** MASTER-AI-HANDOFF  
-> **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)  
-> **MODE:** DOCUMENTATION ONLY  
-> **Data:** 2026-08-25 (docs sync IK-KNR KL-6 PRODUCTION VERIFIED) · prior 2026-08-25 (Phase 2D) · prior 2026-08-24 (F5 MARGIN)  
-> **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)  
-> **★★ IK Master (NO REBUILD):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)  
-> **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** · desktop sidebar hotfix **`85a1ad7`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)  
-> **★★ IK-KNR Phase 2D (2026-08-25):** **FROZEN ANCESTOR** **`77385b0c`** · L3 PDF pilot (1 source · 1 key) · **≠ aktualny deploy tip** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1  
-> **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED**  
-> **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **Tender Bid / Position Cost continuity:** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md)  
-> **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
-> **Alias / skrót:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) → **ten plik**  
-> **TM-01 MASTER:** [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md)  
-> **Docs sync:** [`PROJECT-DOCS-SYNC-DESIGN-FREEZE.md`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)  
+> **ID:** MASTER-AI-HANDOFF
+> **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)
+> **MODE:** DOCUMENTATION ONLY
+> **Data:** 2026-09-03 (A0.2 ŚRODA Master SSOT closeout) · prior 2026-08-25 (IK-KNR KL-6) · prior 2026-08-24 (F5 MARGIN)
+> **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)
+> **★★ IK Master (NO REBUILD · PRIMARY):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)
+> **★★ CURRENT NODE:** **ŚRODA A0.2** — Master §10.0 · commit **`590f95e9`** · KV **rev 57 LIVE** · frontend PV **NOT VERIFIED** (live tip still **2.66.136 / f3ec166**)
+> **★★ CHROBREGO:** **CLOSED CASE** 56/0 · Final Bid 159000/195570 — **NIE reopen**
+> **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)
+> **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED**
+> **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
+> **Tender Bid / Position Cost continuity:** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md)
+> **Proces:** [`AI_ENTRY.md`](AI_ENTRY.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)
+> **Alias / skrót:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md) → **ten plik**
+> **TM-01 MASTER:** [`../architecture/TENDER-MODERNIZATION-01-MASTER.md`](../architecture/TENDER-MODERNIZATION-01-MASTER.md)
+> **Docs sync:** [`PROJECT-DOCS-SYNC-DESIGN-FREEZE.md`](../architecture/PROJECT-DOCS-SYNC-DESIGN-FREEZE.md)
 > **Uwaga tip:** bloki historyczne poniżej mogą mieć stare numery — **aktualny tip tylko w 09**
 
 ```text
 Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
-START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT → IK-MASTER-CONTINUITY-HANDOFF-2026-08-24 → TEN plik → 09 + version.json
-Tip = wyłącznie 09 + version.json (nie snapshot 2.66.59 poniżej)
-ACTIVE IMPLEMENT = NONE · HEAD @ f457cb17 · UI 2.66.116 · A08-P3 IMPLEMENTED/OPEN @ 3822acb · G1/G2 contract APPROVED · G2 PV WAIT · OD-P3-5 REQUIRE EVIDENCE BEFORE PROD · prod G2 Accept NOT AUTHORIZED · APF FROZEN · AUTONOMY-08 epic NOT CLOSED · NIE A08-P4/G3 · NIE invent S10
+START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT (§10.0 CURRENT NODE) → TEN plik → 09 + version.json
+Tip = wyłącznie 09 + version.json
+CURRENT = ŚRODA A0.2 · CHROBREGO CLOSED · AUTONOMY-08 OPEN · Phase 5 NOT AUTHORIZED · W3–W6 NOT auto-authorized
+ACTIVE IMPLEMENT = NONE bez Owner GO · A0.2 code+KV already on main · frontend PV waiting
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** · **WAITING FOR NATURAL G2 CANDIDATE** (A08-P3 G2 PV). Tip `main` (SSOT [`09`](09_PRODUCTION_BASELINE.md) + `version.json`): **UI 2.66.116** · **HEAD `f457cb17`** · **A08-P3 `3822acb` IMPLEMENTED · OPEN** · G1/G2 contract **Owner APPROVED** · prod use **REQUIRE EVIDENCE BEFORE PROD** · G2 PV **WAIT** · APF **FROZEN** · **AUTONOMY-08 epic NOT CLOSED** (P0–P2 CLOSED · P4 PLANNED · **≠** G3/P4 start) · **≠** cały IK globalnie E2E PRODUCTION VERIFIED. Szczegóły tipu = wyłącznie [`09`](09_PRODUCTION_BASELINE.md).
+W&G DOM jest w trybie **UTRZYMANIE** po **A0.2 ŚRODA Work Catalog Coverage**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + live `version.json` — **REPO `590f95e9` / 2.66.137** · **LIVE last check 2.66.136 / f3ec166** · **A0.2 frontend PV NOT VERIFIED**. **KV rev 57 LIVE**. **CHROBREGO CLOSED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**.
 
-**NEXT rekomendacja:** **UTRZYMANIE** — **WAIT** for natural G2 prod candidate (OD-P3-3) · **no G2 production Accept** · **no P4/G3** · osobno **TM-01 residual C1–C6** / **NEXT-EPIC C1–C5** tylko Owner GO → AUDIT · **NIE** invent S10 · **NIE** mylić namespace’ów C1–C6.
+**NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. A0.2 frontend PV · Środa follow-up · Phase 5 · epic closeout) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** claim A0.2 frontend PV prematurely.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.
@@ -115,7 +117,7 @@ Expert Workspace = 5 paneli RO: **EE · ME · PE · Cost · Offer** z `dossier.e
 | `Bid.recommendedBidPln` | **LEGACY** · PRIMARY gdy Expert OFF |
 | Expert ON + Offer null | **NO PRIMARY** (nigdy Bid fallback) |
 
-Parity: MATCH **1** · EXPECTED_DELTA **12** · UNEXPECTED_DELTA **0** · NOT COVERED **0**.  
+Parity: MATCH **1** · EXPECTED_DELTA **12** · UNEXPECTED_DELTA **0** · NOT COVERED **0**.
 **NO THIRD PLN.** S3-D / Bid retirement = **OUT**.
 
 ---
@@ -304,27 +306,27 @@ Włączenie: `localStorage` = `'1'`. Tip parity gdy OFF.
 
 ## Known Decisions
 
-1. Tip wersji **tylko** w `09` (+ live `version.json`) — nie hardcoduj w rules / Continuity.  
-2. Thin Slice: jeden concern · allowlist · DF · izolowany commit · PV · CLOSE.  
-3. `dossier.kosztorys` = pole techniczne — **bez rename** (Doc Detection).  
-4. Bid Proposal = jedyny generator oferty (AI-COST FROZEN).  
-5. Catalog pipeline mapowania **FROZEN** · Fuzzy **OFF** · DATA FIRST.  
-6. Commit/push **tylko** na polecenie Ownera · **nie** `git add -A`.  
-7. Stabilization Window: **nie** auto-start EPIC.  
-8. Stan po fali CLOSE: **WAITING FOR NEXT OWNER GO**.  
-9. MS P3-B: Owner GO → AUDIT → DF → … · Legal PASS wymagany dla live.  
+1. Tip wersji **tylko** w `09` (+ live `version.json`) — nie hardcoduj w rules / Continuity.
+2. Thin Slice: jeden concern · allowlist · DF · izolowany commit · PV · CLOSE.
+3. `dossier.kosztorys` = pole techniczne — **bez rename** (Doc Detection).
+4. Bid Proposal = jedyny generator oferty (AI-COST FROZEN).
+5. Catalog pipeline mapowania **FROZEN** · Fuzzy **OFF** · DATA FIRST.
+6. Commit/push **tylko** na polecenie Ownera · **nie** `git add -A`.
+7. Stabilization Window: **nie** auto-start EPIC.
+8. Stan po fali CLOSE: **WAITING FOR NEXT OWNER GO**.
+9. MS P3-B: Owner GO → AUDIT → DF → … · Legal PASS wymagany dla live.
 10. **OST:** nie patchować LiveCycle/XFA przez pdf-lib · **ACROFORM-01** = nowy formularz · **OST-03 DO NOT IMPLEMENT**.
 
 ---
 
 ## Current Constraints
 
-- **NO** IMPLEMENT bez Entry + Gate G1–G9 (+ Owner GO gdy FEATURE/CORE).  
-- **NO** mieszanie FEATURE + CORE w jednym release.  
-- **NO** `vercel deploy` / force-push `main`.  
-- **NO** podłączania app do `wgdom-foundation` bez osobnego EPIC.  
-- **NO** przebudowy AI-COST-01 / merge payroll bez nowego DF + GO.  
-- **NO** WM-DRUK-OST-03 / XFA parser / obejść pdf-lib.  
+- **NO** IMPLEMENT bez Entry + Gate G1–G9 (+ Owner GO gdy FEATURE/CORE).
+- **NO** mieszanie FEATURE + CORE w jednym release.
+- **NO** `vercel deploy` / force-push `main`.
+- **NO** podłączania app do `wgdom-foundation` bez osobnego EPIC.
+- **NO** przebudowy AI-COST-01 / merge payroll bez nowego DF + GO.
+- **NO** WM-DRUK-OST-03 / XFA parser / obejść pdf-lib.
 - Working tree często brudny — stage **jawny** allowlist.
 
 ---

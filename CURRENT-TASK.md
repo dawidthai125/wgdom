@@ -1,13 +1,27 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-08-22 (**docs baseline sync — IK-KNR-WC P3/P3.1**) · prior 2026-08-19 (**PAYROLL-O1 CAS CLOSED** · docs-only closeout) · tip UI **2.66.113** / deploy **`63cb134`** · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · handoff [`docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · **NEXT = Wrocław REAL TENDER AUDIT** (WM → ZZK → MOPS → uczelnie) · **Połczyn = NOT TARGET** · F5 / Final Bid **NOT VERIFIED GREEN** · **STABILIZATION WINDOW ACTIVE**
+**Ostatnia aktualizacja:** 2026-09-03 (**docs closeout:** Master SSOT A0.2 ŚRODA · **bez** commit) · prior 2026-08-30 (**docs:** Payroll CRITICAL PROTECTED hardening — GO6.1→GO10) · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json`
 
-> **Nowa sesja AI:** [`docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](docs/architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) → [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
+> **★★ IK CURRENT NODE:** [`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 — **ŚRODA A0.2** · commit **`590f95e9`** · KV **rev 57 LIVE** · frontend PV **NOT VERIFIED** (live **2.66.136 / f3ec166**) · **CHROBREGO CLOSED** · **AUTONOMY-08 OPEN** · Phase 5 **NOT AUTHORIZED**
+> **★★ PAYROLL PROTECTED:** [`docs/AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](docs/AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) — Lista Płac = CRITICAL PROTECTED CORE · GO8.1 `1f63e5c4` · GO9.2 `96dd9324` PRODUCTION VERIFIED · GO10 NO-FIX · **NOWY FEATURE ≠** Payroll sync.
+> **Nowa sesja AI:** [`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) → [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
-> **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw SESSION-HANDOFF + COLD-START + MASTER + DF.
+> **Zakaz:** IMPLEMENT na podstawie samego tego pliku — najpierw Master SSOT + COLD-START + Gate + DF.
 > **Handoff po GAP-A:** [`docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](docs/architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)
 > **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO · `PayrollView.tsx` OUT · **duży lokalny WIP w working tree — NIE reset/stash/commit bez polecenia**.
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
+
+## ★ A0.2 ŚRODA — Work Catalog Coverage — **code+KV LIVE · FE PV WAITING**
+
+| Element | Wartość |
+|---------|---------|
+| **Tender** | `08deff6c-bc34-619e-b346-0300010ce2e5` |
+| **Commit** | **`590f95e9`** |
+| **KV** | **rev 57 LIVE** · 8/8 × 2 · idempotency PASS |
+| **Frontend** | tip live **2.66.136 / f3ec166** · **NOT VERIFIED** |
+| **SSOT** | Master §10.0 · §22 |
+| **DO NOT** | reopen CHROBREGO · invent Expert · claim F5 fixed · close AUTONOMY-08 |
+| **NEXT** | Owner GO (frontend PV / follow-up) — **NIE** auto IMPLEMENT |
 
 ## ★ PAYROLL-O1 — CAS Edge + FE O2 — **CLOSED** · **PRODUCTION VERIFIED**
 
