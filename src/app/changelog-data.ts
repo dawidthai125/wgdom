@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.143",
+    label: "IK — Owner ingest on V4 detail",
+    items: [
+      {
+        type: "fix",
+        text: "OD-OCR-20: TenderIngestImportPanel na V4 detail (przetarg) — activeItem z pipeline · Wgraj PDF/ZIP osiągalne bez expandedId na liście. Ten sam retain → C2 seam.",
+      },
+      {
+        type: "improve",
+        text: "Lista Kolejka: pin/import bez zmian · nawigacja V4 onItemNavigate bez zmian. Test: test-ik-ocr-20-v4-detail-ingest.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.142",
     label: "IK — C2 wired into Owner ingest parse",
     items: [

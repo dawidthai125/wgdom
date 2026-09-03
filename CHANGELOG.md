@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.143 — IK Owner ingest on V4 detail (2026-09-03)
+
+- **fix:** `TenderDetailPage` (tab przetarg) — istniejący `TenderIngestImportPanel` z `activeItem={item}` · upload Owner PDF/ZIP bez list expandedId
+- **improve:** reuse retain → `runOwnerIngestParseWithIntraPdfC2` · lista Kolejka bez regresji · Track B bez zmian
+- Test: `test-ik-ocr-20-v4-detail-ingest.mjs`
+
 ## 2.66.142 — IK C2 Owner ingest parse wiring (2026-09-03)
 
 - **new:** `runOwnerIngestParseWithIntraPdfC2` — retain → parse z `intraPdfDerived` (P.documentId) → re-bridge artifacts

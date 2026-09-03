@@ -112,6 +112,7 @@ import {
   navigateIkOwnerActionTarget,
   type IkOwnerActionDeepLinkContext,
 } from "@/lib/intelligent-estimator/orchestra";
+import { TenderIngestImportPanel } from "@/app/tenders/TenderIngestImportPanel";
 
 export function TenderDetailPage({
   tenderId: tenderIdFallback,
@@ -1004,6 +1005,16 @@ export function TenderDetailPage({
             gateStatus={pipelineRuntime.attachmentGateStatus}
             gateReason={pipelineRuntime.attachmentGateReason}
           />
+
+          {activeTab === "przetarg" && (
+            <div className="mb-3" data-ingest-v4-detail-host="1">
+              <TenderIngestImportPanel
+                onImport={(req) => pipeline.importPinnedTender(req)}
+                activeItem={item}
+                onUpdateItem={(id, patch) => pipeline.updateItem(id, patch)}
+              />
+            </div>
+          )}
 
           {item && activeTab === "przetarg" && (
             <IkP9OwnerVerifyMarker tenderId={item.id} />
