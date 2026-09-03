@@ -466,20 +466,9 @@ export {
   buildWorkRateSelectiveRequestUrl,
   isWorkRateSelectiveUrlAllowed,
   namesLooselyMatch,
-  namesMatchLaborResearch,
   namesExactNormalizedMatch,
-  countWorkRatePricedTableRows,
   parseWorkRateOffersFromHtml,
 } from "@/lib/work-catalog/work-rate-source-html-parse";
-
-export {
-  cleanLaborResearchBoqDescription,
-  resolveLaborResearchQuery,
-} from "@/lib/work-catalog/work-rate-research-name";
-export type {
-  LaborResearchQueryResolution,
-  LaborResearchQueryStrategy,
-} from "@/lib/work-catalog/work-rate-research-name";
 
 export {
   createEdgeWorkRateSelectiveLookup,
