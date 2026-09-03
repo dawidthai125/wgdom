@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.146 — IK lean client gate by APP_VERSION (2026-09-03)
+
+- **fix:** OD-OCR-34 — `isPipelineCloudLeanClientVersionAllowed` porównuje numerycznie `APP_VERSION ≥ 2.66.145` · 2.66.144 DENY · bez SHA/`localeCompare` · `pipelineCloudLeanMinCommit` nieużywane
+- Test: `test-ik-od-ocr-34-lean-client-version-gate.mjs`
+
 ## 2.66.145 — IK pipeline cloud writers through lean guard (2026-09-03)
 
 - **fix:** OD-OCR-29B — `fetchAndMergeDeferredBootstrap` + `pushMergedDataBundleToCloud` wyjmują `kw-tenders-pipeline` i wołają `pushTenderPipelineToCloud` (lean + guard + verify)

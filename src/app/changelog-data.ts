@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.146",
+    label: "IK — lean client gate by APP_VERSION",
+    items: [
+      {
+        type: "fix",
+        text: "OD-OCR-34: zapis pipeline przy lean+guard wymaga APP_VERSION ≥ 2.66.145 (porównanie liczbowe). 2.66.144 i starsze = blokada. SHA/localeCompare wyłączone z gate.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.145",
     label: "IK — pipeline cloud writers through lean guard",
     items: [

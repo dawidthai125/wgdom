@@ -1,7 +1,11 @@
 /** Ustawienia aplikacji — sync w chmurze (Super Admin). */
 
 import { fetchKeysFromCloud, persistKey, APP_SETTINGS_KEY } from "@/lib/cloud-sync";
-import { APP_COMMIT } from "@/lib/app-version";
+import {
+  APP_VERSION,
+  PIPELINE_CLOUD_LEAN_MIN_APP_VERSION,
+  isAppVersionAtLeast,
+} from "@/lib/app-version";
 
 export { APP_SETTINGS_KEY };
 
@@ -220,7 +224,7 @@ export interface AppSettings {
   defaultLaborCommercialMarginPct: number | null;
   /** OD-OCR-25 — lean cloud pipeline body + guard (default OFF). */
   pipelineCloudLeanGuardV1: boolean;
-  /** OD-OCR-25 — minimum APP_COMMIT for pipeline write when lean+guard active. */
+  /** OD-OCR-25 — leftover SHA field. OD-OCR-34 gate does not read it. */
   pipelineCloudLeanMinCommit: string;
   /** OD-OCR-25 — resumable migration revision counter. */
   pipelineCloudLeanMigrationRev: number;
@@ -347,14 +351,31 @@ export function isPipelineCloudLeanMigrationComplete(): boolean {
   return loadAppSettingsLocal().pipelineCloudLeanMigrationComplete === true;
 }
 
-/** OD-OCR-25 — client commit gate when lean+guard active. */
+export type PipelineLeanClientPolicy = {
+  pipelineCloudLeanGuardV1: boolean;
+  pipelineCloudLeanMigrationComplete: boolean;
+  pipelineCloudLeanRollback: boolean;
+};
+
+/**
+ * OD-OCR-34 — numeric APP_VERSION gate when lean+guard is required.
+ * Does not read APP_COMMIT or pipelineCloudLeanMinCommit.
+ */
+export function evaluatePipelineCloudLeanClientVersionAllowed(
+  appVersion: unknown,
+  policy: PipelineLeanClientPolicy,
+): boolean {
+  if (policy.pipelineCloudLeanRollback === true) return true;
+  if (policy.pipelineCloudLeanGuardV1 !== true) return true;
+  if (policy.pipelineCloudLeanMigrationComplete !== true) return true;
+  return isAppVersionAtLeast(appVersion, PIPELINE_CLOUD_LEAN_MIN_APP_VERSION);
+}
+
+/** OD-OCR-34 — client APP_VERSION gate when lean+guard active. */
 export function isPipelineCloudLeanClientVersionAllowed(): boolean {
   if (!isPipelineCloudLeanGuardEnabled()) return true;
   if (!isPipelineCloudLeanMigrationComplete()) return true;
-  const min = loadAppSettingsLocal().pipelineCloudLeanMinCommit?.trim();
-  if (!min) return true;
-  if (APP_COMMIT === "unknown") return false;
-  return APP_COMMIT.localeCompare(min) >= 0;
+  return isAppVersionAtLeast(APP_VERSION, PIPELINE_CLOUD_LEAN_MIN_APP_VERSION);
 }
 
 /** Chmura ma pierwszeństwo — default true (C3: !== false). */
