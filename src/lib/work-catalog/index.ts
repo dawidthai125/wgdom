@@ -460,15 +460,32 @@ export {
 } from "@/lib/work-catalog/work-rate-qualify";
 
 export {
+  OWNER_WORK_RATE_RESEARCH_UNIT_EQUIV,
+  ownerWorkRateResearchUnitEquivAllows,
+  type OwnerWorkRateResearchUnitEquivRule,
+} from "@/lib/work-catalog/work-rate-owner-research-unit-equiv";
+
+export {
   WORK_RATE_ALLOWED_HOSTS,
   WORK_RATE_CANONICAL_CENNIK_URL,
   buildWorkRateFixtureHtml,
   buildWorkRateSelectiveRequestUrl,
   isWorkRateSelectiveUrlAllowed,
   namesLooselyMatch,
+  namesMatchLaborResearch,
   namesExactNormalizedMatch,
+  countWorkRatePricedTableRows,
   parseWorkRateOffersFromHtml,
 } from "@/lib/work-catalog/work-rate-source-html-parse";
+
+export {
+  cleanLaborResearchBoqDescription,
+  resolveLaborResearchQuery,
+} from "@/lib/work-catalog/work-rate-research-name";
+export type {
+  LaborResearchQueryResolution,
+  LaborResearchQueryStrategy,
+} from "@/lib/work-catalog/work-rate-research-name";
 
 export {
   createEdgeWorkRateSelectiveLookup,
@@ -668,6 +685,22 @@ export {
   buildIkOwnerCreateA09PackageCatalogWork,
   workMatchesOwnerApprovedA09PackageSpec,
 } from "@/lib/work-catalog/ik-owner-create-a09-package-ops";
+
+export {
+  IK_OWNER_SRODA_A02_OPS_REGIONS,
+  IK_OWNER_SRODA_A02_TENDER_ID,
+  IK_OWNER_SRODA_A02_WORK_IDS,
+  IK_OWNER_SRODA_A02_WORKS,
+  applySrodaA02CatalogSeed,
+  assertSrodaA02NoConflictOrStop,
+  buildAllSrodaA02CatalogWorks,
+  buildSrodaA02CatalogWork,
+  getSrodaA02WorkSpec,
+  workMatchesSrodaA02Spec,
+  type SrodaA02RegionSeedStatus,
+  type SrodaA02SeedReport,
+  type SrodaA02WorkSpec,
+} from "@/lib/work-catalog/ik-owner-create-sroda-a02-ops";
 
 export {
   classifyWorkRateEvidenceScopeTag,

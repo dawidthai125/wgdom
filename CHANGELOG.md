@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.137 — IK Epic A / A0.2 CatalogWork coverage Środa (2026-09-03)
+
+- **new:** 8 CatalogWork (A0.2 freeze) — brodzik, syfon, podejście PVC, ustęp kompakt, silikon, okna, ościeżnice, parapety
+- **improve:** OPS `applySrodaA02CatalogSeed` · test `test-ik-owner-sroda-a02-catalog.mjs` · bez mapper/F5/scoring
+- Seed chmura: `catalog-ik-owner-sroda-a02-ops.mjs` (osobne `--execute`)
+
 ## 2.66.136 — IK ATH/PDF reconciliation (2026-09-02)
 
 - **fix:** `boq-line-normalize.ts` + merge canonical hash — autonomiczne scalanie ATH/PDF per lokal (KEEP ONE, audit ATH_PDF_RECONCILED)

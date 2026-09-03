@@ -11,6 +11,21 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-09-03",
+    version: "2.66.137",
+    label: "IK — Epic A / A0.2 CatalogWork coverage (Środa)",
+    items: [
+      {
+        type: "new",
+        text: "Biblioteka Robót: 8 nowych CatalogWork (design freeze A0.2) — brodzik/kabina, syfon, podejście PVC, ustęp kompakt, silikon, okna PCV, ościeżnice/kraty, parapety zewnętrzne. descriptionPl puste; bez zmian mappera/F5/scoringu.",
+      },
+      {
+        type: "improve",
+        text: "OPS idempotentny `applySrodaA02CatalogSeed` (wroclaw+dolnyslask). Test: test-ik-owner-sroda-a02-catalog.mjs. Seed KV: catalog-ik-owner-sroda-a02-ops.mjs (wymaga osobnego --execute).",
+      },
+    ],
+  },
+  {
     date: "2026-09-02",
     version: "2.66.136",
     label: "IK — ATH/PDF autonomous cost line reconciliation",
