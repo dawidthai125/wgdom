@@ -1041,23 +1041,37 @@ export function parsePdfPrzedmiarHeuristic(
   return { uxCase: 2, rows: [], signals, signalCount, warnings };
 }
 
+export type PdfPrzedmiarPreviewOpts = {
+  likelyScan?: boolean;
+  noTextLayer?: boolean;
+  extractError?: boolean;
+  /** IK-OCR B1 provenance — optional. */
+  extractionMethod?: "pdf_text" | "ocr";
+  ocrConfidence?: number | null;
+  /** Extra warnings (e.g. OCR fail-soft) prepended/appended by caller path. */
+  extraWarnings?: string[];
+};
+
 /** Mapowanie heurystyki → AthPreviewResult (integracja z parseDocumentToKosztorys). */
 export function pdfPrzedmiarHeuristicToPreview(
   text: string,
   filename: string,
-  opts?: { likelyScan?: boolean; noTextLayer?: boolean; extractError?: boolean },
+  opts?: PdfPrzedmiarPreviewOpts,
 ): AthPreviewResult {
   const base = filename.split(" → ").pop() ?? filename;
   const parsed = parsePdfPrzedmiarHeuristic(text, opts);
+  const warnings = [...(opts?.extraWarnings ?? []), ...parsed.warnings];
   return {
     ok: true,
     format: "text",
     documentType: "PDF_PRZEDMIAR",
     title: base.split("/").pop() ?? base,
     rows: parsed.rows,
-    warnings: parsed.warnings,
+    warnings,
     pdfPrzedmiarCase: parsed.uxCase,
     pdfPrzedmiarNoTextLayer: Boolean(opts?.noTextLayer && !opts?.extractError && parsed.uxCase === 3),
     pdfPrzedmiarExtractError: Boolean(opts?.extractError && parsed.uxCase === 3),
+    extractionMethod: opts?.extractionMethod,
+    ocrConfidence: opts?.ocrConfidence,
   };
 }

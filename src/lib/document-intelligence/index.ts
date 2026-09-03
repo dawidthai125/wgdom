@@ -39,6 +39,23 @@ export { detectNegativeSignals } from "./negative";
 export { recommendParser } from "./parser-recommendation";
 export { accumulateDiKpi, diHealthSummary, emptyDiKpi } from "./kpi";
 export { resolveOcrContract, resolveSemanticContract } from "./ocr-contract";
+export {
+  needsIkOcrB1,
+  hasUsableNativePdfText,
+  runIkPdfScanOcrB1,
+  isIkOcrTrustedForHeuristic,
+} from "./ocr-run-b1";
+export {
+  setIkOcrProviderForTests,
+  resetIkOcrCallCountForTests,
+  getIkOcrCallCountForTests,
+} from "./ocr-provider";
+export type {
+  IkOcrResult,
+  IkOcrPageResult,
+  IkOcrProvider,
+  IkExtractionMethod,
+} from "./ocr-types";
 export { resetDiEvidenceSeqForTests } from "./evidence";
 
 /** Should cost pipeline force pdf przedmiar heuristic for this DI result? */

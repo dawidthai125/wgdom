@@ -31,6 +31,12 @@ import {
   shouldForcePdfPrzedmiarParse,
   type DocumentIntelligenceResult,
 } from "@/lib/document-intelligence";
+import {
+  hasUsableNativePdfText,
+  isIkOcrTrustedForHeuristic,
+  needsIkOcrB1,
+  runIkPdfScanOcrB1,
+} from "@/lib/document-intelligence/ocr-run-b1";
 
 export type { ZipListedFile } from "@/lib/tenders-bzp-filename";
 export {
@@ -469,9 +475,62 @@ export type ParseDocumentToKosztorysOpts = {
 };
 
 /**
+ * Build PDF przedmiar AthPreview — TEXT-FIRST native extract, then OCR B1 if scan-only.
+ * OCR = text evidence only; parsePdfPrzedmiarHeuristic = STRUCTURE AUTHORITY.
+ */
+async function pdfPrzedmiarPreviewWithOcrB1(
+  bytes: Uint8Array,
+  filename: string,
+  extract: PdfTextExtractResult,
+): Promise<AthPreviewResult> {
+  const { text, likelyScan, noTextLayer, extractError } = extract;
+  const baseOpts = { likelyScan, noTextLayer, extractError };
+
+  // TEXT-FIRST: usable native text → OCR calls = 0
+  if (hasUsableNativePdfText(extract)) {
+    return pdfPrzedmiarHeuristicToPreview(text, filename, {
+      ...baseOpts,
+      extractionMethod: "pdf_text",
+      ocrConfidence: null,
+    });
+  }
+
+  if (!needsIkOcrB1(extract)) {
+    return pdfPrzedmiarHeuristicToPreview(text, filename, {
+      ...baseOpts,
+      extractionMethod: text.replace(/\s/g, "").length ? "pdf_text" : undefined,
+      ocrConfidence: null,
+    });
+  }
+
+  const ocr = await runIkPdfScanOcrB1(bytes, extract);
+
+  if (!isIkOcrTrustedForHeuristic(ocr)) {
+    // Fail-soft: existing CASE 3 HOLD — no invented rows
+    return pdfPrzedmiarHeuristicToPreview(text, filename, {
+      ...baseOpts,
+      extractionMethod: undefined,
+      ocrConfidence: ocr.ocrConfidence,
+      extraWarnings: [
+        ...ocr.warnings,
+        "OCR B1: wynik niedostępny / niejednoznaczny — HOLD (weryfikacja Ownera).",
+      ],
+    });
+  }
+
+  // Trusted OCR text evidence → heuristic WITHOUT scan short-circuit flags
+  return pdfPrzedmiarHeuristicToPreview(ocr.documentText, filename, {
+    extractionMethod: "ocr",
+    ocrConfidence: ocr.ocrConfidence,
+    extraWarnings: ocr.warnings,
+  });
+}
+
+/**
  * NG-TENDERS-DOCUMENT-INTELLIGENCE-01 Phase A:
  * Filename NEVER rejects PDF parse — Doc.D1 still fast-path; otherwise DI Pass-7 may allow
  * REUSE of pdfPrzedmiarHeuristicToPreview (no parser rewrite).
+ * IK-OCR-PHASE-01 MVP-B1: scan-only → browser/local OCR → same heuristic.
  */
 export async function parseDocumentToKosztorys(
   bytes: Uint8Array,
@@ -488,11 +547,11 @@ export async function parseDocumentToKosztorys(
     return null;
   }
 
-  const { text, likelyScan, noTextLayer, extractError } = await extractPdfText(bytes);
-  const previewOpts = { likelyScan, noTextLayer, extractError };
+  const extract = await extractPdfText(bytes);
+  const { text, noTextLayer } = extract;
 
   if (isPdfPrzedmiarCostFilename(filename) || opts?.forcePdfPrzedmiar === true) {
-    return pdfPrzedmiarHeuristicToPreview(text, filename, previewOpts);
+    return pdfPrzedmiarPreviewWithOcrB1(bytes, filename, extract);
   }
 
   const di =
@@ -506,7 +565,7 @@ export async function parseDocumentToKosztorys(
     });
 
   if (shouldForcePdfPrzedmiarParse(di)) {
-    return pdfPrzedmiarHeuristicToPreview(text, filename, previewOpts);
+    return pdfPrzedmiarPreviewWithOcrB1(bytes, filename, extract);
   }
 
   return null;

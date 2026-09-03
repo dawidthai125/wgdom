@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.138",
+    label: "IK — OCR MVP-B1 scan-only PDF (browser/local)",
+    items: [
+      {
+        type: "new",
+        text: "OCR B1: skan / brak warstwy tekstowej → lokalny OCR (tesseract.js w przeglądarce) → istniejąca heurystyka przedmiaru PDF. TEXT-FIRST: przy użytecznym tekście natywnym OCR=0.",
+      },
+      {
+        type: "improve",
+        text: "Fail-soft: OCR niedostępny / null confidence / błąd → CASE 3 HOLD bez wymyślonych pozycji. Provenance: extractionMethod + ocrConfidence. Mixed page OCR (B2) i Multi-BOQ wewnątrz PDF — poza zakresem.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.137",
     label: "IK — Epic A / A0.2 CatalogWork coverage (Środa)",
     items: [

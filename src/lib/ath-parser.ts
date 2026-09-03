@@ -67,6 +67,16 @@ export interface AthPreviewResult {
   pdfPrzedmiarNoTextLayer?: boolean;
   /** TP190C-2E-B — CASE 3 z powodu błędu ekstrakcji pdf.js, nie skanu/CAD. */
   pdfPrzedmiarExtractError?: boolean;
+  /**
+   * IK-OCR-PHASE-01 MVP-B1 — how document text was obtained for PDF przedmiar.
+   * OCR path = text evidence only; rows still from parsePdfPrzedmiarHeuristic.
+   */
+  extractionMethod?: "pdf_text" | "ocr";
+  /**
+   * IK-OCR B1 — document-level OCR confidence (provider-reported).
+   * null / omitted = NON-TRUSTED or not OCR path. No invented DF T_* thresholds.
+   */
+  ocrConfidence?: number | null;
 }
 
 /** Ogólne komunikaty o ograniczeniach podglądu — nie pokazujemy przy udanym parsowaniu ani w PDF. */

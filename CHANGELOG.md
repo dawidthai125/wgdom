@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.138 — IK OCR MVP-B1 scan-only PDF (2026-09-03)
+
+- **new:** browser/local OCR (tesseract.js) → `parseDocumentToKosztorys` → istniejąca `parsePdfPrzedmiarHeuristic`
+- **improve:** TEXT-FIRST (OCR=0 przy native text) · fail-soft CASE 3 · `extractionMethod` + `ocrConfidence`
+- Test: `npx vite-node scripts/test-ik-ocr-mvp-b1.mjs`
+- B2 mixed page-selective OCR = DEFERRED · Multi-BOQ intra-PDF = OUT
+
 ## 2.66.137 — IK Epic A / A0.2 CatalogWork coverage Środa (2026-09-03)
 
 - **new:** 8 CatalogWork (A0.2 freeze) — brodzik, syfon, podejście PVC, ustęp kompakt, silikon, okna, ościeżnice, parapety
