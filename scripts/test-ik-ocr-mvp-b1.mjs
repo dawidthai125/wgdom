@@ -16,6 +16,10 @@ import {
   isIkOcrTrustedForHeuristic,
 } from "../src/lib/document-intelligence/index.ts";
 import { PDFJS_OCR_WASM_URL } from "../src/lib/document-intelligence/ocr-pdf-raster.ts";
+import {
+  BROWSER_LOCAL_OCR_PSM,
+  BROWSER_LOCAL_OCR_PROVIDER_ID,
+} from "../src/lib/document-intelligence/ocr-browser-local.ts";
 import { parseDocumentToKosztorys, extractPdfText } from "../src/lib/tenders-bzp-doc-parse.ts";
 import {
   parsePdfPrzedmiarHeuristic,
@@ -97,6 +101,8 @@ console.log("=== IK-OCR MVP-B1 — unit gates ===\n");
 
 assert(PDFJS_OCR_WASM_URL === "/pdfjs-wasm/", `OD-OCR-8 wasmUrl dir got=${PDFJS_OCR_WASM_URL}`);
 assert(PDFJS_OCR_WASM_URL.endsWith("/"), "wasmUrl trailing slash (pdf.js API)");
+assert(BROWSER_LOCAL_OCR_PSM === "11", `OD-OCR-10 PSM SPARSE_TEXT got=${BROWSER_LOCAL_OCR_PSM}`);
+assert(BROWSER_LOCAL_OCR_PROVIDER_ID === "browser_local_tesseract_v5", "OD-OCR-10 provider unchanged");
 
 assert(needsIkOcrB1({ text: "", likelyScan: false, noTextLayer: true, extractError: false }) === true, "needs OCR on noTextLayer");
 assert(needsIkOcrB1({ text: "x", likelyScan: true, noTextLayer: false, extractError: false }) === true, "needs OCR on likelyScan");

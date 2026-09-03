@@ -1,11 +1,18 @@
 /**
  * IK-OCR-PHASE-01 MVP-B1 — browser/local OCR adapter (tesseract.js).
  * OD-OCR-3: PDF/page images MUST NOT leave the browser / WGDOM-controlled client runtime.
+ * OD-OCR-10: deterministic PSM 11 (SPARSE_TEXT) for scanned BOQ tables (Norma).
  */
 
 import type { IkOcrPageImage, IkOcrPageResult, IkOcrProvider, IkOcrResult } from "./ocr-types";
 
 export const BROWSER_LOCAL_OCR_PROVIDER_ID = "browser_local_tesseract_v5";
+
+/**
+ * tesseract.js PSM.SPARSE_TEXT — OD-OCR-10 (experiment E5).
+ * Single deterministic value; no per-page / fallback PSM selection.
+ */
+export const BROWSER_LOCAL_OCR_PSM = "11";
 
 function aggregateDocumentConfidence(pages: IkOcrPageResult[]): number | null {
   const vals: number[] = [];
@@ -29,6 +36,12 @@ function aggregateStatus(pages: IkOcrPageResult[]): IkOcrResult["status"] {
   return "partial";
 }
 
+type BrowserLocalTesseractWorker = {
+  setParameters: (params: { tessedit_pageseg_mode: string }) => Promise<unknown>;
+  recognize: (img: unknown) => Promise<{ data: { text: string; confidence: number } }>;
+  terminate: () => Promise<void>;
+};
+
 export function createBrowserLocalOcrProvider(): IkOcrProvider {
   return {
     providerId: BROWSER_LOCAL_OCR_PROVIDER_ID,
@@ -50,8 +63,7 @@ export function createBrowserLocalOcrProvider(): IkOcrProvider {
         };
       }
 
-      let worker: { recognize: (img: unknown) => Promise<{ data: { text: string; confidence: number } }>; terminate: () => Promise<void> } | null =
-        null;
+      let worker: BrowserLocalTesseractWorker | null = null;
 
       try {
         if (input.signal?.aborted) {
@@ -60,7 +72,9 @@ export function createBrowserLocalOcrProvider(): IkOcrProvider {
 
         const { createWorker } = await import("tesseract.js");
         // Polish + Latin digits; stays in-browser (CDN/wasm worker under same origin policy of tesseract.js).
-        worker = (await createWorker(languageHint === "pl" ? "pol" : languageHint)) as typeof worker;
+        worker = (await createWorker(languageHint === "pl" ? "pol" : languageHint)) as BrowserLocalTesseractWorker;
+        // OD-OCR-10 — PSM 11 SPARSE_TEXT (proven on Norma STANDARD scans; deterministic).
+        await worker.setParameters({ tessedit_pageseg_mode: BROWSER_LOCAL_OCR_PSM });
 
         for (const page of input.pageImages) {
           if (input.signal?.aborted) {

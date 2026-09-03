@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.140 — IK OCR B1 PSM 11 SPARSE_TEXT (2026-09-03)
+
+- **improve:** `ocr-browser-local` — `setParameters({ tessedit_pageseg_mode: "11" })` (OD-OCR-10)
+- Bez zmian: raster/JBig2, kontrakt OCR, parser, provider
+- Test: `test-ik-ocr-mvp-b1.mjs` (PSM constant)
+
 ## 2.66.139 — IK OCR B1 JBig2 wasm raster (2026-09-03)
 
 - **fix:** `ocr-pdf-raster` + `wasmUrl=/pdfjs-wasm/` (pdf.js 5.x) — dekodowanie skanów JBig2 przed Tesseract

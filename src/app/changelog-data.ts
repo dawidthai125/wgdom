@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.140",
+    label: "IK — OCR B1 PSM 11 SPARSE_TEXT",
+    items: [
+      {
+        type: "improve",
+        text: "OCR B1: Tesseract PSM 11 (SPARSE_TEXT) na skanach przedmiaru — lepsze KNR/LP na Norma STANDARD. Bez zmian rastera / kontraktu OCR / parsera.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.139",
     label: "IK — OCR B1 JBig2 wasm raster fix",
     items: [
