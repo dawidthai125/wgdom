@@ -5,6 +5,9 @@ node_modules/
 dist/
 dist-audit/
 
+# pdf.js wasm copied at build/dev from node_modules (OD-OCR-8)
+public/pdfjs-wasm/
+
 # Env (sekrety — tylko .env.example w repo)
 .env
 .env.local

@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.139 — IK OCR B1 JBig2 wasm raster (2026-09-03)
+
+- **fix:** `ocr-pdf-raster` + `wasmUrl=/pdfjs-wasm/` (pdf.js 5.x) — dekodowanie skanów JBig2 przed Tesseract
+- Vite: kopia `pdfjs-dist/wasm` → `public/pdfjs-wasm` (same-origin)
+- Test: `test-ik-ocr-mvp-b1.mjs` (wasmUrl seam)
+
 ## 2.66.138 — IK OCR MVP-B1 scan-only PDF (2026-09-03)
 
 - **new:** browser/local OCR (tesseract.js) → `parseDocumentToKosztorys` → istniejąca `parsePdfPrzedmiarHeuristic`

@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 import path from 'path'
 
-import { writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, cpSync, existsSync } from 'node:fs'
 
 import tailwindcss from '@tailwindcss/vite'
 
@@ -11,6 +11,30 @@ import react from '@vitejs/plugin-react'
 import { readChangelogVersion } from './scripts/read-changelog-version.mjs'
 import { renderVersionJson, readGitCommitShort } from './scripts/build-version-json.mjs'
 import { renderServiceWorker, writeServiceWorker } from './scripts/generate-service-worker.mjs'
+
+/** OD-OCR-8 — serve pdf.js wasm (jbig2/openjpeg/qcms) from same origin for OCR raster. */
+function ensurePdfJsWasmPublic(): void {
+  const src = path.resolve(__dirname, 'node_modules/pdfjs-dist/wasm')
+  const dest = path.resolve(__dirname, 'public/pdfjs-wasm')
+  if (!existsSync(src)) {
+    console.warn('[wgdom-pdfjs-wasm] missing node_modules/pdfjs-dist/wasm — OCR scan raster may fail')
+    return
+  }
+  mkdirSync(dest, { recursive: true })
+  cpSync(src, dest, { recursive: true })
+}
+
+function pdfJsWasmPlugin() {
+  return {
+    name: 'wgdom-pdfjs-wasm',
+    buildStart() {
+      ensurePdfJsWasmPublic()
+    },
+    configureServer() {
+      ensurePdfJsWasmPublic()
+    },
+  }
+}
 
 
 
@@ -139,6 +163,7 @@ export default defineConfig(() => {
 
       versionJsonPlugin(),
       serviceWorkerPlugin(),
+      pdfJsWasmPlugin(),
 
     ],
 

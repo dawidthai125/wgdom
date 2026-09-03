@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.139",
+    label: "IK — OCR B1 JBig2 wasm raster fix",
+    items: [
+      {
+        type: "fix",
+        text: "OCR B1: pdf.js wasmUrl (/pdfjs-wasm/) dla dekodowania skanów JBig2 — raster stron przed lokalnym Tesseract. Bez zmian kontraktu OCR / parsera / Experta.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.138",
     label: "IK — OCR MVP-B1 scan-only PDF (browser/local)",
     items: [
