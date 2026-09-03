@@ -18,6 +18,9 @@ export type IngestParseFn = (
 /**
  * Process up to batchSize queued COST documents that still have bytes.
  * Missing bytes → leave queued (PARTIAL), never invent snapshot.
+ *
+ * OD-OCR-18: after parseFn, re-read LS — C2 CONNECT may have registered derived
+ * documents/artifacts during the call; do not wipe them with a stale local copy.
  */
 export async function processIngestParseBatch(opts: {
   tenderId: string;
@@ -31,35 +34,54 @@ export async function processIngestParseBatch(opts: {
   if (!state) throw new Error("INGEST_STATE_MISSING");
 
   const batchSize = opts.batchSize ?? INGEST_PARSE_BATCH_SIZE;
-  const queued = state.documents.filter(
-    (d) =>
-      d.ingestStatus === "retained"
-      && d.parseStatus === "queued"
-      && isCostParseEligible(d.displayName || d.originalFilename, d.classHint)
-      && !state!.skippedDocumentIds.includes(d.documentId),
-  );
+  const queuedIds = state.documents
+    .filter(
+      (d) =>
+        d.ingestStatus === "retained"
+        && d.parseStatus === "queued"
+        && d.source !== "derived_cost_segment"
+        && isCostParseEligible(d.displayName || d.originalFilename, d.classHint)
+        && !state!.skippedDocumentIds.includes(d.documentId),
+    )
+    .slice(0, batchSize)
+    .map((d) => d.documentId);
 
-  const slice = queued.slice(0, batchSize);
-  const artifacts = [...state.artifacts];
-  const documents = state.documents.map((d) => ({ ...d }));
+  for (const documentId of queuedIds) {
+    state = getIngestState(tenderId);
+    if (!state) throw new Error("INGEST_STATE_MISSING");
 
-  for (const doc of slice) {
+    const doc = state.documents.find((d) => d.documentId === documentId);
+    if (!doc || doc.parseStatus !== "queued") continue;
+
     const bytes =
-      opts.bytesByDocumentId?.[doc.documentId]
-      ?? documents.find((d) => d.documentId === doc.documentId)?.bytes;
-    const idx = documents.findIndex((d) => d.documentId === doc.documentId);
+      opts.bytesByDocumentId?.[documentId]
+      ?? doc.bytes;
     if (!bytes || bytes.byteLength === 0) {
-      if (idx >= 0) {
-        documents[idx] = {
-          ...documents[idx]!,
-          warnings: [...documents[idx]!.warnings, "PARSE_PENDING_BYTES"],
-        };
-      }
+      const documents = state.documents.map((d) =>
+        d.documentId === documentId
+          ? {
+              ...d,
+              warnings: [...d.warnings, "PARSE_PENDING_BYTES"],
+            }
+          : d,
+      );
+      state = upsertIngestState(refreshPhases({ ...state, documents }));
       continue;
     }
 
+    const filename = doc.displayName || doc.originalFilename;
+
     try {
-      const snap = await opts.parseFn(bytes, doc.displayName || doc.originalFilename);
+      const snap = await opts.parseFn(bytes, filename);
+
+      // Rehydrate — parseFn side-effects (C2 derived docs/artifacts) must survive.
+      const live = getIngestState(tenderId);
+      if (!live) throw new Error("INGEST_STATE_MISSING");
+
+      let documents = live.documents.map((d) => ({ ...d }));
+      let artifacts = [...live.artifacts];
+      const idx = documents.findIndex((d) => d.documentId === documentId);
+
       if (!snap?.ok) {
         if (idx >= 0) {
           documents[idx] = {
@@ -68,16 +90,18 @@ export async function processIngestParseBatch(opts: {
             warnings: [...documents[idx]!.warnings, "PARSE_FAILED"],
           };
         }
+        state = upsertIngestState(refreshPhases({ ...live, documents, artifacts }));
         continue;
       }
-      // Dedup artifact by documentId / contentHash
+
+      const contentHash = documents[idx]?.contentHash ?? doc.contentHash;
       const existingArt = artifacts.find(
-        (a) => a.documentId === doc.documentId || a.contentHash === doc.contentHash,
+        (a) => a.documentId === documentId || a.contentHash === contentHash,
       );
       const ref: TenderIngestArtifactRef = {
-        documentId: doc.documentId,
-        filename: doc.displayName || doc.originalFilename,
-        contentHash: doc.contentHash,
+        documentId,
+        filename,
+        contentHash,
         snapshot: snap,
       };
       if (existingArt) {
@@ -89,27 +113,40 @@ export async function processIngestParseBatch(opts: {
       if (idx >= 0) {
         documents[idx] = { ...documents[idx]!, parseStatus: "parsed", bytes: undefined };
       }
+      state = upsertIngestState(
+        refreshPhases({
+          ...live,
+          documents,
+          artifacts,
+        }),
+      );
     } catch (e) {
-      if (idx >= 0) {
-        documents[idx] = {
-          ...documents[idx]!,
-          parseStatus: "failed",
-          warnings: [
-            ...documents[idx]!.warnings,
-            `PARSE_ERROR:${e instanceof Error ? e.message : String(e)}`,
-          ],
-        };
-      }
+      const live = getIngestState(tenderId);
+      if (!live) throw new Error("INGEST_STATE_MISSING");
+      const documents = live.documents.map((d) =>
+        d.documentId === documentId
+          ? {
+              ...d,
+              parseStatus: "failed" as const,
+              warnings: [
+                ...d.warnings,
+                `PARSE_ERROR:${e instanceof Error ? e.message : String(e)}`,
+              ],
+            }
+          : d,
+      );
+      state = upsertIngestState(
+        refreshPhases({
+          ...live,
+          documents,
+          artifacts: [...live.artifacts],
+        }),
+      );
     }
   }
 
-  state = upsertIngestState(
-    refreshPhases({
-      ...state,
-      documents,
-      artifacts,
-    }),
-  );
+  state = getIngestState(tenderId);
+  if (!state) throw new Error("INGEST_STATE_MISSING");
   return state;
 }
 

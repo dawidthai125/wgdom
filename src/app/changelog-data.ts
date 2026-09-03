@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-03",
+    version: "2.66.142",
+    label: "IK — C2 wired into Owner ingest parse",
+    items: [
+      {
+        type: "new",
+        text: "OD-OCR-18: po retain Owner PDF → parse z intraPdfDerived (parentDocumentId = P.documentId) → derived artifacts → applyIngestArtifactsToPipelineItem. C2 nadal opt-in; dossier/ATH bez zmian.",
+      },
+      {
+        type: "improve",
+        text: "processIngestParseBatch: rehydratacja LS po parseFn (C2 derived nie są nadpisywane). Test: test-ik-ocr-18-ingest-c2-wire.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-03",
     version: "2.66.141",
     label: "IK — Intra-PDF derived cost documents (C2 CONNECT)",
     items: [

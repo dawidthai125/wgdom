@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.142 — IK C2 Owner ingest parse wiring (2026-09-03)
+
+- **new:** `runOwnerIngestParseWithIntraPdfC2` — retain → parse z `intraPdfDerived` (P.documentId) → re-bridge artifacts
+- **improve:** `TenderIngestImportPanel` wywołuje parse+C2 po upload; `processIngestParseBatch` rehydratuje LS po parseFn
+- Test: `test-ik-ocr-18-ingest-c2-wire.mjs` · dossier/ATH bez C2 · Owner Map bez auto-assign
+
 ## 2.66.141 — IK Intra-PDF derived cost documents C2 (2026-09-03)
 
 - **new:** `tender-ingest/derived-cost-segment.ts` — OCR pages → ACCEPT/HOLD → N `derived_cost_segment` + heuristic per segment + artifacts

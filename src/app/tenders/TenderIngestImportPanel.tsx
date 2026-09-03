@@ -11,6 +11,7 @@ import {
   applyIngestArtifactsToPipelineItem,
   getIngestState,
   ingestOwnerBrowserFiles,
+  runOwnerIngestParseWithIntraPdfC2,
 } from "@/lib/tender-ingest";
 
 export function TenderIngestImportPanel({
@@ -75,15 +76,29 @@ export function TenderIngestImportPanel({
       }
       setUploadBusy(true);
       try {
-        const { state, documentIds } = await ingestOwnerBrowserFiles(activeItem.id, fileList);
+        // 1) Retain physical files → P.documentId known (+ session bytes)
+        const { documentIds, bytesByDocumentId } = await ingestOwnerBrowserFiles(
+          activeItem.id,
+          fileList,
+        );
+        // 2) Parse queued COST PDFs with C2 opts (parentDocumentId = P.documentId)
+        const state = await runOwnerIngestParseWithIntraPdfC2({
+          tenderId: activeItem.id,
+          bytesByDocumentId,
+        });
+        // 3) Re-bridge (incl. derived D1..Dn artifacts) into pipeline item pool
         const patch = applyIngestArtifactsToPipelineItem({ ...activeItem });
         onUpdateItem?.(activeItem.id, {
           ...patch,
           ingestMode: activeItem.ingestMode ?? "owner_requested",
           retention: activeItem.retention ?? "normal",
         });
+        const derivedCount = state.documents.filter(
+          (d) => d.source === "derived_cost_segment" && d.ingestStatus === "retained",
+        ).length;
         toast.success(
-          `Zachowano ${documentIds.length} dok. · faza ${state.ingestPhase} / ${state.parsePhase}`,
+          `Zachowano ${documentIds.length} dok. · parse ${state.parsePhase}`
+            + (derivedCount > 0 ? ` · derived ${derivedCount}` : ""),
         );
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Upload ingest nieudany");

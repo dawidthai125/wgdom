@@ -53,8 +53,10 @@ export {
   applyExplicitParseCap,
 } from "@/lib/tender-ingest/readiness";
 export { processIngestParseBatch, recordIngestArtifact } from "@/lib/tender-ingest/queue";
+export type { IngestParseFn } from "@/lib/tender-ingest/queue";
 export { applyIngestArtifactsToPipelineItem } from "@/lib/tender-ingest/artifact-bridge";
 export { ingestOwnerFileList, ingestOwnerBrowserFiles } from "@/lib/tender-ingest/owner-files";
+export { runOwnerIngestParseWithIntraPdfC2 } from "@/lib/tender-ingest/owner-ingest-c2-parse";
 export {
   normalizeSegmentText,
   computeDerivedSegmentContentHash,

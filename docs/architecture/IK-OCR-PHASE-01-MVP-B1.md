@@ -8,7 +8,9 @@
 
 CASE B only: `noTextLayer` / `likelyScan` → local OCR → **text evidence** → existing `parsePdfPrzedmiarHeuristic` → `AthPreviewRow` → existing Master BOQ / Orchestra.
 
-**C2 (OD-OCR-15):** after trusted OCR, optional `intraPdfDerived` → N truthful `derived_cost_segment` docs (`parentDocumentId` + 0-based pageRange + explicit branch) → existing Multi-BOQ. Ambiguous/weak → HOLD.
+**C2 (OD-OCR-15/18):** after trusted OCR, optional `intraPdfDerived` → N truthful `derived_cost_segment` docs (`parentDocumentId` + 0-based pageRange + explicit branch) → existing Multi-BOQ. Ambiguous/weak → HOLD.
+
+**OD-OCR-18 product seam:** `TenderIngestImportPanel` → retain → `runOwnerIngestParseWithIntraPdfC2` (parentDocumentId = P.documentId) → `applyIngestArtifactsToPipelineItem`. Dossier/ATH callers remain without C2.
 
 ## Insertion seam
 
