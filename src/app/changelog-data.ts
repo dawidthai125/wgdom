@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-09-04",
+    version: "2.66.147",
+    label: "IK — ingest artifact persist na cloud body",
+    items: [
+      {
+        type: "fix",
+        text: "OD-OCR-45: po Owner ingest artefakty (P+D1/D2/D3) zapisują się na authoritative kw-tenders-pipeline (470), nie na przycięte lokalne 70. UI prune bez zmian. Bez trzeciego ingestu / restore.",
+      },
+    ],
+  },
+  {
     date: "2026-09-03",
     version: "2.66.146",
     label: "IK — lean client gate by APP_VERSION",

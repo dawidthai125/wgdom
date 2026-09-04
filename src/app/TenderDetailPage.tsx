@@ -1011,7 +1011,7 @@ export function TenderDetailPage({
               <TenderIngestImportPanel
                 onImport={(req) => pipeline.importPinnedTender(req)}
                 activeItem={item}
-                onUpdateItem={(id, patch) => pipeline.updateItem(id, patch)}
+                onUpdateItem={(id, patch, opts) => pipeline.updateItem(id, patch, opts)}
               />
             </div>
           )}

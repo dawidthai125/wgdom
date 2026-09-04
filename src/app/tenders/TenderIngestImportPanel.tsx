@@ -6,11 +6,13 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
+import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { ImportTenderRequest, TenderIngestMode, TenderIngestRetention } from "@/lib/tender-ingest";
 import {
   applyIngestArtifactsToPipelineItem,
   getIngestState,
   ingestOwnerBrowserFiles,
+  persistIngestArtifactPatchToCloud,
   runOwnerIngestParseWithIntraPdfC2,
 } from "@/lib/tender-ingest";
 
@@ -21,7 +23,7 @@ export function TenderIngestImportPanel({
 }: {
   onImport: (req: ImportTenderRequest) => Promise<TenderPipelineItem | void>;
   activeItem?: TenderPipelineItem | null;
-  onUpdateItem?: (id: string, patch: Partial<TenderPipelineItem>) => void;
+  onUpdateItem?: (id: string, patch: Partial<TenderPipelineItem>, opts?: TenderItemUpdateOpts) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [ocdsId, setOcdsId] = useState("");
@@ -88,11 +90,16 @@ export function TenderIngestImportPanel({
         });
         // 3) Re-bridge (incl. derived D1..Dn artifacts) into pipeline item pool
         const patch = applyIngestArtifactsToPipelineItem({ ...activeItem });
-        onUpdateItem?.(activeItem.id, {
-          ...patch,
-          ingestMode: activeItem.ingestMode ?? "owner_requested",
-          retention: activeItem.retention ?? "normal",
-        });
+        onUpdateItem?.(
+          activeItem.id,
+          {
+            ...patch,
+            ingestMode: activeItem.ingestMode ?? "owner_requested",
+            retention: activeItem.retention ?? "normal",
+          },
+          { persist: "local" },
+        );
+        await persistIngestArtifactPatchToCloud(activeItem.id);
         const derivedCount = state.documents.filter(
           (d) => d.source === "derived_cost_segment" && d.ingestStatus === "retained",
         ).length;

@@ -540,7 +540,7 @@ export function TendersView({
         <TenderIngestImportPanel
           onImport={(req) => pipeline.importPinnedTender(req)}
           activeItem={expandedId ? pipeline.items.find((i) => i.id === expandedId) ?? null : null}
-          onUpdateItem={(id, patch) => pipeline.updateItem(id, patch)}
+          onUpdateItem={(id, patch, opts) => pipeline.updateItem(id, patch, opts)}
         />
         {/* V4 — Rząd 1: wyszukiwarka, status (sticky tylko md+ — iOS Safari MOBILE-P0-S1) */}
         <div className="md:sticky md:top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-1.5 bg-card max-md:bg-card md:bg-card/95 md:backdrop-blur md:supports-[backdrop-filter]:bg-card/90 border-b border-border">

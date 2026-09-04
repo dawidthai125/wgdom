@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.147 — IK ingest artifact persist na cloud body (2026-09-04)
+
+- **fix:** OD-OCR-45 — `persistIngestArtifactPatchToCloud` GET cloud → patch jednego TPI → `pushTenderPipelineToCloud` · panel `persist: "local"` · prune / lean / guard bez zmian
+- Test: `test-od-ocr-45-ingest-persist-authoritative.mjs` (T1–T14)
+
 ## 2.66.146 — IK lean client gate by APP_VERSION (2026-09-03)
 
 - **fix:** OD-OCR-34 — `isPipelineCloudLeanClientVersionAllowed` porównuje numerycznie `APP_VERSION ≥ 2.66.145` · 2.66.144 DENY · bez SHA/`localeCompare` · `pipelineCloudLeanMinCommit` nieużywane
