@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.161",
+    label: "Lista płac — zapis godzin nie kasuje historii usunięć",
+    items: [
+      {
+        type: "fix",
+        text: "Zwykła zmiana godzin / wyłączenie dnia nie nadpisuje już w chmurze całej historii znaczników usunięcia pracowników tygodnia pustą listą (gdy lokalnie nie była jeszcze wczytana). Świadome usunięcie i ponowne dodanie z kartoteki działają jak wcześniej.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.160",
     label: "Lista płac — potwierdzone wyłączenie dnia nie znika przy powrocie do karty",
     items: [

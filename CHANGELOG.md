@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.161 — Payroll hours write preserves week-employee tombstones (2026-09-04)
+
+- **fix:** `pushWeekEmployeesToCloud` hydrates `kw-week-employees-deleted-ids` from Cloud before coupled PWRB (`prepareWeekEmployeeTombsForCoupledPwrb`) — empty/unhydrated LS nie zastępuje Cloud tombów przez `[]`
+- P2.8: po hydrate re-drop current-week legal/pending ADD revoke; `replaceWeekEmployeesKeys` bez zmian
+- fallback: brak hydrate + puste LS → **omit** deleted-ids key (Edge non-coupled = stored preserved)
+- Test: `test-payroll-tombstone-preservation-pwrb.mjs`
+
 ## 2.66.160 — Payroll confirmed day OFF survives resume (2026-09-04)
 
 - **fix:** `cancelPayrollDomainPushPreservingSettlement` — dowolny pending domain push (godziny OFF/ON, nie tylko settlement) jest **flushowany** przed freshness na resume; nie jest cicho dropowany w oknie debounce 1s

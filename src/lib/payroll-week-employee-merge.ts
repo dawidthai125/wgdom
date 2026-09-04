@@ -98,6 +98,45 @@ export function resolveCoupledWeekEmployeeDeletedIds(params: {
   );
 }
 
+const WEEK_EMPLOYEE_TOMBSTONE_SEP = "::";
+
+/**
+ * Client prep before coupled PWRB (hours-only must not erase Cloud tombs).
+ *
+ * 1) UNION local ∪ cloud tombs (empty/unhydrated LS is not permission to wipe Cloud).
+ * 2) Drop only current-week merge keys explicitly revoked for legal/pending ADD (P2.4–P2.8).
+ *
+ * `weekRangeKey` must match client tomb id prefix (`${from}|${to}`), same as
+ * `weekEmployeeTombstoneId` / Edge filters.
+ *
+ * Does not change Edge `resolveCoupledWeekEmployeeDeletedIds` — batch remains
+ * authoritative after this prep.
+ */
+export function prepareWeekEmployeeTombsForCoupledPwrb(params: {
+  /** `${weekFrom}|${weekTo}` — must match tombstone id prefix. */
+  weekRangeKey: string;
+  localTombs: string[];
+  cloudTombs: string[];
+  /** Current-week merge keys to omit from batch (legal ADD / pending ADD revoke). */
+  revokeCurrentWeekMergeKeys?: Iterable<string>;
+  cap?: number;
+}): string[] {
+  const cap = params.cap ?? 500;
+  const local = Array.isArray(params.localTombs) ? params.localTombs : [];
+  const cloud = Array.isArray(params.cloudTombs) ? params.cloudTombs : [];
+  let next = [...new Set([...local, ...cloud].map(String).filter(Boolean))].slice(-cap);
+  const revoke = new Set(
+    [...(params.revokeCurrentWeekMergeKeys ?? [])].map(String).filter(Boolean),
+  );
+  const wk = String(params.weekRangeKey ?? "").trim();
+  if (revoke.size === 0 || !wk) return next;
+  const prefix = `${wk}${WEEK_EMPLOYEE_TOMBSTONE_SEP}`;
+  return next.filter((id) => {
+    if (!id.startsWith(prefix)) return true;
+    return !revoke.has(id.slice(prefix.length));
+  });
+}
+
 /**
  * Union listy rosteru po weekEmployeeMergeKey — wspólny kernel klient + Edge.
  * Per klucz: oba → mergeRecord; tylko jedna strona → ten rekord.

@@ -1,4 +1,8 @@
-import { mergeWeekEmployeesList, weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
+import {
+  mergeWeekEmployeesList,
+  prepareWeekEmployeeTombsForCoupledPwrb,
+  weekEmployeeMergeKey,
+} from "./payroll-week-employee-merge.ts";
 import { maySkipPayrollShrinkGuard } from "./payroll-hours-collapse-gate.ts";
 import {
   isVerifiedEmptyRosterClear,
@@ -3875,11 +3879,17 @@ async function pushWeekEmployeesToCloudUnchecked(
   let normalized = intentAfter;
   let cloudEmpsForFence: unknown = undefined;
   let tombstonedForFence: Set<string> | undefined;
+  /** null = Cloud tombs not fetched (offline / error); [] = hydrated empty. */
+  let cloudTombsHydrated: string[] | null = null;
 
   // After freshness: rebuild outgoing = canonical Cloud ⊕ verified intents (not blind A).
   try {
-    const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+    const [cloudEmps, cloudTombsRaw] = await fetchKeysFromCloud([
+      "kw-week-employees",
+      WEEK_EMPLOYEES_DELETED_KEYS_KEY,
+    ]);
     cloudEmpsForFence = cloudEmps;
+    cloudTombsHydrated = normalizeDeletedWeekEmployeeKeys(cloudTombsRaw);
     removeDeletedWeekEmployeeMergeKeysForWeek(weekFrom, weekTo, getPayrollPendingAddKeys());
     const tombstoned = deletedWeekEmployeeMergeKeySet(
       getDeletedWeekEmployeeKeys(),
@@ -3925,7 +3935,20 @@ async function pushWeekEmployeesToCloudUnchecked(
   if (legalAddMergeKeys.size > 0) {
     removeDeletedWeekEmployeeMergeKeysForWeek(weekFrom, weekTo, legalAddMergeKeys);
   }
-  const tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
+  let tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
+  // Hours-only + empty LS must not coupled-replace Cloud tombs with [].
+  // Hydrate Cloud ∪ local, then re-drop current-week legal/pending ADD revokes (P2.8).
+  const pendingAddKeys = getPayrollPendingAddKeys();
+  const revokeForBatch = new Set<string>([...legalAddMergeKeys, ...pendingAddKeys]);
+  if (cloudTombsHydrated != null) {
+    tombstones = prepareWeekEmployeeTombsForCoupledPwrb({
+      weekRangeKey: weekRangeKey(weekFrom, weekTo),
+      localTombs: tombstones,
+      cloudTombs: cloudTombsHydrated,
+      revokeCurrentWeekMergeKeys: revokeForBatch,
+    });
+    saveDeletedWeekEmployeeKeys(tombstones);
+  }
   tombstonedForFence = deletedWeekEmployeeMergeKeySet(
     getDeletedWeekEmployeeKeys(),
     weekFrom,
@@ -3988,11 +4011,20 @@ async function pushWeekEmployeesToCloudUnchecked(
   const expectedRevision = getExpectedPayrollRevision();
   /** P2.8 — confirm pending ADD membership against effective Edge persist before ACK. */
   const pendingKeysToConfirm = pendingAddKeysToConfirmInOutgoing(normalized);
+  /**
+   * Unhydrated empty LS + omit deleted-ids key → Edge non-coupled tombs = stored preserved.
+   * Never send authoritative [] when Cloud tombs were not fetched.
+   */
+  const omitUnhydratedEmptyDeletedIds =
+    tombstones.length === 0 && cloudTombsHydrated == null;
+  const pushKeys = omitUnhydratedEmptyDeletedIds
+    ? (["kw-week-employees", PAYROLL_WEEK_META_KEY] as string[])
+    : (["kw-week-employees", WEEK_EMPLOYEES_DELETED_KEYS_KEY, PAYROLL_WEEK_META_KEY] as string[]);
+  const pushValues = omitUnhydratedEmptyDeletedIds
+    ? [normalized, buildPayrollWeekMetaPlaceholder(weekFrom, weekTo)]
+    : [normalized, tombstones, buildPayrollWeekMetaPlaceholder(weekFrom, weekTo)];
   try {
-    const resJson = await pushKeysToCloud(
-      ["kw-week-employees", WEEK_EMPLOYEES_DELETED_KEYS_KEY, PAYROLL_WEEK_META_KEY],
-      [normalized, tombstones, buildPayrollWeekMetaPlaceholder(weekFrom, weekTo)],
-      {
+    const resJson = await pushKeysToCloud(pushKeys, pushValues, {
         payrollWeekCas: true,
         expectedRevision,
         skipCloudFreshnessGate: true,
