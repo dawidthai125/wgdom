@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.155",
+    label: "Lista płac — dodanie pracownika nie znika przy odświeżeniu chmury",
+    items: [
+      {
+        type: "fix",
+        text: "Dodanie pracownika do tygodnia zostaje na liście i w zapisie do chmury nawet gdy w tym samym momencie wczyta się starszy skład z chmury. Świadome usunięcie nadal usuwa osobę. Obniżenie godzin bez potwierdzenia nadal blokuje zapis.",
+      },
+      {
+        type: "fix",
+        text: "Dodanie pracownika udaje się także wtedy, gdy w tej samej chwili zapisuje ktoś inny — zapis dogrywa się do najnowszego stanu chmury zamiast kończyć się błędem.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.154",
     label: "Lista płac — dodanie pracownika nie pada przez cudze godziny",
     items: [

@@ -16,6 +16,7 @@ import {
   ackPayrollPendingAddsInRoster,
   getPayrollPendingAddKeys,
   resolvePayrollPendingAddKeys,
+  unionRosterWithPendingAdds,
 } from "./payroll-pending-add-intent.ts";
 import type { WeekEmployee } from "@/app/app-domain";
 import { getPayrollWeekRange, previousWeekRange } from "./payroll-cycle.ts";
@@ -1660,9 +1661,11 @@ export function rebuildPayrollOutgoingAfterFreshness(params: {
   tombstoned?: Set<string>;
 }): { roster: WeekEmployee[]; mode: "canonical_intent" | "silent_down_fail_loud" | "intentional_clear" } {
   const tombstoned = params.tombstoned ?? new Set<string>();
+  // P2.5 — re-attach pending ADD before sanitize so stale freshness 15 ≠ drop ADD.
+  const intentAfter = unionRosterWithPendingAdds(params.intentAfter);
   const membership = sanitizeStaleRosterMembership(
     params.cloudEmps,
-    params.intentAfter,
+    intentAfter,
     params.intentBefore,
     tombstoned,
   );
@@ -3838,7 +3841,9 @@ async function pushWeekEmployeesToCloudUnchecked(
   const pushTraceId = payrollTraceCreatePushTraceId();
   const { weekFrom, weekTo } = traceWeekRangeFromLs();
   /** Intent AFTER — may be stale full roster; never treat as authoritative alone. */
-  const intentAfter = collapseWeekEmployeesByIdentity(normalizeArrayValue(weekEmployees)) as WeekEmployee[];
+  const intentAfter = collapseWeekEmployeesByIdentity(
+    unionRosterWithPendingAdds(normalizeArrayValue(weekEmployees)),
+  ) as WeekEmployee[];
   const intentBefore = Array.isArray(options?.rosterBefore)
     ? (collapseWeekEmployeesByIdentity(normalizeArrayValue(options.rosterBefore)) as WeekEmployee[])
     : undefined;
@@ -4400,7 +4405,9 @@ export function reconcilePayrollKeysWithFreshLocal(
 
   if (empIdx >= 0 && empIdx < out.length) {
     const freshEmps = resolveReconcileFreshForKey("kw-week-employees", fresh?.weekEmployees);
-    out[empIdx] = mergeIncomingWithStored("kw-week-employees", freshEmps, merged[empIdx]);
+    out[empIdx] = unionRosterWithPendingAdds(
+      mergeIncomingWithStored("kw-week-employees", freshEmps, merged[empIdx]),
+    );
   }
 
   return out;

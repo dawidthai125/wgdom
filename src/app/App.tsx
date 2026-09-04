@@ -149,6 +149,7 @@ import { consumePendingDeepLink, type DeepLinkRoute } from "@/lib/deep-link";
 import { initialAutoSyncSuppressUntil, subscribeBootstrapPayrollLateRehydrate } from "@/lib/cloud-bootstrap";
 import { cloudSyncMutationGuard, withKwWeekEmployeesAsyncMutation, withKwWeekEmployeesMutation, extendScopeSuppress, KW_WEEK_EMPLOYEES_DEFAULT_SUPPRESS_MS } from "@/lib/cloud-sync-mutation-guard";
 import {
+  pwrAdd,
   pwrRemove,
   pwrPush,
   pwrImportMerge,
@@ -165,6 +166,7 @@ import {
   rememberPayrollPendingAdds,
   revokePayrollPendingAdd,
   clearPayrollPendingAddIntents,
+  unionRosterWithPendingAdds,
 } from "@/lib/payroll-pending-add-intent";
 import {
   buildSettlementRetryRosterBefore,
@@ -788,7 +790,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           rosterRevision: payrollTraceBumpRosterRevision(),
         });
         withPayrollWeekEmployeesWriteSource(sourceFunction, () => {
-          setWeekEmployees(emps as WeekEmployee[]);
+          setWeekEmployees(unionRosterWithPendingAdds(emps) as WeekEmployee[]);
         });
         payrollTraceEmit("payroll.roster.state.commit", "STATE", "info", {
           trigger: "run_cloud_sync" as const,
@@ -1965,17 +1967,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   ) => {
     bumpAutoSyncSuppress(6000);
     const before = rosterBefore ?? weekEmployeesRef.current;
+    const nextUnion = unionRosterWithPendingAdds(next) as WeekEmployee[];
     const settlementAck = options?.settlementCloudAck === true;
     payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "info", {
-      count: next.length,
-      roster: rosterTraceSnapshot(next, weekFrom, weekTo, "LOCAL", "PRESENT"),
+      count: nextUnion.length,
+      roster: rosterTraceSnapshot(nextUnion, weekFrom, weekTo, "LOCAL", "PRESENT"),
     });
     if (settlementAck) {
       markSettlementCloudPushAttempt(weekFrom, weekTo);
     }
     // GO9.2 — pwrPush owns FIFO enqueue (no outer withKw wrap → no deadlock / no sibling inline).
     void pwrPush({
-      roster: next,
+      roster: nextUnion,
       weekFrom,
       weekTo,
       rosterBefore: before,
@@ -1988,7 +1991,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             weekFrom,
             weekTo,
             intentBefore: before,
-            intentAfter: next,
+            intentAfter: nextUnion,
             outgoingRoster: result.roster,
           });
           if (!ack.ok) {
@@ -2001,7 +2004,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         }
         if (result.rebased) {
           withPayrollWeekEmployeesWriteSource("pwrPush.rebase", () => {
-            setWeekEmployees(result.roster);
+            setWeekEmployees(unionRosterWithPendingAdds(result.roster) as WeekEmployee[]);
           });
           toast.info("Lista płac zsynchronizowana z chmurą", {
             description: "Połączono Twoje zmiany ze stanem zapisanym przez innego administratora.",
@@ -2147,64 +2150,66 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (manual) opId = manual;
     } catch { /* ignore */ }
     payrollTraceSetOperationId(opId);
-    withPayrollWeekEmployeesWriteSource("addFromDirectory", () => {
-    setWeekEmployees((prev) => {
-      const toAdd = filterDirectoryForPayrollWeekAdd(directory, ids, prev);
-      if (toAdd.length === 0) {
-        payrollTraceEmit("payroll.roster.ui.add_filtered", "UI", "warn", {
-          skipReason: "dedup_empty" as const,
-          toAddCount: 0,
-          directoryIdsRequested: ids,
-        });
-        return prev;
-      }
-      // D5 — factory PURE; Soft Restore overlay before Domain Push
-      const created = toAdd.map(weekEmployeeFromDir);
-      const { roster: newEmps, restoredDirectoryIds } = applyPayrollSoftRestoreOverlay(created, {
-        weekFrom,
-        weekTo,
-        prevRoster: payrollPrevRoster,
-        preferEmptyHours: options?.preferEmptyHours === true,
-      });
-      const first = newEmps[0];
-      if (first) {
-        payrollTraceSetSubject(weekEmployeeMergeKey(first), first.id);
-      }
-      const next = [...prev, ...newEmps];
-      rememberPayrollPendingAdds(newEmps);
-      payrollTraceEmit("payroll.roster.ui.add", "UI", "info", {
-        operationId: opId,
+    const prev = weekEmployeesRef.current;
+    const toAdd = filterDirectoryForPayrollWeekAdd(directory, ids, prev);
+    if (toAdd.length === 0) {
+      payrollTraceEmit("payroll.roster.ui.add_filtered", "UI", "warn", {
+        skipReason: "dedup_empty" as const,
+        toAddCount: 0,
         directoryIdsRequested: ids,
-        toAddCount: newEmps.length,
-        dedupDroppedCount: ids.length - toAdd.length,
-        rosterBefore: rosterTraceSnapshot(prev, weekFrom, weekTo, "LOCAL", "PRESENT"),
-        rosterAfter: rosterTraceSnapshot(next, weekFrom, weekTo, "UI", "CREATED"),
-        subjectState: "CREATED" as const,
       });
-      payrollTraceBumpRosterRevision();
-      if (newEmps.length > 0) {
-        // W2 add — no skipPayrollGuard / no intentionalHoursClear (CREATED, no D2)
-        // GO9.2 — single enqueue owner = pwrPush
-        void pwrPush({
-          roster: next,
-          weekFrom,
-          weekTo,
-          rosterBefore: prev,
-          revokeIdentities: newEmps,
-        }).catch((e) => {
-          const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
-          toast.error("Nie udało się zapisać składu do chmury", {
-            description: msg,
-            id: "payroll-roster-push",
-          });
-        });
-        refreshSavedActiveWeekSnapshot(next);
-        if (restoredDirectoryIds.length > 0) {
-          toast.success(`Przywrócono godziny dla ${restoredDirectoryIds.length} os. (Soft Restore)`);
-        }
-      }
-      return next;
+      return;
+    }
+    const created = toAdd.map(weekEmployeeFromDir);
+    const { roster: newEmps, restoredDirectoryIds } = applyPayrollSoftRestoreOverlay(created, {
+      weekFrom,
+      weekTo,
+      prevRoster: payrollPrevRoster,
+      preferEmptyHours: options?.preferEmptyHours === true,
     });
+    const first = newEmps[0];
+    if (first) {
+      payrollTraceSetSubject(weekEmployeeMergeKey(first), first.id);
+    }
+    const next = [...prev, ...newEmps];
+    rememberPayrollPendingAdds(newEmps);
+    payrollTraceEmit("payroll.roster.ui.add", "UI", "info", {
+      operationId: opId,
+      directoryIdsRequested: ids,
+      toAddCount: newEmps.length,
+      dedupDroppedCount: ids.length - toAdd.length,
+      rosterBefore: rosterTraceSnapshot(prev, weekFrom, weekTo, "LOCAL", "PRESENT"),
+      rosterAfter: rosterTraceSnapshot(next, weekFrom, weekTo, "UI", "CREATED"),
+      subjectState: "CREATED" as const,
+    });
+    payrollTraceBumpRosterRevision();
+    withPayrollWeekEmployeesWriteSource("addFromDirectory", () => {
+      setWeekEmployees(next);
+    });
+    refreshSavedActiveWeekSnapshot(next);
+    if (restoredDirectoryIds.length > 0) {
+      toast.success(`Przywrócono godziny dla ${restoredDirectoryIds.length} os. (Soft Restore)`);
+    }
+    // P2.5 — PWRB pwrAdd outside setState. Freshness must not drop pending ADD.
+    void pwrAdd({
+      weekFrom,
+      weekTo,
+      directoryIds: ids,
+      directory,
+      currentRoster: prev,
+      newEmployees: newEmps,
+    }).then((result) => {
+      if (result.pushed) {
+        withPayrollWeekEmployeesWriteSource("pwrAdd.ack", () => {
+          setWeekEmployees(unionRosterWithPendingAdds(result.roster) as WeekEmployee[]);
+        });
+      }
+    }).catch((e) => {
+      const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+      toast.error("Nie udało się zapisać składu do chmury", {
+        description: msg,
+        id: "payroll-roster-push",
+      });
     });
   };
 

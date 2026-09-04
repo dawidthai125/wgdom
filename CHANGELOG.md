@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.155 — Payroll P2.5 atomic membership ADD (2026-09-04)
+
+- **fix:** pending ADD snapshot przetrwa freshness `applyAdminDataBundle` / reconcile / drugi `pwrPush`
+- `addFromDirectory` woła `pwrAdd` **poza** updaterem `setState` (PWRB, bez drugiego entry)
+- `pwrPush` i `pwrAdd` dzielą jeden `pushRosterWithRebase` — ADD nie ginie na CAS 409 `stale_revision`
+- Guard / 50% / cloud-unreachable / P2.4 tomb — bez zmian semantyki
+- Test: `test-payroll-p2-5-atomic-membership-add.mjs` (A–M) · `test-payroll-p2-pipeline-coupling.mjs`
+
 ## 2.66.154 — Payroll membership ADD vs unrelated hours-down (2026-09-04)
 
 - **fix:** legal/pending membership ADD nie wpada w `silent_down_fail_loud` przez hours-down **innej** osoby

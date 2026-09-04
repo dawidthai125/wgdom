@@ -112,9 +112,18 @@ assert(
   "P2-4-pwrPush-export-present",
   /export async function pwrPush/.test(pwrSrc),
 );
+// P2.5 — ADD entry moved to the pwrAdd facade (still PWRB, still CAS + rebase).
 assert(
-  "P2-4-addFromDirectory-still-calls-pwrPush",
-  /addFromDirectory[\s\S]{0,2500}void pwrPush\(/.test(appSrc),
+  "P2-4-addFromDirectory-still-calls-pwrb",
+  /addFromDirectory[\s\S]{0,2500}void pwrAdd\(/.test(appSrc),
+);
+assert(
+  "P2-4-pwrAdd-export-present",
+  /export async function pwrAdd/.test(pwrSrc),
+);
+assert(
+  "P2-4-pwrAdd-shares-cas-rebase",
+  /export async function pwrAdd[\s\S]{0,2000}pushRosterWithRebase\(/.test(pwrSrc),
 );
 assert(
   "P2-4-persistPayrollRoster-still-calls-pwrPush",

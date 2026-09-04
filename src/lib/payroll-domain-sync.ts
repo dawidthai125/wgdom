@@ -9,6 +9,7 @@ import type { WeekEmployee } from "@/app/app-domain";
 import type { PushWeekEmployeesOptions } from "@/lib/cloud-sync";
 import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
 import { mergeHoursIntents } from "@/lib/payroll-hours-intent";
+import { unionRosterWithPendingAdds } from "@/lib/payroll-pending-add-intent";
 
 /** Debounce edycji pól — scala szybkie zmiany przed jednym batch-set. */
 export const PAYROLL_DOMAIN_PUSH_DEBOUNCE_MS = 1000;
@@ -107,7 +108,7 @@ export function cancelPayrollDomainPushPreservingSettlement(): void {
 /** Natychmiastowy push (testy / flush przed unload / background). */
 export function flushPayrollDomainPush(): void {
   if (!pushHandler || pendingRoster == null) return;
-  const roster = pendingRoster;
+  const roster = unionRosterWithPendingAdds(pendingRoster) as WeekEmployee[];
   const options = pendingOptions;
   const rosterBefore = pendingRosterBefore;
   pendingRoster = null;

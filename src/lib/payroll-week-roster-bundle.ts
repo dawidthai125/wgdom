@@ -83,6 +83,84 @@ export type PwrPushParams = {
   options?: PushWeekEmployeesOptions;
 };
 
+const PAYROLL_REBASE_MAX_ATTEMPTS = 3;
+
+/**
+ * CAS push + stale-revision rebase, shared by `pwrPush` and `pwrAdd`.
+ *
+ * Caller must already hold the kw-week-employees write slot — this helper does
+ * not enqueue (nesting `enqueueKwWeekEmployeesWrite` would deadlock the FIFO).
+ */
+async function pushRosterWithRebase(params: {
+  roster: WeekEmployee[];
+  weekFrom: string;
+  weekTo: string;
+  intentBefore: WeekEmployee[];
+  intentAfter: WeekEmployee[];
+  resolved: ReturnType<typeof resolvePayrollDomainPushOptions>;
+  settlementCloudAck?: boolean;
+}): Promise<PwrPushResult> {
+  const { intentBefore, intentAfter, resolved } = params;
+  let roster = params.roster;
+
+  for (let attempt = 0; attempt < PAYROLL_REBASE_MAX_ATTEMPTS; attempt++) {
+    try {
+      roster = await pushWeekEmployeesToCloud(roster, {
+        ...resolved,
+        rosterBefore: intentBefore,
+        settlementCloudAck: params.settlementCloudAck === true,
+      });
+      return { roster, rebased: attempt > 0 };
+    } catch (e) {
+      if (!(e instanceof PayrollStaleRevisionError)) throw e;
+      writePayrollWeekMetaToLs(
+        normalizePayrollWeekMeta(
+          {
+            rosterRevision: e.serverRevision,
+            weekFrom: params.weekFrom,
+            weekTo: params.weekTo,
+            updatedAt: Date.now(),
+          },
+          params.weekFrom,
+          params.weekTo,
+        ),
+      );
+      let canonical = (e.roster ?? []) as WeekEmployee[];
+      if (canonical.length === 0) {
+        try {
+          const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+          canonical = Array.isArray(cloudEmps) ? (cloudEmps as WeekEmployee[]) : [];
+        } catch {
+          throw e;
+        }
+      }
+      roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)
+        ? rebasePayrollExtraCostsIntent(canonical, intentBefore, intentAfter)
+        : rebasePayrollFieldIntents(
+            canonical,
+            intentBefore,
+            intentAfter,
+            resolved.hoursIntents,
+            params.weekFrom,
+            params.weekTo,
+          );
+      // P1 — drop tombstoned identities after rebase (stale ADD vs DELETE tomb).
+      const tombKeys = deletedWeekEmployeeMergeKeySet(
+        getDeletedWeekEmployeeKeys(),
+        params.weekFrom,
+        params.weekTo,
+      );
+      roster = filterDeletedWeekEmployees(roster, tombKeys) as WeekEmployee[];
+    }
+  }
+  throw new PayrollStaleRevisionError(
+    "stale_revision",
+    getExpectedPayrollRevision(),
+    undefined,
+    "Payroll sync conflict — odśwież listę płac",
+  );
+}
+
 export async function pwrAdd(params: {
   weekFrom: string;
   weekTo: string;
@@ -90,10 +168,15 @@ export async function pwrAdd(params: {
   directory: DirectoryEmployee[];
   currentRoster: WeekEmployee[];
   options?: PushWeekEmployeesOptions;
+  /** P2.5 — prebuilt rows (soft-restore). Avoids a second factory / new UUIDs. */
+  newEmployees?: WeekEmployee[];
 }): Promise<PwrMutationResult> {
   return enqueueKwWeekEmployeesWrite(async () => {
-    const toAdd = filterDirectoryForPayrollWeekAdd(params.directory, params.directoryIds, params.currentRoster);
-    if (toAdd.length === 0) {
+    const newEmps = params.newEmployees?.length
+      ? params.newEmployees
+      : filterDirectoryForPayrollWeekAdd(params.directory, params.directoryIds, params.currentRoster)
+        .map(weekEmployeeFromDir);
+    if (newEmps.length === 0) {
       return {
         roster: params.currentRoster,
         tombstones: getDeletedWeekEmployeeKeys(),
@@ -101,7 +184,6 @@ export async function pwrAdd(params: {
         pushed: false,
       };
     }
-    const newEmps = toAdd.map(weekEmployeeFromDir);
     const next = [...params.currentRoster, ...newEmps];
     rememberPayrollPendingAdds(newEmps);
     removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, newEmps);
@@ -116,15 +198,16 @@ export async function pwrAdd(params: {
       intentionalHoursClear: resolved.intentionalHoursClear,
       skipPayrollGuard: resolved.skipPayrollGuard,
     });
-    try {
-      await pushWeekEmployeesToCloud(next, {
-        ...resolved,
-        rosterBefore: params.currentRoster,
-      });
-      return { roster: next, tombstones, changed: true, pushed: true };
-    } catch {
-      return { roster: next, tombstones, changed: true, pushed: false };
-    }
+    // P2.5 — same CAS + stale-revision rebase as pwrPush (409 must not drop ADD).
+    const { roster: written } = await pushRosterWithRebase({
+      roster: next,
+      weekFrom: params.weekFrom,
+      weekTo: params.weekTo,
+      intentBefore: params.currentRoster,
+      intentAfter: next,
+      resolved,
+    });
+    return { roster: written, tombstones, changed: true, pushed: true };
   });
 }
 
@@ -176,8 +259,6 @@ export type PwrPushResult = {
   rebased: boolean;
 };
 
-const PAYROLL_REBASE_MAX_ATTEMPTS = 3;
-
 export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
   return enqueueKwWeekEmployeesWrite(async () => {
     if (params.revokeIdentities?.length) {
@@ -199,66 +280,15 @@ export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
       skipPayrollGuard: resolved.skipPayrollGuard,
     });
 
-    const intentBefore = params.rosterBefore ?? params.roster;
-    const intentAfter = params.roster;
-    let roster = params.roster;
-
-    for (let attempt = 0; attempt < PAYROLL_REBASE_MAX_ATTEMPTS; attempt++) {
-      try {
-        roster = await pushWeekEmployeesToCloud(roster, {
-          ...resolved,
-          rosterBefore: intentBefore,
-          settlementCloudAck: params.options?.settlementCloudAck === true,
-        });
-        return { roster, rebased: attempt > 0 };
-      } catch (e) {
-        if (!(e instanceof PayrollStaleRevisionError)) throw e;
-        writePayrollWeekMetaToLs(
-          normalizePayrollWeekMeta(
-            {
-              rosterRevision: e.serverRevision,
-              weekFrom: params.weekFrom,
-              weekTo: params.weekTo,
-              updatedAt: Date.now(),
-            },
-            params.weekFrom,
-            params.weekTo,
-          ),
-        );
-        let canonical = (e.roster ?? []) as WeekEmployee[];
-        if (canonical.length === 0) {
-          try {
-            const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
-            canonical = Array.isArray(cloudEmps) ? (cloudEmps as WeekEmployee[]) : [];
-          } catch {
-            throw e;
-          }
-        }
-        roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)
-          ? rebasePayrollExtraCostsIntent(canonical, intentBefore, intentAfter)
-          : rebasePayrollFieldIntents(
-              canonical,
-              intentBefore,
-              intentAfter,
-              resolved.hoursIntents,
-              params.weekFrom,
-              params.weekTo,
-            );
-        // P1 — drop tombstoned identities after rebase (stale ADD vs DELETE tomb).
-        const tombKeys = deletedWeekEmployeeMergeKeySet(
-          getDeletedWeekEmployeeKeys(),
-          params.weekFrom,
-          params.weekTo,
-        );
-        roster = filterDeletedWeekEmployees(roster, tombKeys) as WeekEmployee[];
-      }
-    }
-    throw new PayrollStaleRevisionError(
-      "stale_revision",
-      getExpectedPayrollRevision(),
-      undefined,
-      "Payroll sync conflict — odśwież listę płac",
-    );
+    return pushRosterWithRebase({
+      roster: params.roster,
+      weekFrom: params.weekFrom,
+      weekTo: params.weekTo,
+      intentBefore: params.rosterBefore ?? params.roster,
+      intentAfter: params.roster,
+      resolved,
+      settlementCloudAck: params.options?.settlementCloudAck === true,
+    });
   });
 }
 
