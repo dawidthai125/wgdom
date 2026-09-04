@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-09-05",
+    version: "2.66.163",
+    label: "Lista płac — świeżość przy wejściu (P1 A′)",
+    items: [
+      {
+        type: "improve",
+        text: "P1 A′: natychmiastowe odświeżenie przy wejściu w Listę płac + sygnał rosterRevision + wskaźnik świeżości (zielony/żółty/czerwony, „Sprawdzono: HH:MM”). Polling 15s i resume bez zmian. Bez Realtime i bez nowej blokady rozliczeń. Test: test-payroll-p1-a-prime-freshness.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-09-04",
     version: "2.66.162",
     label: "PAYROLL — P0 settlement markPaidIfUnpaid",

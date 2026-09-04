@@ -525,6 +525,8 @@ export function PayrollView({
   onDetailOpenChange,
   onSetJobs,
   rawWeekEmployeesCount,
+  payrollFreshnessUxLevel,
+  payrollFreshnessCheckedLabel,
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   /** TEMP · PAYROLL-DISPLAY-RUNTIME-TRACE-01 — surowy stan LS/React (bez filtra test); tylko diagnostyka. */
@@ -562,6 +564,9 @@ export function PayrollView({
   onInitialEmpConsumed?: () => void;
   onDetailOpenChange?: (open: boolean) => void;
   onSetJobs: (jobs: Job[] | ((prev: Job[]) => Job[])) => void;
+  /** P1 A′ freshness UX — no settlement gate. */
+  payrollFreshnessUxLevel?: "green" | "yellow" | "red";
+  payrollFreshnessCheckedLabel?: string | null;
 }) {
   const { canViewRates, session } = useAdminAccess();
   const [settleTargetId, setSettleTargetId] = useState<string | null>(null);
@@ -1196,6 +1201,43 @@ export function PayrollView({
                   <button onClick={onGoToCurrent} className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors border border-primary/30 px-2.5 py-1.5 rounded-lg hover:bg-primary/10">
                     <Calendar size={11}/>Bieżący tydzień
                   </button>
+                )}
+                {payrollFreshnessUxLevel && (
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-[11px] font-medium shrink-0 ${
+                      payrollFreshnessUxLevel === "green"
+                        ? "text-emerald-400"
+                        : payrollFreshnessUxLevel === "yellow"
+                          ? "text-amber-400"
+                          : "text-red-400"
+                    }`}
+                    title={
+                      payrollFreshnessUxLevel === "green"
+                        ? "Lista płac: świeżość potwierdzona"
+                        : payrollFreshnessUxLevel === "yellow"
+                          ? "Lista płac: sprawdzanie świeżości"
+                          : "Lista płac: świeżość niepotwierdzona"
+                    }
+                    data-payroll-freshness-ux={payrollFreshnessUxLevel}
+                  >
+                    <span
+                      className={`inline-block w-2 h-2 rounded-full ${
+                        payrollFreshnessUxLevel === "green"
+                          ? "bg-emerald-400"
+                          : payrollFreshnessUxLevel === "yellow"
+                            ? "bg-amber-400"
+                            : "bg-red-400"
+                      }`}
+                      aria-hidden
+                    />
+                    {payrollFreshnessCheckedLabel ?? (
+                      payrollFreshnessUxLevel === "green"
+                        ? "Aktualne"
+                        : payrollFreshnessUxLevel === "yellow"
+                          ? "Sprawdzanie…"
+                          : "Niepotwierdzone"
+                    )}
+                  </span>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">

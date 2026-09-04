@@ -202,7 +202,9 @@ assert(
 assert(
   "P2-8-app-p1-effect-still-present",
   appSrc.includes("decidePayrollVisibleFreshnessPull")
-    && appSrc.includes("executeCloudFreshnessPull({ bypassThrottle: false })"),
+    && appSrc.includes("PAYROLL-P1-VISIBLE-FRESHNESS-PULL")
+    && appSrc.includes('tick("entry")')
+    && /executeCloudFreshnessPull\(\{\s*bypassThrottle:\s*(true|false)\s*\}\)/.test(appSrc),
 );
 
 assert(

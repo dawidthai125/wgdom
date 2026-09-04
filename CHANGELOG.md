@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.163 — Lista płac P1 A′ freshness (2026-09-05)
+
+- **improve:** natychmiastowe odświeżenie przy wejściu w Listę płac; probe `rosterRevision`; UX GREEN/YELLOW/RED + „Sprawdzono: HH:MM”
+- zachowane: poll 15s, resume/focus, freshness-before-write, CAS/intents, P0, P2.8/2.66.161
+- **bez** Realtime / nowej bramki settlement / Edge
+- Test: `test-payroll-p1-a-prime-freshness.mjs`
+
 ## 2.66.162 — P0 Settlement markPaidIfUnpaid (2026-09-04)
 
 - **fix:** Edge `batch-set` — `markPaidIfUnpaid` (false→true raz) + `payroll_already_settled` 409 + `settlementIdempotencyKey`; stary klient silent keep-prev metadata

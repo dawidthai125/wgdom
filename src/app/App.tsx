@@ -74,6 +74,7 @@ import {
 } from "@/lib/cloud-sync";
 import {
   PAYROLL_WEEK_META_KEY,
+  getExpectedPayrollRevision,
   normalizePayrollWeekMeta,
   writePayrollWeekMetaToLs,
 } from "@/lib/payroll-week-meta";
@@ -212,6 +213,9 @@ import {
 import {
   registerCloudFreshnessReconcile,
   markCloudFreshnessUnknown,
+  markCloudFreshnessFresh,
+  markCloudFreshnessUnconfirmed,
+  getCloudFreshnessSnapshot,
   ensureCloudFreshBeforeWrite,
 } from "@/lib/cloud-freshness-gate";
 import {
@@ -219,7 +223,14 @@ import {
   resolveAutoCloudSyncFailureToast,
   PIPELINE_WRITE_BLOCKED_TOAST_TITLE,
 } from "@/lib/cloud-sync-failure-kind";
-import { decidePayrollVisibleFreshnessPull } from "@/lib/payroll-visible-freshness-pull";
+import {
+  comparePayrollRosterRevisions,
+  decidePayrollVisibleFreshnessPull,
+  derivePayrollFreshnessUxLevel,
+  formatPayrollFreshnessCheckedLabel,
+  shouldRunFullFreshnessPullForRevision,
+  type PayrollFreshnessUxLevel,
+} from "@/lib/payroll-visible-freshness-pull";
 import {
   classifyAutoSyncTriggerOrigin,
   createAutoSyncSkipSession,
@@ -1592,11 +1603,26 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     };
   }, [requestCloudFreshnessOnResume, jobs]);
 
-  // PAYROLL-P1-VISIBLE-FRESHNESS-PULL
-  // Visible Lista Płac only. Existing freshness pull, bypassThrottle false.
+  // PAYROLL-P1-VISIBLE-FRESHNESS-PULL (+ A′ immediate entry + revision probe)
+  // Visible Lista Płac only. Existing freshness pull; entry + interval share throttle.
+  // READ-ONLY: never cancel pending domain push; never enqueue payroll writes.
+  const [payrollFreshnessUxLevel, setPayrollFreshnessUxLevel] = useState<PayrollFreshnessUxLevel>("yellow");
+  const [payrollFreshnessCheckedLabel, setPayrollFreshnessCheckedLabel] = useState<string | null>(null);
+
+  const refreshPayrollFreshnessUx = useCallback(() => {
+    const snap = getCloudFreshnessSnapshot();
+    setPayrollFreshnessUxLevel(
+      derivePayrollFreshnessUxLevel({
+        gateState: snap.state,
+        hasPendingDomainPush: hasPendingPayrollDomainPush(),
+      }),
+    );
+    setPayrollFreshnessCheckedLabel(formatPayrollFreshnessCheckedLabel(snap.freshnessConfirmedAt));
+  }, []);
+
   useEffect(() => {
     if (view !== "payroll") return;
-    const tick = () => {
+    const tick = (trigger: "entry" | "interval") => {
       const decision = decidePayrollVisibleFreshnessPull({
         view,
         hidden: typeof document !== "undefined" ? document.hidden : true,
@@ -1604,13 +1630,45 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         hasPendingDomainPush: hasPendingPayrollDomainPush(),
         lastPullAt: lastPullAtRef.current,
         now: Date.now(),
+        trigger,
       });
+      refreshPayrollFreshnessUx();
       if (!decision.allow) return;
-      void executeCloudFreshnessPull({ bypassThrottle: false });
+      // Claim throttle slot immediately so entry+focus+interval cannot burst pulls.
+      lastPullAtRef.current = Date.now();
+      setPayrollFreshnessUxLevel("yellow");
+      void (async () => {
+        // Revision-aware probe — detection only; full pull still existing path.
+        try {
+          const localRev = getExpectedPayrollRevision();
+          const [metaRaw] = await fetchKeysFromCloud([PAYROLL_WEEK_META_KEY]);
+          const cloudMeta = normalizePayrollWeekMeta(metaRaw, weekFrom, weekTo);
+          const cmp = comparePayrollRosterRevisions(localRev, cloudMeta.rosterRevision);
+          if (!shouldRunFullFreshnessPullForRevision(cmp)) {
+            // Equal / cloud older — skip unnecessary full replace; confirm local verify time.
+            markCloudFreshnessFresh("reconcile_ok");
+            setPayrollFreshnessCheckedLabel(formatPayrollFreshnessCheckedLabel(Date.now()));
+            refreshPayrollFreshnessUx();
+            return;
+          }
+        } catch {
+          /* probe fail → fall through to existing full freshness pull */
+        }
+        try {
+          // Throttle already claimed above — bypass inner throttle for this slot only.
+          await executeCloudFreshnessPull({ bypassThrottle: true });
+          markCloudFreshnessFresh("reconcile_ok");
+        } catch {
+          markCloudFreshnessUnconfirmed("reconcile_fail");
+        } finally {
+          refreshPayrollFreshnessUx();
+        }
+      })();
     };
-    const id = window.setInterval(tick, MIN_PULL_INTERVAL_MS);
+    tick("entry");
+    const id = window.setInterval(() => tick("interval"), MIN_PULL_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [view, executeCloudFreshnessPull]);
+  }, [view, executeCloudFreshnessPull, refreshPayrollFreshnessUx, weekFrom, weekTo]);
 
   // Backup
   const exportBackup = () => {
@@ -3569,6 +3627,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           showPayrollPrevRecoveryBanner={showPayrollPrevRecoveryBanner}
           onRestorePayrollHoursFromPrev={restorePayrollHoursFromPrev}
           onDismissPayrollPrevRecoveryBanner={dismissPayrollPrevRecoveryBanner}
+          payrollFreshnessUxLevel={payrollFreshnessUxLevel}
+          payrollFreshnessCheckedLabel={payrollFreshnessCheckedLabel}
           saveBiweeklyBacklogWeek={saveBiweeklyBacklogWeek}
           pendingPayrollEmpId={pendingPayrollEmpId}
           onInitialPayrollEmpConsumed={() => setPendingPayrollEmpId(null)}

@@ -58,9 +58,14 @@ const idleBase = {
 const appSrc = readFileSync(resolve("src/app/App.tsx"), "utf8");
 const p1Marker = "PAYROLL-P1-VISIBLE-FRESHNESS-PULL";
 const p1Start = appSrc.indexOf(p1Marker);
-const p1End = appSrc.indexOf("}, [view, executeCloudFreshnessPull]);", p1Start);
+const p1Dep = "}, [view, executeCloudFreshnessPull, refreshPayrollFreshnessUx, weekFrom, weekTo]);";
+const p1DepLegacy = "}, [view, executeCloudFreshnessPull]);";
+const p1EndNew = appSrc.indexOf(p1Dep, p1Start);
+const p1EndLegacy = appSrc.indexOf(p1DepLegacy, p1Start);
+const p1End = p1EndNew >= 0 ? p1EndNew : p1EndLegacy;
+const p1EndLen = p1EndNew >= 0 ? p1Dep.length : p1DepLegacy.length;
 const p1Block = p1Start >= 0 && p1End > p1Start
-  ? appSrc.slice(p1Start, p1End + "}, [view, executeCloudFreshnessPull]);".length)
+  ? appSrc.slice(p1Start, p1End + p1EndLen)
   : "";
 
 const helperSrc = readFileSync(resolve("src/lib/payroll-visible-freshness-pull.ts"), "utf8");
@@ -86,8 +91,9 @@ console.log("=== PAYROLL P1 visible pull isolation ===\n");
   const d = decidePayrollVisibleFreshnessPull(idleBase);
   assert("P1-4 visible idle pull-due allows executeCloudFreshnessPull", d.allow === true);
   assert("P1-4 interval is existing 15s throttle", MIN_PULL_INTERVAL_MS === 15_000);
-  assert("P1-4 App timer uses executeCloudFreshnessPull bypassThrottle false",
-    p1Block.includes("executeCloudFreshnessPull({ bypassThrottle: false })"));
+  assert("P1-4 App timer uses executeCloudFreshnessPull",
+    p1Block.includes("executeCloudFreshnessPull({ bypassThrottle:"));
+  assert("P1-4 App immediate entry tick", p1Block.includes('tick("entry")'));
 }
 
 {

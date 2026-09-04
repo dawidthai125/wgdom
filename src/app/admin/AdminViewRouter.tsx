@@ -239,6 +239,9 @@ export type AdminViewRouterProps = {
   showPayrollPrevRecoveryBanner?: boolean;
   onRestorePayrollHoursFromPrev?: () => void;
   onDismissPayrollPrevRecoveryBanner?: () => void;
+  /** P1 A′ — freshness UX (GREEN/YELLOW/RED); detection only, no settlement gate. */
+  payrollFreshnessUxLevel?: "green" | "yellow" | "red";
+  payrollFreshnessCheckedLabel?: string | null;
   saveBiweeklyBacklogWeek: (backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => void;
   pendingPayrollEmpId: string | null;
   onInitialPayrollEmpConsumed: () => void;
@@ -346,6 +349,8 @@ export function AdminViewRouter({
   showPayrollPrevRecoveryBanner,
   onRestorePayrollHoursFromPrev,
   onDismissPayrollPrevRecoveryBanner,
+  payrollFreshnessUxLevel,
+  payrollFreshnessCheckedLabel,
   saveBiweeklyBacklogWeek,
   pendingPayrollEmpId,
   onInitialPayrollEmpConsumed,
@@ -544,6 +549,8 @@ export function AdminViewRouter({
               showPayrollPrevRecoveryBanner={showPayrollPrevRecoveryBanner}
               onRestorePayrollHoursFromPrev={onRestorePayrollHoursFromPrev}
               onDismissPayrollPrevRecoveryBanner={onDismissPayrollPrevRecoveryBanner}
+              payrollFreshnessUxLevel={payrollFreshnessUxLevel}
+              payrollFreshnessCheckedLabel={payrollFreshnessCheckedLabel}
               onSaveBacklogWeek={saveBiweeklyBacklogWeek}
               initialEmpId={pendingPayrollEmpId}
               onInitialEmpConsumed={onInitialPayrollEmpConsumed}
