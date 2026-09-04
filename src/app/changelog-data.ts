@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.148",
+    label: "Lista płac — błąd pipeline nie jest błędem zapisu godzin",
+    items: [
+      {
+        type: "fix",
+        text: "Zmiana godzin na Liście Płac nie pokazuje już błędu zapisu płac, gdy nieudana jest tylko synchronizacja pipeline przetargów. Ochrona listy płac i konflikt zapisu bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.147",
     label: "IK — ingest artifact persist na cloud body",
     items: [

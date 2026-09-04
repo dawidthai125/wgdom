@@ -200,8 +200,12 @@ import {
   registerCloudFreshnessReconcile,
   markCloudFreshnessUnknown,
   ensureCloudFreshBeforeWrite,
-  isCloudFreshnessBlockedError,
 } from "@/lib/cloud-freshness-gate";
+import {
+  classifyCloudSyncFailure,
+  resolveAutoCloudSyncFailureToast,
+  PIPELINE_WRITE_BLOCKED_TOAST_TITLE,
+} from "@/lib/cloud-sync-failure-kind";
 import {
   installPayrollRuntimeTraceGlobals,
   payrollTraceBumpRosterRevision,
@@ -1139,13 +1143,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
       setSyncStatus("error");
       setSyncError(msg);
-      if (isCloudFreshnessBlockedError(e)) {
-        toast.error("Zapis wstrzymany — odśwież dane z chmury", { description: msg, id: "admin-cloud-freshness" });
-      } else if (isPayrollGuardBlockedError(e)) {
-        toast.error("Zapis listy płac zablokowany", { description: msg, id: "admin-cloud-sync-payroll-guard" });
-      } else {
-        toast.error("Nie udało się wysłać do chmury", { description: msg, id: "admin-cloud-sync" });
-      }
+      const spec = resolveAutoCloudSyncFailureToast(e);
+      toast.error(spec.title, { description: msg, id: spec.id });
     } finally {
       syncInFlightRef.current = false;
       if (pendingCloudSyncRef.current) {
@@ -1921,6 +1920,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
               id: settlementAck ? "payroll-settlement-guard" : "payroll-roster-guard",
             },
           );
+          return;
+        }
+        if (classifyCloudSyncFailure(e) === "pipeline") {
+          toast.error(PIPELINE_WRITE_BLOCKED_TOAST_TITLE, {
+            description: msg,
+            id: "payroll-roster-pipeline-isolated",
+          });
           return;
         }
         payrollTraceEmit("payroll.roster.push.schedule", "PUSH", "error", {

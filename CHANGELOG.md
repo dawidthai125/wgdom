@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.148 — Payroll P0 pipeline error isolation (2026-09-04)
+
+- **fix:** auto-sync / `runCloudSync` — `PIPELINE_CLOUD_UNCONFIRMED` toast jako pipeline, nie „Zapis listy płac zablokowany” / generic cloud po edycji godzin
+- **fix:** `persistPayrollRoster` — wyciek błędu pipeline nie jest raportowany jako nieudany zapis składu
+- Test: `test-payroll-p0-pipeline-error-isolation.mjs` (P0-1–P0-6)
+- Guard / CAS / freshness / latch / FIFO `enqueueKwWeekEmployeesWrite` bez zmian
+
 ## 2.66.147 — IK ingest artifact persist na cloud body (2026-09-04)
 
 - **fix:** OD-OCR-45 — `persistIngestArtifactPatchToCloud` GET cloud → patch jednego TPI → `pushTenderPipelineToCloud` · panel `persist: "local"` · prune / lean / guard bez zmian
