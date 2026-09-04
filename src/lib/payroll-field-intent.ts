@@ -299,6 +299,7 @@ export function applyPayrollFieldIntentsOntoCanonical(
   }
 
   // 2) Outgoing-only rows — legal ADD (absent from before) or pending ADD intent.
+  // P2.4 tomb vs ADD is decided in sanitizeStaleRosterMembership / filterDeleted.
   const pendingAdds = resolvePayrollPendingAddKeys(pendingAddMergeKeys);
   for (const afterEmp of outList) {
     if (consumedAfterKeys.has(afterEmp)) continue;

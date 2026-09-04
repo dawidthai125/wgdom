@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.153",
+    label: "Lista płac — ponowne dodanie pracownika nie znika przez stary tombstone",
+    items: [
+      {
+        type: "fix",
+        text: "Ponowne dodanie pracownika na Liście Płac zostaje w zapisie do chmury nawet gdy w chmurze został stary znacznik usunięcia z tego tygodnia. Świadome usunięcie nadal usuwa osobę i nie wraca po odświeżeniu.",
+      },
+      {
+        type: "fix",
+        text: "Gdy zapis składu do chmury się nie potwierdzi, lokalna kopia listy nie zostaje przycięta do niepotwierdzonego, krótszego składu.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.152",
     label: "Zapis notatki i kadr nie rusza pipeline przetargów",
     items: [

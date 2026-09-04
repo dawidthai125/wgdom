@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.153 — Payroll P2.4 tombstone-safe legal ADD + ACK-safe LS (2026-09-04)
+
+- **fix P2.4:** legal ADD / pending ADD przebija stale current-week tombstone w `sanitizeStaleRosterMembership` i `filterDeletedWeekEmployees`
+- freshness UNION tombu nie dropuje ADD; `removeDeletedWeekEmployeeMergeKeysForWeek` zdejmuje tylko tomb tego tygodnia + tej tożsamości
+- explicit Remove + revoke pending bez zmian (H14-REG-5)
+- failed/blocked CAS przywraca poprzedni `kw-week-employees` w LS (nie promuje skurczonego rosteru)
+- Test: `test-payroll-p2-4-tombstone-safe-add.mjs`
+
 ## 2.66.152 — Payroll P2.3 isolate domain auto-sync from Pipeline (2026-09-04)
 
 - **fix:** auto-sync po Notatkach / kadrach / urlopach / kontaktach / robotach / WM / pomiarach nie woła `pushTenderPipelineToCloud`

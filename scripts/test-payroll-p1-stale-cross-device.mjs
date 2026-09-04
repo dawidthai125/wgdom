@@ -217,7 +217,8 @@ const x = makeEmp("x", "Xawery");
   const { weekEmployeeMergeKey } = await import("../src/lib/payroll-week-employee-merge.ts");
   const tomb2 = new Set([weekEmployeeMergeKey(x)]);
   const r = sanitizeStaleRosterMembership(cloud, after, before, tomb2);
-  assert("R6 unit tomb blocks ADD until revoke", !r.roster.some((e) => e.id === "x"));
+  // P2.4 — legal ADD (absent in before) overrides stale current-week tomb.
+  assert("R6 unit legal ADD beats stale tomb", r.roster.some((e) => e.id === "x"));
 }
 
 // --- Unit: rebase BEFORE→AFTER ---

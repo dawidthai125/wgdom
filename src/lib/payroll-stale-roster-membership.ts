@@ -26,6 +26,8 @@ export type StaleMembershipSanitizeResult = {
  * Drop outgoing employees that are absent from cloud and were NOT intentional ADDs.
  * Intentional ADD = present in after, no match in intentBefore
  *   OR session pending-ADD intent (P2.2-A — survives later pwrPush).
+ * P2.4 — stale current-week tombstone does not drop legal ADD / pending ADD /
+ *   cloud-present rows. Explicit REMOVE is absent from outgoing (not restored).
  * H14 ghost (before+after, not in cloud, no pending ADD) still drops.
  */
 export function sanitizeStaleRosterMembership(
@@ -48,15 +50,20 @@ export function sanitizeStaleRosterMembership(
 
   for (const emp of outList) {
     const key = weekEmployeeMergeKey(emp);
-    if (tombstonedMergeKeys?.has(key)) {
+    const inCloud = !!findMatchingEmployee(cloudList, emp);
+    const pendingAdd = pendingAdds.has(key);
+    const legalAdd = beforeList != null && !findMatchingEmployee(beforeList, emp);
+    // P2.4 — stale current-week tomb loses to cloud presence, pending ADD, or legal ADD.
+    // Explicit REMOVE is not in outgoing; H14 ghost (in before+after, no pending) still drops.
+    if (tombstonedMergeKeys?.has(key) && !inCloud && !pendingAdd && !legalAdd) {
       dropped.push(emp);
       continue;
     }
-    if (findMatchingEmployee(cloudList, emp)) {
+    if (inCloud) {
       roster.push(emp);
       continue;
     }
-    if (pendingAdds.has(key)) {
+    if (pendingAdd) {
       roster.push(emp);
       continue;
     }
@@ -66,9 +73,8 @@ export function sanitizeStaleRosterMembership(
       dropped.push(emp);
       continue;
     }
-    const wasInBefore = !!findMatchingEmployee(beforeList, emp);
-    if (!wasInBefore) {
-      roster.push(emp); // intentional ADD / legal RE-ADD (tomb already revoked)
+    if (legalAdd) {
+      roster.push(emp);
       continue;
     }
     // Was in before + after, missing from cloud, no pending ADD → remote DELETE ghost.

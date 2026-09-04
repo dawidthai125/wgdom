@@ -9,7 +9,11 @@ import {
 } from "./payroll-hours-intent.ts";
 import { sanitizeStaleRosterMembership } from "./payroll-stale-roster-membership.ts";
 import { applyPayrollFieldIntentsOntoCanonical } from "./payroll-field-intent.ts";
-import { ackPayrollPendingAddsInRoster } from "./payroll-pending-add-intent.ts";
+import {
+  ackPayrollPendingAddsInRoster,
+  getPayrollPendingAddKeys,
+  resolvePayrollPendingAddKeys,
+} from "./payroll-pending-add-intent.ts";
 import type { WeekEmployee } from "@/app/app-domain";
 import { getPayrollWeekRange, previousWeekRange } from "./payroll-cycle.ts";
 import {
@@ -763,6 +767,37 @@ export function removeDeletedWeekEmployeeKeysForWeek(
   return next;
 }
 
+/**
+ * P2.4 — drop current-week tombs for pending-ADD merge keys only.
+ * Freshness UNION can re-introduce a stale tomb after the ADD revoke; this
+ * re-applies the same week-scoped revoke without touching other weeks/people.
+ */
+export function removeDeletedWeekEmployeeMergeKeysForWeek(
+  weekFrom: unknown,
+  weekTo: unknown,
+  mergeKeys: Set<string> | string[],
+): string[] {
+  const keys = mergeKeys instanceof Set ? mergeKeys : new Set(mergeKeys);
+  if (keys.size === 0) return getDeletedWeekEmployeeKeys();
+  const wk = weekRangeKey(weekFrom, weekTo);
+  if (!wk) return getDeletedWeekEmployeeKeys();
+  const prefix = `${wk}${WEEK_EMPLOYEE_TOMBSTONE_SEP}`;
+  const tombs = getDeletedWeekEmployeeKeys();
+  const next = tombs.filter((id) => {
+    if (!id.startsWith(prefix)) return true;
+    return !keys.has(id.slice(prefix.length));
+  });
+  if (next.length !== tombs.length) {
+    saveDeletedWeekEmployeeKeys(next);
+    payrollTraceEmit("payroll.roster.tombstone.revoke", "PUSH", "info", {
+      revokedCount: tombs.length - next.length,
+      weekFrom: String(weekFrom ?? ""),
+      weekTo: String(weekTo ?? ""),
+    });
+  }
+  return next;
+}
+
 /** RC-B-1 I-3 — tombstones spełniają G-0 względem rosteru bieżącego tygodnia. */
 export function reconcileTombstonesWithRoster(
   weekFrom: string,
@@ -840,10 +875,30 @@ export function deletedWeekEmployeeMergeKeySet(
 /** Usuń z listy rekordy, których weekEmployeeMergeKey znajduje się w tombstonach tygodnia. */
 export function filterDeletedWeekEmployees(list: unknown[], tombstoned: Set<string>): unknown[] {
   if (tombstoned.size === 0) return list;
+  const pendingAdds = resolvePayrollPendingAddKeys();
   return list.filter((item) => {
     if (!item || typeof item !== "object") return true;
-    return !tombstoned.has(weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string }));
+    const key = weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string });
+    if (pendingAdds.has(key)) return true;
+    return !tombstoned.has(key);
   });
+}
+
+/** P2.4 — snapshot LS przed optymistycznym zapisem rosteru w pwrPush. */
+export function captureKwWeekEmployeesLsBeforePush(): string | null {
+  try {
+    return localStorage.getItem("kw-week-employees");
+  } catch {
+    return null;
+  }
+}
+
+/** P2.4 — przywróć poprzedni LS gdy CAS / Guard zablokuje push (nie promuj skurczonego rosteru). */
+export function restoreKwWeekEmployeesLsAfterFailedPush(previous: string | null): void {
+  try {
+    if (previous === null) localStorage.removeItem("kw-week-employees");
+    else localStorage.setItem("kw-week-employees", previous);
+  } catch { /* ignore quota */ }
 }
 
 // ─── PR-PAY-S6 · S6-1 — Archive Restore Eligibility (eligible archive roster) ─
@@ -3782,6 +3837,7 @@ async function pushWeekEmployeesToCloudUnchecked(
   try {
     const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
     cloudEmpsForFence = cloudEmps;
+    removeDeletedWeekEmployeeMergeKeysForWeek(weekFrom, weekTo, getPayrollPendingAddKeys());
     const tombstoned = deletedWeekEmployeeMergeKeySet(
       getDeletedWeekEmployeeKeys(),
       weekFrom,
@@ -3860,6 +3916,7 @@ async function pushWeekEmployeesToCloudUnchecked(
     count: normalized.length,
     tombstoneCount: tombstones.length,
   });
+  const previousRosterLs = captureKwWeekEmployeesLsBeforePush();
   try {
     payrollTraceBumpRosterRevision();
     localStorage.setItem("kw-week-employees", JSON.stringify(normalized));
@@ -3893,6 +3950,7 @@ async function pushWeekEmployeesToCloudUnchecked(
     ackPayrollPendingAddsInRoster(normalized);
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
   } catch (e) {
+    restoreKwWeekEmployeesLsAfterFailedPush(previousRosterLs);
     payrollTraceEmit("payroll.roster.push.error", "PUSH", "error", {
       pushTraceId,
       error: { message: e instanceof Error ? e.message : String(e) },
