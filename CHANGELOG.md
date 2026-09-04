@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.156 — Payroll GO8.2 passive settlement vs unresolved cloud ACK (2026-09-04)
+
+- **fix:** pasywne LS `settled=true` z nierozstrzygniętym ACK (`pending`/`failure`) nie jedzie na barana z niezwiązanym zapisem (membership ADD, cudze godziny)
+- dyskryminator = istniejące `edited = !settlementBundleEqual(before, after)`; gałąź `!edited` + unresolved ACK → zostaje stan Cloud
+- explicit „Rozlicz" i GO3 auto-retry (`buildSettlementRetryRosterBefore` → `edited=true`) bez zmian; brak ACK → GO8.1 bez zmian
+- ACK czytany w warstwie orkiestrującej (`resolveUnresolvedSettlementAckEmpIds`, idiom `resolvePayrollPendingAddKeys`); `applySettlementFieldIntent` pozostaje czysta
+- Guard / CAS / P2.4 tomb / P2.5 ADD / LWW — bez zmian
+- Test: `test-payroll-passive-settlement-ack-safety.mjs` (L1–L5, U1–U3, A1–A7)
+
 ## 2.66.155 — Payroll P2.5 atomic membership ADD (2026-09-04)
 
 - **fix:** pending ADD snapshot przetrwa freshness `applyAdminDataBundle` / reconcile / drugi `pwrPush`

@@ -28,6 +28,7 @@ import {
 } from "@/lib/payroll-hours-intent";
 import { applyEarlyPayoutFieldIntent } from "@/lib/payroll-early-payout";
 import { applySettlementFieldIntent } from "@/lib/payroll-settlement";
+import { resolveUnresolvedSettlementAckEmpIds } from "@/lib/payroll-settlement-cloud-ack";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { resolvePayrollPendingAddKeys } from "@/lib/payroll-pending-add-intent";
 
@@ -102,6 +103,19 @@ export type PayrollFieldIntentApplyResult = {
   changed: boolean;
 };
 
+/** GO8.2 — match ACK empIds against any identity the record carries. */
+function hasUnresolvedSettlementAck(
+  ackEmpIds: Set<string>,
+  emps: Array<{ id?: string } | undefined>,
+): boolean {
+  if (ackEmpIds.size === 0) return false;
+  for (const emp of emps) {
+    const id = String(emp?.id ?? "").trim();
+    if (id && ackEmpIds.has(id)) return true;
+  }
+  return false;
+}
+
 /**
  * Apply verified field intents onto one cloud employee using before→after.
  */
@@ -112,6 +126,7 @@ function applyFieldsOntoCloudEmp(
   hoursIntents: PayrollScopedHoursIntent[],
   weekFrom: string,
   weekTo: string,
+  ackEmpIds: Set<string>,
 ): { emp: WeekEmployee; changed: boolean } {
   const next = cloneJson(cloudEmp);
   let changed = false;
@@ -222,7 +237,9 @@ function applyFieldsOntoCloudEmp(
 
   // --- Settlement (settled + settledUpdatedAt + payrollSettlement atomic; own clock) ---
   {
-    const s = applySettlementFieldIntent(cloudEmp, beforeEmp, afterEmp);
+    const s = applySettlementFieldIntent(cloudEmp, beforeEmp, afterEmp, {
+      unresolvedCloudAck: hasUnresolvedSettlementAck(ackEmpIds, [cloudEmp, afterEmp, beforeEmp]),
+    });
     next.settled = s.settled;
     next.settledUpdatedAt = s.settledUpdatedAt;
     next.payrollSettlement = s.payrollSettlement;
@@ -254,11 +271,18 @@ export function applyPayrollFieldIntentsOntoCanonical(
   weekFrom = "",
   weekTo = "",
   pendingAddMergeKeys?: Set<string>,
+  unresolvedSettlementAckEmpIds?: Set<string>,
 ): PayrollFieldIntentApplyResult {
   const cloudList = asEmpList(cloud);
   const beforeList = intentBefore === undefined ? null : asEmpList(intentBefore);
   const outList = asEmpList(outgoing);
   const hoursIntents = normalizeHoursIntents(hoursIntentsRaw);
+  // GO8.2 — ACK ledger read once here (orchestrating layer); settlement stays pure.
+  const ackEmpIds = resolveUnresolvedSettlementAckEmpIds(
+    unresolvedSettlementAckEmpIds,
+    weekFrom,
+    weekTo,
+  );
 
   if (outList.length === 0 && cloudList.length === 0) {
     return { roster: outList, changed: false };
@@ -293,6 +317,7 @@ export function applyPayrollFieldIntentsOntoCanonical(
       hoursIntents,
       weekFrom,
       weekTo,
+      ackEmpIds,
     );
     if (applied.changed) changed = true;
     roster.push(applied.emp);
@@ -343,6 +368,7 @@ export function rebasePayrollFieldIntents(
   weekFrom = "",
   weekTo = "",
   pendingAddMergeKeys?: Set<string>,
+  unresolvedSettlementAckEmpIds?: Set<string>,
 ): WeekEmployee[] {
   return applyPayrollFieldIntentsOntoCanonical(
     canonical,
@@ -352,6 +378,7 @@ export function rebasePayrollFieldIntents(
     weekFrom,
     weekTo,
     pendingAddMergeKeys,
+    unresolvedSettlementAckEmpIds,
   ).roster;
 }
 

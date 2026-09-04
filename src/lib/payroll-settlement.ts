@@ -229,6 +229,14 @@ function hasOwnSettlementKey(rec: object | undefined): boolean {
   return !!rec && Object.prototype.hasOwnProperty.call(rec, "payrollSettlement");
 }
 
+export type PayrollSettlementFieldIntentOptions = {
+  /**
+   * GO8.2 — this employee has an unresolved settlement→cloud ACK (pending/failure).
+   * Resolved by the orchestrating layer; this function never reads the ledger.
+   */
+  unresolvedCloudAck?: boolean;
+};
+
 /**
  * P2 scoped settlement intent: settled + settledUpdatedAt + payrollSettlement atomic.
  * Absent payrollSettlement on after (old client) preserves cloud metadata.
@@ -237,6 +245,7 @@ export function applySettlementFieldIntent(
   cloudEmp: Pick<WeekEmployee, "settled" | "settledUpdatedAt" | "payrollSettlement">,
   beforeEmp: Pick<WeekEmployee, "settled" | "settledUpdatedAt" | "payrollSettlement"> | undefined,
   afterEmp: Pick<WeekEmployee, "settled" | "settledUpdatedAt" | "payrollSettlement"> | undefined,
+  options?: PayrollSettlementFieldIntentOptions,
 ): {
   settled: boolean;
   settledUpdatedAt: string | undefined;
@@ -313,7 +322,15 @@ export function applySettlementFieldIntent(
 
   const edited = !settlementBundleEqual(beforeEmp, afterEmp);
   if (!edited) {
-    const retained = retainLocalSettlementIntentWhenLsAhead();
+    /**
+     * GO8.2 — passive local settlement with an unresolved cloud ACK must not ride
+     * along an unrelated write (membership ADD, other employee's hours edit).
+     * Explicit settle/unsettle and GO3 retry both produce edited === true and are
+     * therefore untouched by this branch.
+     */
+    const retained = options?.unresolvedCloudAck === true
+      ? null
+      : retainLocalSettlementIntentWhenLsAhead();
     if (retained) return retained;
     return {
       settled: cloudSettled,

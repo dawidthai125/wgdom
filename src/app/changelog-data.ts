@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.156",
+    label: "Lista płac — niepotwierdzone rozliczenie nie zapisuje się przy okazji",
+    items: [
+      {
+        type: "fix",
+        text: "Jeśli rozliczenie pracownika nie zostało potwierdzone przez chmurę, nie zapisze się już samo przy innej czynności — na przykład przy dodaniu innego pracownika albo edycji cudzych godzin. Zostaje w stanie oczekującym do czasu ponowienia.",
+      },
+      {
+        type: "fix",
+        text: "Ponowne kliknięcie „Rozlicz” oraz automatyczne ponawianie niepotwierdzonego rozliczenia działają bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.155",
     label: "Lista płac — dodanie pracownika nie znika przy odświeżeniu chmury",
     items: [

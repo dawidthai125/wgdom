@@ -129,6 +129,34 @@ export function listUnresolvedSettlementCloudAcks(): SettlementCloudAckEntry[] {
   return entries.filter((e) => e.status === "pending" || e.status === "failure").map((e) => ({ ...e }));
 }
 
+/**
+ * GO8.2 — empIds whose settlement write is not cloud-confirmed (pending | failure).
+ * Week bounds filter only when both are provided (rebase callers pass "").
+ * Union with explicit ids so callers/tests can inject without touching the ledger.
+ */
+export function resolveUnresolvedSettlementAckEmpIds(
+  extra?: Set<string> | null,
+  weekFrom?: string,
+  weekTo?: string,
+): Set<string> {
+  const wf = String(weekFrom ?? "").trim();
+  const wt = String(weekTo ?? "").trim();
+  const out = new Set<string>();
+  for (const e of entries) {
+    if (e.status !== "pending" && e.status !== "failure") continue;
+    if (wf && wt && (e.weekFrom !== wf || e.weekTo !== wt)) continue;
+    const id = String(e.empId ?? "").trim();
+    if (id) out.add(id);
+  }
+  if (extra) {
+    for (const id of extra) {
+      const trimmed = String(id ?? "").trim();
+      if (trimmed) out.add(trimmed);
+    }
+  }
+  return out;
+}
+
 function settlementBundleEqual(a: SettlementSlice, b: SettlementSlice): boolean {
   if (Boolean(a.settled) !== Boolean(b.settled)) return false;
   if (String(a.settledUpdatedAt ?? "") !== String(b.settledUpdatedAt ?? "")) return false;
