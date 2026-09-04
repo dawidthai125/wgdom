@@ -3,10 +3,11 @@
 > **ID:** MASTER-AI-HANDOFF
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)
 > **MODE:** DOCUMENTATION ONLY
-> **Data:** 2026-09-03 (A0.2 ŚRODA Master SSOT closeout) · prior 2026-08-25 (IK-KNR KL-6) · prior 2026-08-24 (F5 MARGIN)
+> **Data:** 2026-09-04 (Master SSOT continuity · OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-25 (IK-KNR KL-6)
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)
 > **★★ IK Master (NO REBUILD · PRIMARY):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)
-> **★★ CURRENT NODE:** **ŚRODA A0.2** — Master §10.0 · commit **`590f95e9`** · KV **rev 57 LIVE** · frontend PV **NOT VERIFIED** (live tip still **2.66.136 / f3ec166**)
+> **★★ CURRENT NODE:** **ŚRODA A0.2** — Master §10.0 · KV **rev 57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
+> **★★ CURRENT PRODUCTION:** **2.66.147 / `2f3d1847`** · **OD-OCR-47 PASS** · **GLOBAL IK PRODUCTION VERIFIED = NO**
 > **★★ CHROBREGO:** **CLOSED CASE** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)
 > **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED**
@@ -22,17 +23,17 @@
 Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
 START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT (§10.0 CURRENT NODE) → TEN plik → 09 + version.json
 Tip = wyłącznie 09 + version.json
-CURRENT = ŚRODA A0.2 · CHROBREGO CLOSED · AUTONOMY-08 OPEN · Phase 5 NOT AUTHORIZED · W3–W6 NOT auto-authorized
-ACTIVE IMPLEMENT = NONE bez Owner GO · A0.2 code+KV already on main · frontend PV waiting
+CURRENT = ŚRODA A0.2 · CHROBREGO CLOSED · OD-OCR-47 PASS (capability) · AUTONOMY-08 OPEN · Phase 5 NOT AUTHORIZED · W3–W6 NOT auto-authorized
+ACTIVE IMPLEMENT = NONE bez Owner GO · production tip 2.66.147 / 2f3d1847 · GLOBAL IK PV = NO
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE** po **A0.2 ŚRODA Work Catalog Coverage**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + live `version.json` — **REPO `590f95e9` / 2.66.137** · **LIVE last check 2.66.136 / f3ec166** · **A0.2 frontend PV NOT VERIFIED**. **KV rev 57 LIVE**. **CHROBREGO CLOSED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**.
+W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + live `version.json` — **CURRENT 2.66.147 / `2f3d1847`**. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **OD-OCR-47 PASS** (capability · nie nowy Decision Tree). **CHROBREGO CLOSED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
 
-**NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. A0.2 frontend PV · Środa follow-up · Phase 5 · epic closeout) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** claim A0.2 frontend PV prematurely.
+**NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. Środa follow-up · TPI IK E2E · Phase 5 · epic closeout) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** start G1/G2/G3 na TPI bez GO.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.

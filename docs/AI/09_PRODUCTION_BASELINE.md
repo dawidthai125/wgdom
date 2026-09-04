@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-09-03 · **REPO tip** UI changelog **2.66.137** / commit **`590f95e9`** · **LIVE `/version.json`** last check **2.66.136 / f3ec166** · **A0.2 frontend PV = NOT VERIFIED (DEPLOY PROPAGATING)** · **A0.2 KV LIVE rev 57** · prior PAYROLL CAS tip **`96dd9324`** · **A08-P3 FEATURE TIP** **`3822acb`** · **S6/P4 FEATURE TIP** **`2fce3caf`** · AUTONOMY-08 P0–P2 **CLOSED** · **A08-P3 IMPLEMENTED · OPEN** · **CHROBREGO G1+G2+G3 CLOSED** · **ŚRODA A0.2 CURRENT** · Experience Phase 5 **NOT AUTHORIZED** · epic **NOT CLOSED** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · Payroll **REGRESSION WATCH ACTIVE**
+**Snapshot dokumentacji:** 2026-09-04 · **LIVE `/version.json`** **2.66.147 / `2f3d184`** (`2f3d1847`) · **OD-OCR-47 PASS** · **A0.2 frontend PV VERIFIED (OD-OCR-37)** · **A0.2 KV LIVE rev 57** · **CURRENT CASE = ŚRODA A0.2** · **CHROBREGO CLOSED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **A08-P3 IMPLEMENTED · OPEN** · Experience Phase 5 **NOT AUTHORIZED** · epic **NOT CLOSED** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · Payroll **REGRESSION WATCH ACTIVE**
 
 ---
 
@@ -30,12 +30,13 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / intended tip)** | **2.66.137** (A0.2 · `changelog-data.ts`) |
-| **LIVE `/version.json` (last check 2026-09-03)** | **2.66.136** / commit **`f3ec166`** · HTTP 200 · **≠** intended tip · **DEPLOY PROPAGATING** |
-| **CURRENT REPOSITORY TIP (`origin/main`)** | **`590f95e9`** / **`590f95e993090d4f65a4de44dd58e081d399f2f6`** · `fix(ik): seed sroda A0.2 catalog safely` |
-| **A0.2 FEATURE TIP** | **CODE+KV LIVE · FRONTEND PV NOT VERIFIED** · commit **`590f95e9`** · KV **rev 56→57** · work **862→878** · **8/8** wrocław + **8/8** dolnyslask · idempotency **SKIPPED_NO_CHANGE** · Master [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 · **≠** mapper/F5/scoring/P1–P3 · **≠** AUTONOMY-08 CLOSED · tender `08deff6c-bc34-619e-b346-0300010ce2e5` |
+| **UI version (changelog / intended tip)** | **2.66.147** (OD-OCR-45 · `changelog-data.ts`) |
+| **LIVE `/version.json` (last check 2026-09-04)** | **2.66.147** / commit **`2f3d184`** (`2f3d1847`) · HTTP 200 · READY / verified |
+| **CURRENT REPOSITORY TIP (`origin/main`)** | **`2f3d1847`** · `fix(ik): persist ingest artifacts from authoritative cloud state` |
+| **OD-OCR-47 / OD-OCR-45 FEATURE TIP** | **PASS / CLOSED** · Owner Ingest → OCR → C2 → authoritative cloud persist · TPI **4 shells** · cloud **470** · local prune **70** allowed · **≠** GLOBAL IK PV · Master §10.0.2 |
+| **A0.2 FEATURE TIP** | **CODE+KV LIVE · FRONTEND PV VERIFIED (OD-OCR-37)** · commit **`590f95e9`** · KV **rev 56→57** · work **862→878** · **8/8** wrocław + **8/8** dolnyslask · Master [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 · **CURRENT CASE** · **≠** mapper/F5/scoring/P1–P3 · **≠** AUTONOMY-08 CLOSED · tender `08deff6c-bc34-619e-b346-0300010ce2e5` |
 | **Feature tip (PAYROLL Freshness + Canonical Payload)** | **CLOSED / PRODUCTION VERIFIED · GREEN** · prior UI **2.66.126** · tip **`c7337a2a`** · prior gate **2.66.125** / **`03a0802c`** · Freshness Gate + `rebuildPayrollOutgoingAfterFreshness` + `extraCosts` `before ≡ cloud` · **Freshness ≠ canonical payload** · REQUIRED FIXES COMPLETE · REGRESSION WATCH ACTIVE · residuals **NON-BLOCKING** · [`CLOSEOUT`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) · **≠** IK change · **≠** rollover/archive rewrite · **live tip superseded by** payroll CAS **`96dd9324`** then later tips |
-| **CURRENT LIVE / REPOSITORY TIP (legacy row — use split above)** | Prefer **REPO `590f95e9`** + **LIVE version.json** · do **not** claim A0.2 frontend PRODUCTION VERIFIED while tip = **2.66.136 / f3ec166** |
+| **CURRENT LIVE / REPOSITORY TIP (legacy row — use split above)** | Prefer **LIVE+REPO `2f3d1847` / 2.66.147** · HISTORY: 2026-09-03 **2.66.136 / f3ec166** = PRIOR |
 | **A08-P3 FEATURE TIP** | **`3822acb`** (`3822acb3724493b349c08a33bc584c7afe5dde31`) — Owner Gates G1/G2 · harness **27/0** · **IMPLEMENTED · OPEN** · **CHROBREGO G1+G2+G3 CLOSED/PASS** · **G2 Material** other tenders **case-by-case** · prod use **REQUIRE EVIDENCE BEFORE PROD** (OD-P3-5) · **≠** P3 CLOSED · **≠** epic CLOSED |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** (`2fce3caf3e4a54c215d95c6673336df791283489`) — last **production-code** feature commit for S6-A / S6-B / P4 · P4 flag **ON** · CHAIN **`2fce3caf`** (P4) ← **`12e9c59d`** (S6-B) ← **`a9d59fd0`** (S6-A) · ancestors KL-6 **`85a1ad7`** · Phase 2D **`77385b0c`** · F5 MARGIN **`82f3520e`** |
 | **Feature tip (S6-A / S6-B / P4)** | **CLOSED** · **FEATURE TIP** **`2fce3caf`** · live tip SHA may be docs successor **`bf2a9168`** · UI **2.66.115** · **CHAIN:** **`2fce3caf`** P4 — KNR WC trusted identity seam (**flag ON**) · **`12e9c59d`** S6-B — multi-dwelling primary-graph fallback isolation · **`a9d59fd0`** S6-A — Outcome Bid Document Expert bridge · **STATUS:** S6-A **CLOSED** · S6-B **CLOSED** · P4 **CLOSED** · P4 flag **ON** · **VALIDATION:** harness **GREEN** · production bundle markers present · **interactive UI smoke remains Owner residual** · **PARTIALLY VALIDATED** for interactive paths · **NOT CLAIMED:** global IK E2E CLOSED · AUTONOMY-08 CLOSED · Phase 2E CLOSED · S10 · AUTONOMY-08 **NOT CLOSED** · S10 **OUT OF SCOPE** |
@@ -220,6 +221,14 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
+| **2.66.147** / live **`2f3d1847`** | OD-OCR-45 authoritative ingest persist · OD-OCR-47 production ingest PASS · TPI 4 shells / cloud 470 | **CLOSED / PASS** · **≠** GLOBAL IK PV · Master §10.0.2 |
+| **2.66.146** / hist. **`a13a431d`** | Stale-client lean gate by APP_VERSION ≥ 2.66.145 | **CLOSED / VERIFIED** · HISTORY tip |
+| **2.66.145** / hist. **`437e5797`** | Track B raw-bypass RCA · all pipeline writers lean+guard | **CLOSED / PASS** · HISTORY tip |
+| **2.66.144** / hist. **`50c78e90`** | Track B cloud lean + guard migrate | **CLOSED / VERIFIED** · HISTORY tip |
+| **2.66.143–141** | C2 Owner ingest / derived cost documents | **PRODUCTION VERIFIED** via OD-OCR-47 · HISTORY tips |
+| **2.66.140–139** | OCR B1 PSM11 · JBig2 | **CLOSED / VERIFIED** · HISTORY tips |
+| **2.66.137** / hist. **`590f95e9`** | A0.2 ŚRODA CatalogWork · KV rev 57 | **CURRENT CASE** · frontend PV later **VERIFIED** · HISTORY tip vs live **2.66.147** |
+| **2.66.136** / hist. **`f3ec166`** | pre-A0.2-propagate live tip | **HISTORY / PRIOR** · do not use as CURRENT |
 | **2.66.126** / live **`c7337a2a`** | Payroll canonical payload hardening · `rebuildPayrollOutgoingAfterFreshness` · extraCosts `before ≡ cloud` · Freshness ≠ canonical | **CLOSED** · **PRODUCTION VERIFIED · GREEN** · [`CLOSEOUT`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) |
 | **2.66.125** / hist. **`03a0802c`** | Cloud Freshness Gate · write barrier · resume/storage · offline block | **CLOSED** · ancestor under **`c7337a2a`** |
 | **2.66.116** / hist. **`f457cb17`** | A08-P3 governance docs sync · P5 labor settle race fix · Owner OD-P3 recorded · G2 PV WAIT | **DOCS + FIX** · hist. tip · A08-P3 **OPEN** |

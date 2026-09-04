@@ -1,8 +1,8 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-09-03 (**docs closeout:** Master SSOT A0.2 ŚRODA · **bez** commit) · prior 2026-08-30 (**docs:** Payroll CRITICAL PROTECTED hardening — GO6.1→GO10) · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json`
+**Ostatnia aktualizacja:** 2026-09-04 (**docs closeout:** Master SSOT continuity · OD-OCR-47) · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json`
 
-> **★★ IK CURRENT NODE:** [`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 — **ŚRODA A0.2** · commit **`590f95e9`** · KV **rev 57 LIVE** · frontend PV **NOT VERIFIED** (live **2.66.136 / f3ec166**) · **CHROBREGO CLOSED** · **AUTONOMY-08 OPEN** · Phase 5 **NOT AUTHORIZED**
+> **★★ IK CURRENT NODE:** [`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 — **ŚRODA A0.2** · KV **rev 57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)** · prod **2.66.147 / `2f3d1847`** · **OD-OCR-47 PASS** · **CHROBREGO CLOSED** · **GLOBAL IK PV = NO** · **AUTONOMY-08 OPEN** · Phase 5 **NOT AUTHORIZED**
 > **★★ PAYROLL PROTECTED:** [`docs/AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](docs/AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) — Lista Płac = CRITICAL PROTECTED CORE · GO8.1 `1f63e5c4` · GO9.2 `96dd9324` PRODUCTION VERIFIED · GO10 NO-FIX · **NOWY FEATURE ≠** Payroll sync.
 > **Nowa sesja AI:** [`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) → [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](docs/AI/WGDOM-COLD-START-HANDOFF.md) → [`docs/AI/AI_QUICK_START.md`](docs/AI/AI_QUICK_START.md) → [`docs/AI/MASTER_HANDOFF.md`](docs/AI/MASTER_HANDOFF.md) → [`docs/AI/AI_ENTRY.md`](docs/AI/AI_ENTRY.md) — **nie** czytaj historii czatu.
 > **Cold-start SSOT:** [`docs/AI/MASTER-AI-HANDOFF.md`](docs/AI/MASTER-AI-HANDOFF.md) · tip SSOT [`09`](docs/AI/09_PRODUCTION_BASELINE.md) · TM-01 [`TENDER-MODERNIZATION-01-MASTER.md`](docs/architecture/TENDER-MODERNIZATION-01-MASTER.md)
@@ -11,17 +11,19 @@
 > **WIP:** `src/app/hooks/useTenderOfferRun.ts` = LOCAL M · **nie** S5 · nie stage bez GO · `PayrollView.tsx` OUT · **duży lokalny WIP w working tree — NIE reset/stash/commit bez polecenia**.
 > **Foundation Lib:** [`docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](docs/architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) · **FND-06 BLOCKED**.
 
-## ★ A0.2 ŚRODA — Work Catalog Coverage — **code+KV LIVE · FE PV WAITING**
+## ★ A0.2 ŚRODA — Work Catalog Coverage — **CURRENT CASE · FE PV VERIFIED**
 
 | Element | Wartość |
 |---------|---------|
 | **Tender** | `08deff6c-bc34-619e-b346-0300010ce2e5` |
-| **Commit** | **`590f95e9`** |
+| **Commit (A0.2)** | **`590f95e9`** |
+| **Live tip** | **2.66.147 / `2f3d1847`** |
 | **KV** | **rev 57 LIVE** · 8/8 × 2 · idempotency PASS |
-| **Frontend** | tip live **2.66.136 / f3ec166** · **NOT VERIFIED** |
-| **SSOT** | Master §10.0 · §22 |
-| **DO NOT** | reopen CHROBREGO · invent Expert · claim F5 fixed · close AUTONOMY-08 |
-| **NEXT** | Owner GO (frontend PV / follow-up) — **NIE** auto IMPLEMENT |
+| **Frontend** | **VERIFIED (OD-OCR-37)** |
+| **Capability** | **OD-OCR-47 PASS** · TPI 4 shells / cloud 470 · **≠** CURRENT NODE |
+| **SSOT** | Master §10.0 · §10.0.2 · §22 |
+| **DO NOT** | reopen CHROBREGO · invent Expert · claim F5 fixed · close AUTONOMY-08 · claim GLOBAL IK PV |
+| **NEXT** | Owner GO (jedna gałąź §9) — **NIE** auto IMPLEMENT · **NIE** G1/G2/G3 na TPI |
 
 ## ★ PAYROLL-O1 — CAS Edge + FE O2 — **CLOSED** · **PRODUCTION VERIFIED**
 

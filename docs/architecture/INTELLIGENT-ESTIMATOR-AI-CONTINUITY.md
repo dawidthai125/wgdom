@@ -2,9 +2,10 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-AI-CONTINUITY`
 > **STATUS:** ACTIVE · DOCUMENTATION ONLY
-> **Data:** 2026-09-03 (A0.2 ŚRODA closeout sync) · prior 2026-08-24 (Observability Phases 1–4)
-> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · **§10.0 · §22** — **JEDYNY Master SSOT IK**
-> **CURRENT NODE:** **ŚRODA A0.2** — 8 CatalogWork · KV rev **57 LIVE** · frontend PV **NOT VERIFIED** · commit **`590f95e9`**
+> **Data:** 2026-09-04 (Master SSOT continuity · OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-24 (Observability Phases 1–4)
+> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · **§10.0 · §10.0.2 · §22** — **JEDYNY Master SSOT IK**
+> **CURRENT NODE:** **ŚRODA A0.2** — 8 CatalogWork · KV rev **57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
+> **CURRENT PRODUCTION:** **2.66.147 / `2f3d1847`** · **OD-OCR-47 PASS** · **GLOBAL IK PRODUCTION VERIFIED = NO**
 > **CLOSED CASE:** **CHROBREGO** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **Sesja hist.:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior Autonomy [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)
 > **Tip:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` (rozdziel REPO vs LIVE)
@@ -22,14 +23,14 @@ AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-
 
 | | |
 |--|--|
-| **CURRENT REPOSITORY TIP** | **`590f95e9`** / UI changelog **2.66.137** |
-| **LIVE `/version.json` (last check)** | **2.66.136 / f3ec166** · A0.2 frontend PV **NOT VERIFIED** |
-| **A0.2 KV** | **rev 57 LIVE** · 8/8 × 2 regions |
+| **CURRENT REPOSITORY / LIVE TIP** | **`2f3d1847`** / **2.66.147** |
+| **LIVE `/version.json` (last check)** | **2.66.147 / `2f3d184`** · READY / verified |
+| **A0.2 KV** | **rev 57 LIVE** · 8/8 × 2 regions · frontend PV **VERIFIED (OD-OCR-37)** |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** |
 | **Phase 2E** | targeted discovery **LANDED** **`1a9c5484`** · **FULL PHASE 2E OPEN** · **OUT OF SCOPE A08** |
-| **Status** | A0.2 code+KV LIVE · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED** |
-| **Reference** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · Master §10.0 |
-| **NOT CLAIMED** | global IK E2E CLOSED · AUTONOMY-08 CLOSED · A0.2 frontend PV · Phase 2E CLOSED · S10 · entire IK FINAL |
+| **Status** | A0.2 CURRENT CASE · OD-OCR-47 PASS · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED** |
+| **Reference** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · Master §10.0 · §10.0.2 |
+| **NOT CLAIMED** | **GLOBAL IK PRODUCTION VERIFIED** · AUTONOMY-08 CLOSED · Phase 2E CLOSED · S10 · entire IK FINAL |
 
 ---
 

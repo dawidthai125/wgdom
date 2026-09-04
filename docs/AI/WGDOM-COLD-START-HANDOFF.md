@@ -2,12 +2,13 @@
 
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
-> **Data:** 2026-08-26 (MASTER SSOT conflict resolution · tip / Phase 2E / C1–C6 namespaces) · prior S6/P4 tip · prior 2026-08-24 / 2026-08-18  
-> **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`  
-> **CURRENT LIVE / REPOSITORY TIP:** **`bf2a916` / `bf2a9168`** · see [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)  
+> **Data:** 2026-09-04 (pointer sync · OD-OCR-47) · prior 2026-08-26 / 2026-08-24 / 2026-08-18
+> **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
+> **CURRENT LIVE / REPOSITORY TIP:** **2.66.147 / `2f3d1847`** · see [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
+> **★★ IK CURRENT NODE:** **ŚRODA A0.2** · Master §10.0 · **GLOBAL IK PRODUCTION VERIFIED = NO**
 > **S6/P4 FEATURE TIP:** **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · **≠** cały IK E2E GREEN  
 > **Phase 2E:** targeted discovery **LANDED** **`1a9c5484`** · **FULL PHASE 2E OPEN** · **OUT OF SCOPE A08** · **≠** Phase 2E CLOSED  
-> **Live tip (czytaj 09):** UI **2.66.115** · commit **`bf2a916`** · feature tip **`2fce3caf`** · **≠** cały IK E2E GREEN  
+> **Live tip (czytaj 09):** CURRENT **2.66.147 / `2f3d1847`** · HISTORY 2.66.115/`bf2a916` · **≠** cały IK E2E GREEN
 > **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
 > **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED**  
 > **Prior Autonomy 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — historyczny  
@@ -28,8 +29,8 @@ SEARCH BEFORE CREATE.
 
 | | |
 |--|--|
-| **Version** | **czytaj 09 + version.json** (live tip: **2.66.115**) |
-| **Commit** | **czytaj 09** · LIVE/REPO **`bf2a9168`** · S6/P4 FEATURE **`2fce3caf`** · Phase 2E targeted **`1a9c5484`** (FULL 2E OPEN) |
+| **Version** | **czytaj 09 + version.json** (CURRENT live: **2.66.147 / `2f3d1847`**) |
+| **Commit** | **czytaj 09** · CURRENT **`2f3d1847`** · S6/P4 FEATURE **`2fce3caf`** · Phase 2E targeted **`1a9c5484`** (FULL 2E OPEN) |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **IK SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |
