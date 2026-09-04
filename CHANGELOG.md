@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.160 — Payroll confirmed day OFF survives resume (2026-09-04)
+
+- **fix:** `cancelPayrollDomainPushPreservingSettlement` — dowolny pending domain push (godziny OFF/ON, nie tylko settlement) jest **flushowany** przed freshness na resume; nie jest cicho dropowany w oknie debounce 1s
+- D2 Cancel bez zmian (brak schedule → brak flush)
+- Guard / CAS / P2.8 / Pipeline / IK — bez zmian semantyki
+- Test: `test-payroll-confirmed-off-resume-safety.mjs` · settlement E3 zaktualizowany
+
 ## 2.66.159 — Payroll P2.8 Edge coupled legal ADD (2026-09-04)
 
 - **fix:** `pushWeekEmployeesToCloud` ustawia `replaceWeekEmployeesKeys: ["kw-week-employees"]` → Edge `coupledPwrbPush` / `resolveCoupledWeekEmployeeDeletedIds` — batch tombs authoritative (stale stored tomb nie wycina legal ADD)

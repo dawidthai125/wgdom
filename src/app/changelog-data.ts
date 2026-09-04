@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.160",
+    label: "Lista płac — potwierdzone wyłączenie dnia nie znika przy powrocie do karty",
+    items: [
+      {
+        type: "fix",
+        text: "Po potwierdzeniu wyzerowania godzin dnia (np. odznaczenie soboty) zapis do chmury nie jest już cicho anulowany przy powrocie fokusu / widoczności karty w trakcie krótkiego oczekiwania na wysyłkę. Anulowanie w oknie potwierdzenia nadal nic nie zapisuje.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.159",
     label: "Lista płac — dodanie pracownika zapisuje się mimo starego usunięcia w chmurze",
     items: [

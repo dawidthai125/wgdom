@@ -1044,7 +1044,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const requestCloudFreshnessOnResume = useCallback((reason: "resume_visibility" | "resume_focus" | "resume_pageshow" | "resume_native") => {
     markCloudFreshnessUnknown(reason);
-    // GO3: never silently drop settlement-bearing domain push (LS may already be settled).
+    // Flush any pending domain push (confirmed hours OFF/ON + settlement) before pull.
     cancelPayrollDomainPushPreservingSettlement();
     void ensureCloudFreshBeforeWrite({ reason, force: true })
       .then(() => {
@@ -1533,8 +1533,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       requestCloudFreshnessOnResume("resume_focus");
     };
-    /** P2 — bfcache restore: drop stale scheduled domain flush (heap roster may predate remote edits).
-     * GO3 — except settlement-bearing pending: flush instead of cancel. */
+    /** P2 — bfcache restore: flush pending domain push before freshness
+     * (confirmed hours OFF/ON + settlement — never silent cancel). */
     const onPageShow = (ev: PageTransitionEvent) => {
       if (ev.persisted) {
         cancelPayrollDomainPushPreservingSettlement();

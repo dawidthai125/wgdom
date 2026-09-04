@@ -94,15 +94,20 @@ export function cancelPayrollDomainPush(): void {
 }
 
 /**
- * GO3 — on resume/bfcache: never drop a settlement-bearing pending push.
- * Flushes settlement ack path; otherwise cancels (legacy freshness behaviour).
+ * GO3 + confirmed day-OFF safety — on resume/bfcache: never silently drop a
+ * pending Payroll domain push (hours OFF/ON, settlement, combined roster).
+ *
+ * Flushes any pending mutation through the existing domain-push handler
+ * (pwrPush / CAS / Guard). No pending → no-op.
+ *
+ * Prior behaviour flushed only `settlementCloudAck` and cancelled ordinary
+ * hours intents — confirmed OFF could vanish during the 1s debounce when
+ * focus/visibility/pageshow ran `requestCloudFreshnessOnResume`.
  */
 export function cancelPayrollDomainPushPreservingSettlement(): void {
-  if (pendingRoster != null && pendingOptions?.settlementCloudAck === true) {
+  if (pendingRoster != null) {
     flushPayrollDomainPush();
-    return;
   }
-  cancelPayrollDomainPush();
 }
 
 /** Natychmiastowy push (testy / flush przed unload / background). */

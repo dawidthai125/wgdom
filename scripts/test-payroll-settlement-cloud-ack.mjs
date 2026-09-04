@@ -215,11 +215,12 @@ unbindPayrollDomainPushHandler();
   assert("E2 background flush true", didFlush === true);
   assert("E2 flushed count", flushed === 2);
 
-  // Non-settlement cancel still drops without flush
+  // Non-settlement pending must also flush on resume (confirmed hours OFF safety)
   schedulePayrollDomainPush(after, undefined, before);
   cancelPayrollDomainPushPreservingSettlement();
-  assert("E3 non-settlement cancel drops", !hasPendingPayrollDomainPush());
-  assert("E3 no extra flush", flushed === 2);
+  assert("E3 non-settlement resume flushes", flushed === 3);
+  assert("E3 no pending after hours flush", !hasPendingPayrollDomainPush());
+  assert("E3 hours flush without settlementCloudAck", lastOpts?.settlementCloudAck !== true);
 
   // Plain cancel after settlement schedule → detectable pending ack remains
   schedulePayrollDomainPush(after, { settlementCloudAck: true }, before);
