@@ -7,7 +7,10 @@ import {
   sanitizeRosterHoursToAuthorizedIntents,
   type PayrollScopedHoursIntent,
 } from "./payroll-hours-intent.ts";
-import { sanitizeStaleRosterMembership } from "./payroll-stale-roster-membership.ts";
+import {
+  outgoingHasLegalMembershipAdd,
+  sanitizeStaleRosterMembership,
+} from "./payroll-stale-roster-membership.ts";
 import { applyPayrollFieldIntentsOntoCanonical } from "./payroll-field-intent.ts";
 import {
   ackPayrollPendingAddsInRoster,
@@ -1692,6 +1695,20 @@ export function rebuildPayrollOutgoingAfterFreshness(params: {
   let roster = field.roster as WeekEmployee[];
 
   if (silentDown) {
+    // Membership-only legal/pending ADD: keep Cloud ⊕ field intents, then
+    // restore unauthorized existing-member hours-down to cloud. ADD is not
+    // consent for hours-down. Do NOT re-attach stale hours (Guard would BLOCK
+    // the whole write). Hours-down without ADD still fail-loud below.
+    if (outgoingHasLegalMembershipAdd(params.cloudEmps, afterForIntent, params.intentBefore)) {
+      const hoursKept = sanitizeRosterHoursToAuthorizedIntents(
+        params.cloudEmps,
+        roster,
+        hoursIntents,
+        params.weekFrom,
+        params.weekTo,
+      );
+      return { roster: hoursKept.sanitized, mode: "canonical_intent" };
+    }
     // P0 fail-loud: re-attach unauthorized hours-down from after so guard BLOCKs,
     // while non-hours fields stay Cloud ⊕ verified intents (never blind stale A).
     const afterById = new Map(afterForIntent.map((e) => [String(e.id), e]));

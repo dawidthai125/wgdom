@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.154 — Payroll membership ADD vs unrelated hours-down (2026-09-04)
+
+- **fix:** legal/pending membership ADD nie wpada w `silent_down_fail_loud` przez hours-down **innej** osoby
+- rebuild zostaje przy Cloud ⊕ field intents (godziny istniejących = chmura); hours-down nie jest autoryzowane
+- Guard / 50% shrink / cloud-unreachable / P2.4 tomb — bez zmian semantyki
+- Test: `test-payroll-membership-add-vs-guard.mjs`
+
 ## 2.66.153 — Payroll P2.4 tombstone-safe legal ADD + ACK-safe LS (2026-09-04)
 
 - **fix P2.4:** legal ADD / pending ADD przebija stale current-week tombstone w `sanitizeStaleRosterMembership` i `filterDeletedWeekEmployees`

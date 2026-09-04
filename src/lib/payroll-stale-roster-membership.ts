@@ -87,3 +87,29 @@ export function sanitizeStaleRosterMembership(
     changed: dropped.length > 0,
   };
 }
+
+/**
+ * True when outgoing contains a cloud-absent row that is a legal ADD
+ * (absent in intentBefore) or a session pending ADD.
+ * Used so membership-only ADD does not inherit fail-loud hours-down
+ * from unrelated existing members (hours-down is still not authorized).
+ */
+export function outgoingHasLegalMembershipAdd(
+  cloud: unknown,
+  outgoing: unknown,
+  intentBefore: unknown | undefined,
+  pendingAddMergeKeys?: Set<string>,
+): boolean {
+  const cloudList = asEmpList(cloud);
+  const outList = asEmpList(outgoing);
+  const beforeList = intentBefore === undefined ? null : asEmpList(intentBefore);
+  const pendingAdds = resolvePayrollPendingAddKeys(pendingAddMergeKeys);
+  for (const emp of outList) {
+    if (findMatchingEmployee(cloudList, emp)) continue;
+    const key = weekEmployeeMergeKey(emp);
+    const pendingAdd = pendingAdds.has(key);
+    const legalAdd = beforeList != null && !findMatchingEmployee(beforeList, emp);
+    if (pendingAdd || legalAdd) return true;
+  }
+  return false;
+}

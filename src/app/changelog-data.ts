@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.154",
+    label: "Lista płac — dodanie pracownika nie pada przez cudze godziny",
+    items: [
+      {
+        type: "fix",
+        text: "Dodanie pracownika do tygodnia zapisuje się nawet gdy na liście widać starsze godziny kogoś innego. Te starsze godziny nie idą do chmury — zostają godziny z chmury. Świadome obniżenie godzin bez potwierdzenia nadal blokuje zapis.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.153",
     label: "Lista płac — ponowne dodanie pracownika nie znika przez stary tombstone",
     items: [
