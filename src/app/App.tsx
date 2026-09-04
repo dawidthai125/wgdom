@@ -217,8 +217,10 @@ import { decidePayrollVisibleFreshnessPull } from "@/lib/payroll-visible-freshne
 import {
   classifyAutoSyncTriggerOrigin,
   createAutoSyncSkipSession,
+  resolveAutoSyncSkipTenderPipeline,
   type AutoSyncTriggerOrigin,
 } from "@/lib/payroll-auto-sync-pipeline";
+import { getTenderPipelinePersistPending } from "@/lib/tender-pipeline/tender-pipeline-persist-coalesce";
 import {
   installPayrollRuntimeTraceGlobals,
   payrollTraceBumpRosterRevision,
@@ -1208,7 +1210,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     pendingAutoSyncRef.current = false;
-    const skipTenderPipeline = autoSyncSkipSessionRef.current.consume();
+    const skipTenderPipeline = resolveAutoSyncSkipTenderPipeline({
+      scheduledSkip: autoSyncSkipSessionRef.current.consume(),
+      pipelinePersistPending: getTenderPipelinePersistPending(),
+    });
     void runCloudSync({ writeOnly: true, skipTenderPipeline });
   }, [runCloudSync]);
 
@@ -1307,7 +1312,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       pendingAutoSyncRef.current = false;
       payrollTraceEmit("sync.auto.fire", "MERGE", "debug", {});
-      const skipTenderPipeline = autoSyncSkipSessionRef.current.consume();
+      const skipTenderPipeline = resolveAutoSyncSkipTenderPipeline({
+        scheduledSkip: autoSyncSkipSessionRef.current.consume(),
+        pipelinePersistPending: getTenderPipelinePersistPending(),
+      });
       void runCloudSync({ writeOnly: true, skipTenderPipeline });
     }, AUTO_SYNC_DEBOUNCE_MS);
   }, [scheduleWakeAtSuppressExpiry, runCloudSync]);
@@ -1436,7 +1444,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
   // CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · B: wmTechnicalDrawings → domain push only
   // (commitWmTechnicalDrawings → pushWmTechnicalDrawingsToCloud). Do NOT schedule full RS here.
-  // P2: roster-only changes skip Tender Pipeline write; admin keys still allow it.
+  // P2: roster-only changes skip Tender Pipeline write.
+  // P2.3: admin / domain-only also skip unless a real Pipeline persist is pending.
   useEffect(() => {
     const prev = prevAutoSyncTriggerRef.current;
     prevAutoSyncTriggerRef.current = {
@@ -1485,6 +1494,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           || prev.electricalMeasurementRegistry !== electricalMeasurementRegistry
           || prev.electricalMeasurementSettings !== electricalMeasurementSettings
           || prev.electricalSchematics !== electricalSchematics,
+        pipelineChanged: getTenderPipelinePersistPending(),
       });
       if (origin) scheduleAutoCloudSync(origin);
       else scheduleAutoCloudSync();

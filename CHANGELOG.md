@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.152 — Payroll P2.3 isolate domain auto-sync from Pipeline (2026-09-04)
+
+- **fix:** auto-sync po Notatkach / kadrach / urlopach / kontaktach / robotach / WM / pomiarach nie woła `pushTenderPipelineToCloud`
+- decyzja skip: rzeczywisty pending persist Pipeline (`getTenderPipelinePersistPending`), nie `origin === admin`
+- latch / guard / P0 / P1 / P2.2 bez zmian — domain-only + latch = brak push = brak toast
+- Test: `test-payroll-p2-3-pipeline-isolation.mjs`
+
 ## 2.66.151 — Payroll P2.2 pending ADD + early payout intent (2026-09-04)
 
 - **fix P2.2-A:** sesyjny pending ADD (`payroll-pending-add-intent`) — H14 ghost nie zrzuca legalnego ADD przy kolejnym `pwrPush` (godziny / zaliczka / freshness / rebase)

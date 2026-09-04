@@ -150,24 +150,32 @@ clearPipelineCloudUnconfirmed();
 assert("P2-6-latch-clear-still-works-for-pipeline", isPipelineCloudWriteUnconfirmed() === false);
 
 assert(
-  "P2-7-admin-origin-allows-pipeline",
+  "P2-7-admin-origin-skips-pipeline-p23",
   classifyAutoSyncTriggerOrigin({ payrollRosterChanged: false, adminChanged: true }) === "admin"
     && shouldPushTenderPipelineFromRs({
       skipTenderPipeline: mergeSkipTenderPipelineForAutoSync(null, "admin"),
-    }) === true,
+    }) === false,
 );
 assert(
-  "P2-7-admin-wins-over-prior-payroll-skip",
+  "P2-7-admin-does-not-unskip-prior-payroll",
   shouldPushTenderPipelineFromRs({
     skipTenderPipeline: mergeSkipTenderPipelineForAutoSync(
       mergeSkipTenderPipelineForAutoSync(null, "payroll_roster"),
       "admin",
     ),
-  }) === true,
+  }) === false,
 );
 assert(
-  "P2-7-mixed-same-tick-is-admin",
+  "P2-7-mixed-same-tick-is-admin-without-pipeline",
   classifyAutoSyncTriggerOrigin({ payrollRosterChanged: true, adminChanged: true }) === "admin",
+);
+assert(
+  "P2-7-pipeline-changed-wins-origin",
+  classifyAutoSyncTriggerOrigin({
+    payrollRosterChanged: false,
+    adminChanged: true,
+    pipelineChanged: true,
+  }) === "tender_pipeline",
 );
 
 assert(
@@ -275,7 +283,7 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   h.schedule("payroll_roster");
   h.clearAutoSyncTimers();
   h.schedule(undefined);
-  assert("P2.1-2-cancelled-then-unscoped-skip-false", h.execute() === false);
+  assert("P2.1-2-cancelled-then-unscoped-skip-true", h.execute() === true);
   assert("P2.1-2-no-residual", h.peek() === null);
 }
 
@@ -285,7 +293,7 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   h.clearAutoSyncTimers();
   assert("P2.1-3-clearAutoSyncTimers-discards-skip", h.peek() === null);
   h.schedule(undefined);
-  assert("P2.1-3-later-unscoped-skip-false", h.execute() === false);
+  assert("P2.1-3-later-unscoped-skip-true", h.execute() === true);
 }
 
 {
@@ -294,14 +302,14 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   h.hiddenAbort();
   assert("P2.1-4-hidden-abort-discards-skip", h.peek() === null);
   h.schedule(undefined);
-  assert("P2.1-4-later-unscoped-skip-false", h.execute() === false);
+  assert("P2.1-4-later-unscoped-skip-true", h.execute() === true);
 }
 
 {
   const h = createP21Lifecycle();
   h.schedule("payroll_roster");
   h.schedule("admin");
-  assert("P2.1-5-payroll-then-admin-wins-skip-false", h.execute() === false);
+  assert("P2.1-5-payroll-then-admin-keeps-skip-true", h.execute() === true);
 }
 
 {
@@ -309,9 +317,9 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   h.schedule("admin");
   h.schedule("payroll_roster");
   assert(
-    "P2.1-6-admin-then-payroll-admin-sticky-skip-false",
-    h.execute() === false,
-    "admin-sticky: payroll must not re-enable skip in the same window",
+    "P2.1-6-admin-then-payroll-keeps-skip-true",
+    h.execute() === true,
+    "P2.3: admin is domain-only — does not un-skip Pipeline",
   );
 }
 
@@ -320,7 +328,7 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   h.schedule("payroll_roster");
   assert("P2.1-7-first-payroll-consumes-skip", h.execute() === true);
   h.schedule("admin");
-  assert("P2.1-7-later-admin-skip-false", h.execute() === false);
+  assert("P2.1-7-later-admin-skip-true", h.execute() === true);
 }
 
 {
@@ -331,7 +339,7 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   assert("P2.1-8-second-payroll-own-skip-true", h.execute() === true);
   assert("P2.1-8-no-residual-after-second", h.peek() === null);
   h.schedule(undefined);
-  assert("P2.1-8-later-unscoped-no-stale-skip", h.execute() === false);
+  assert("P2.1-8-later-unscoped-skip-true", h.execute() === true);
 }
 
 {
@@ -339,7 +347,7 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   h.schedule("payroll_roster", { actuallySchedule: false });
   assert("P2.1-early-return-does-not-attach-skip", h.peek() === null);
   h.schedule(undefined);
-  assert("P2.1-early-return-later-unscoped-skip-false", h.execute() === false);
+  assert("P2.1-early-return-later-unscoped-skip-true", h.execute() === true);
 }
 
 {
@@ -347,7 +355,7 @@ console.log("\n=== PAYROLL P2.1 skip lifecycle (runtime, not grep) ===\n");
   h.schedule("payroll_roster");
   h.pullAbort();
   h.schedule(undefined);
-  assert("P2.1-pull-abort-later-unscoped-skip-false", h.execute() === false);
+  assert("P2.1-pull-abort-later-unscoped-skip-true", h.execute() === true);
 }
 
 assert(

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.152",
+    label: "Zapis notatki i kadr nie rusza pipeline przetargów",
+    items: [
+      {
+        type: "fix",
+        text: "Zapis Notatki operacyjnej, kadr, urlopu, kontaktów, robót albo WM Druk nie wysyła pipeline przetargów i nie pokazuje „Zapis pipeline zablokowany”, gdy zmieniła się tylko ta domena. Pipeline idzie do chmury tylko przy rzeczywistej zmianie przetargów.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.151",
     label: "Lista płac — dodany pracownik i zaliczka nie znikają przy zapisie",
     items: [
