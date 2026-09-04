@@ -3,6 +3,7 @@ import { Hono } from "npm:hono";
 import {
   mergeWeekEmployeesList,
   hasWeekEmployeesRosterExpansion,
+  resolveCoupledWeekEmployeeDeletedIds,
   weekEmployeeMergeKey,
 } from "../../../src/lib/payroll-week-employee-merge.ts";
 import { mergeWeekEmployeeRecord } from "../../../src/lib/payroll-week-employee-record-merge.ts";
@@ -984,13 +985,16 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   const forceReplaceDirectory = Array.isArray(replaceDirectoryKeys) && replaceDirectoryKeys.includes("kw-directory");
   const forceReplaceWeekEmployees =
     Array.isArray(replaceWeekEmployeesKeys) && replaceWeekEmployeesKeys.includes("kw-week-employees");
-  const coupledPwrbPush =
-    forceReplaceWeekEmployees &&
-    weekEmpDeletedBatchIdx >= 0 &&
-    keys.indexOf("kw-week-employees") >= 0;
-  const allWeekEmpDeletedIds = coupledPwrbPush
-    ? new Set(weekEmpDeletedFromBatch)
-    : new Set([...storedWeekEmpDeleted, ...weekEmpDeletedFromBatch]);
+  // P2.8 — SSOT resolveCoupledWeekEmployeeDeletedIds (explicit PWRB vs UNION stored tombs)
+  const allWeekEmpDeletedIds = new Set(
+    resolveCoupledWeekEmployeeDeletedIds({
+      forceReplaceWeekEmployees,
+      hasWeekEmployeesKey: keys.indexOf("kw-week-employees") >= 0,
+      hasWeekEmpDeletedKey: weekEmpDeletedBatchIdx >= 0,
+      weekEmpDeletedFromBatch,
+      storedWeekEmpDeleted,
+    }),
+  );
   const weekEmpTombstoned = weekEmployeeTombstoneKeySetForWeek([...allWeekEmpDeletedIds], batchWeekFrom, batchWeekTo);
 
   for (let i = 0; i < keys.length; i++) {
@@ -1364,12 +1368,20 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   } catch (e) {
     console.log("daily full backup:", e);
   }
-  return c.json({
+  // P2.8 — return effective persisted payroll values so client can verify membership ACK
+  const responseBody: Record<string, unknown> = {
     ok: true,
     payrollWeekMeta: payrollMetaAfterWrite ?? undefined,
     workCatalogMeta: catalogMetaAfterWrite ?? undefined,
     requestId,
-  });
+  };
+  if (weekEmpsIdx >= 0) {
+    responseBody.persistedWeekEmployees = safeValues[weekEmpsIdx];
+  }
+  if (weekEmpsDelIdx >= 0) {
+    responseBody.persistedWeekEmployeeDeletedIds = safeValues[weekEmpsDelIdx];
+  }
+  return c.json(responseBody);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(

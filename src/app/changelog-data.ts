@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.159",
+    label: "Lista płac — dodanie pracownika zapisuje się mimo starego usunięcia w chmurze",
+    items: [
+      {
+        type: "fix",
+        text: "Jawny zapis składu tygodnia idzie jako sprzężony push (skład + znaczniki usunięcia), więc stare usunięcie z tygodnia nie wycina ponownie dodanej osoby na serwerze. Potwierdzenie dodania wymaga obecności w zapisanym składzie — nie samego sukcesu HTTP.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.158",
     label: "Lista płac — ponowne dodanie pracownika działa mimo starego usunięcia",
     items: [

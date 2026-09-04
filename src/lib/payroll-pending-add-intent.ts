@@ -7,7 +7,15 @@
  * stale 15-person bundle would otherwise drop.
  */
 
-import { weekEmployeeMergeKey, type WeekEmployeeMergeIdentity } from "@/lib/payroll-week-employee-merge";
+import {
+  weekEmployeeMergeKey,
+  weekEmployeeMergeKeysFromList,
+  type WeekEmployeeMergeIdentity,
+} from "@/lib/payroll-week-employee-merge";
+
+/** P2.8 — pending ADD not confirmed in effective persisted Cloud roster. */
+export const PAYROLL_MEMBERSHIP_PERSIST_FAILED_MESSAGE =
+  "Nie udało się potwierdzić zapisu składu w chmurze. Odśwież listę płac i spróbuj ponownie.";
 
 const pendingAddKeys = new Set<string>();
 const pendingAddSnapshots = new Map<string, Record<string, unknown>>();
@@ -87,7 +95,53 @@ export function resolvePayrollPendingAddKeys(extra?: Set<string> | null): Set<st
   return out;
 }
 
-/** After successful CAS — drop identities that are now in the written roster. */
+/**
+ * Pending ADD merge keys present in `outgoing` that still require Cloud
+ * membership confirmation before ACK (P2.8 — not HTTP 2xx alone).
+ */
+export function pendingAddKeysToConfirmInOutgoing(outgoing: unknown): Set<string> {
+  const pending = getPayrollPendingAddKeys();
+  const out = new Set<string>();
+  if (pending.size === 0 || !Array.isArray(outgoing)) return out;
+  for (const item of outgoing) {
+    if (!item || typeof item !== "object") continue;
+    const key = keyOf(item as WeekEmployeeMergeIdentity);
+    if (key && pending.has(key)) out.add(key);
+  }
+  return out;
+}
+
+/** Keys from `keysToConfirm` missing from effective persisted roster. */
+export function pendingAddKeysMissingFromPersistedRoster(
+  persistedRoster: unknown,
+  keysToConfirm: Set<string>,
+): string[] {
+  if (keysToConfirm.size === 0) return [];
+  const have = weekEmployeeMergeKeysFromList(
+    Array.isArray(persistedRoster) ? persistedRoster : [],
+  );
+  const missing: string[] = [];
+  for (const key of keysToConfirm) {
+    if (key && !have.has(key)) missing.push(key);
+  }
+  return missing;
+}
+
+/**
+ * P2.8 — throw when effective persisted roster lacks pending ADD identities.
+ * Does not clear pending. Caller must not ACK on failure.
+ */
+export function assertPayrollPendingAddsPersistedOrThrow(
+  persistedRoster: unknown,
+  keysToConfirm: Set<string>,
+): void {
+  const missing = pendingAddKeysMissingFromPersistedRoster(persistedRoster, keysToConfirm);
+  if (missing.length > 0) {
+    throw new Error(PAYROLL_MEMBERSHIP_PERSIST_FAILED_MESSAGE);
+  }
+}
+
+/** After verified persistence — drop identities that are now in the written roster. */
 export function ackPayrollPendingAddsInRoster(roster: unknown): void {
   if (!Array.isArray(roster) || pendingAddKeys.size === 0) return;
   for (const item of roster) {

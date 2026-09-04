@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.159 — Payroll P2.8 Edge coupled legal ADD (2026-09-04)
+
+- **fix:** `pushWeekEmployeesToCloud` ustawia `replaceWeekEmployeesKeys: ["kw-week-employees"]` → Edge `coupledPwrbPush` / `resolveCoupledWeekEmployeeDeletedIds` — batch tombs authoritative (stale stored tomb nie wycina legal ADD)
+- Edge `batch-set` zwraca `persistedWeekEmployees` (+ deleted-ids); klient ACK pending ADD dopiero po weryfikacji membership w effective persist (nie sam HTTP 2xx)
+- RS / `pushMergedDataBundleToCloud` bez `replaceWeekEmployeesKeys`; Guard / CAS / P2.4–P2.7 / GO8.2 / Pipeline / IK — bez zmian semantyki
+- Test: `test-payroll-p2-8-coupled-legal-add.mjs`
+
 ## 2.66.158 — Payroll P2.7 legal ADD vs Resurrection Fence (2026-09-04)
 
 - **fix:** jawny `pwrAdd` / pending ADD przebija stale current-week tombstone w `mayPersistPayrollRosterUnderWeekKeys` (`legalAddMergeKeys`)

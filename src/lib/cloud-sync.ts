@@ -15,7 +15,9 @@ import {
 import { applyPayrollFieldIntentsOntoCanonical } from "./payroll-field-intent.ts";
 import {
   ackPayrollPendingAddsInRoster,
+  assertPayrollPendingAddsPersistedOrThrow,
   getPayrollPendingAddKeys,
+  pendingAddKeysToConfirmInOutgoing,
   resolvePayrollPendingAddKeys,
   unionRosterWithPendingAdds,
 } from "./payroll-pending-add-intent.ts";
@@ -3531,7 +3533,7 @@ export async function pushKeysToCloud(
   keys: string[],
   values: unknown[],
   options?: PushKeysToCloudOptions,
-): Promise<void> {
+): Promise<Record<string, unknown>> {
   if (!isSupabaseConfigured() || !API_BASE) {
     throw new Error("Brak konfiguracji Supabase (VITE_SUPABASE_*)");
   }
@@ -3555,7 +3557,7 @@ export async function pushKeysToCloud(
     );
     const nextKeys = keys.filter((_, i) => i !== catalogIdx);
     const nextValues = values.filter((_, i) => i !== catalogIdx);
-    if (nextKeys.length === 0) return;
+    if (nextKeys.length === 0) return {};
     return pushKeysToCloud(nextKeys, nextValues, options);
   }
 
@@ -3578,7 +3580,7 @@ export async function pushKeysToCloud(
           "@/lib/tender-pipeline/tender-pipeline-cloud-push"
         );
         await pushTenderPipelineToCloud(asTenderPipelineItems(extracted.pipeline));
-        return;
+        return {};
       }
     }
   }
@@ -3591,7 +3593,7 @@ export async function pushKeysToCloud(
     payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
       skipReason: "keys_empty" as const,
     });
-    return;
+    return {};
   }
   const pushKeys = guarded.keys;
   const pushValues = guarded.values;
@@ -3788,17 +3790,20 @@ export async function pushKeysToCloud(
     if (empIdx >= 0) {
       const inCount = normalizeArrayValue(safeValues[empIdx]).length;
       const forceReplace = (pushOptions.replaceWeekEmployeesKeys ?? []).includes("kw-week-employees");
+      const persistedCount = Array.isArray(resJson.persistedWeekEmployees)
+        ? resJson.persistedWeekEmployees.length
+        : inCount;
       payrollTraceEmit("edge.kv.week_employees.write", "EDGE_KV", "info", {
         forceReplaceWeekEmployees: forceReplace,
         inCount,
-        writtenCount: inCount,
+        writtenCount: persistedCount,
         prevCount: undefined,
-        afterTombstoneCount: inCount,
+        afterTombstoneCount: persistedCount,
         tombstoneHitsOnSubject: false,
-        clientProxy: true,
+        clientProxy: !Array.isArray(resJson.persistedWeekEmployees),
       });
     }
-    return;
+    return resJson;
   }
   throw lastError ?? new Error("batch-set failed after retries");
 }
@@ -3981,8 +3986,10 @@ async function pushWeekEmployeesToCloudUnchecked(
   // D3 — force-couple skipPayrollGuard to intentionalHoursClear (guardStrict ON)
   const resolvedSkip = maySkipPayrollShrinkGuard(options);
   const expectedRevision = getExpectedPayrollRevision();
+  /** P2.8 — confirm pending ADD membership against effective Edge persist before ACK. */
+  const pendingKeysToConfirm = pendingAddKeysToConfirmInOutgoing(normalized);
   try {
-    await pushKeysToCloud(
+    const resJson = await pushKeysToCloud(
       ["kw-week-employees", WEEK_EMPLOYEES_DELETED_KEYS_KEY, PAYROLL_WEEK_META_KEY],
       [normalized, tombstones, buildPayrollWeekMetaPlaceholder(weekFrom, weekTo)],
       {
@@ -3998,8 +4005,22 @@ async function pushWeekEmployeesToCloudUnchecked(
         payrollDomainUserWrite: true,
         /** P1 — membership intent baseline */
         rosterBefore: Array.isArray(options?.rosterBefore) ? options.rosterBefore : undefined,
+        /** P2.8 — coupled PWRB: Edge uses batch tombs (not UNION with stale stored). */
+        replaceWeekEmployeesKeys: ["kw-week-employees"],
       },
     );
+    if (pendingKeysToConfirm.size > 0) {
+      let persisted: unknown = resJson.persistedWeekEmployees;
+      if (!Array.isArray(persisted)) {
+        try {
+          const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+          persisted = cloudEmps;
+        } catch {
+          persisted = null;
+        }
+      }
+      assertPayrollPendingAddsPersistedOrThrow(persisted, pendingKeysToConfirm);
+    }
     ackPayrollPendingAddsInRoster(normalized);
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
   } catch (e) {

@@ -68,6 +68,37 @@ function collapseByMergeKey(list: unknown[], mergeRecord: (a: unknown, b: unknow
 }
 
 /**
+ * P2.8 / PR-PAY-S7-5-2 — effective deleted-ids for a payroll batch-set.
+ *
+ * When explicit Payroll domain push couples roster + deleted-ids
+ * (`replaceWeekEmployeesKeys` includes `kw-week-employees`), batch tombs are
+ * authoritative for that write (client revoke of legal ADD must not be
+ * re-union'd with stale stored tombs).
+ *
+ * SSOT for Edge `coupledPwrbPush` and client/tests — do not duplicate.
+ */
+export function resolveCoupledWeekEmployeeDeletedIds(params: {
+  forceReplaceWeekEmployees: boolean;
+  hasWeekEmployeesKey: boolean;
+  hasWeekEmpDeletedKey: boolean;
+  weekEmpDeletedFromBatch: string[];
+  storedWeekEmpDeleted: string[];
+  cap?: number;
+}): string[] {
+  const cap = params.cap ?? 500;
+  const coupled =
+    params.forceReplaceWeekEmployees
+    && params.hasWeekEmpDeletedKey
+    && params.hasWeekEmployeesKey;
+  if (coupled) {
+    return [...new Set(params.weekEmpDeletedFromBatch)].slice(-cap);
+  }
+  return [...new Set([...params.storedWeekEmpDeleted, ...params.weekEmpDeletedFromBatch])].slice(
+    -cap,
+  );
+}
+
+/**
  * Union listy rosteru po weekEmployeeMergeKey — wspólny kernel klient + Edge.
  * Per klucz: oba → mergeRecord; tylko jedna strona → ten rekord.
  */
