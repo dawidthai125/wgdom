@@ -10,7 +10,7 @@
  * Idempotency map ≠ settlement ledger (short-lived KV only).
  */
 
-import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
+import { weekEmployeeMergeKey } from "./payroll-week-employee-merge.ts";
 
 export const PAYROLL_ALREADY_SETTLED_CODE = "payroll_already_settled" as const;
 
