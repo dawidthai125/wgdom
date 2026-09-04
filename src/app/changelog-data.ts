@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.149",
+    label: "Lista płac — godziny z chmury na otwartym widoku",
+    items: [
+      {
+        type: "improve",
+        text: "Otwarta, widoczna Lista Płac odświeża skład z chmury co 15 s (gdy nikt nie edytuje). Bez przeładowania strony i bez ruszania ochrony zapisu / CAS. Ukryta karta nie pyta chmury.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.148",
     label: "Lista płac — błąd pipeline nie jest błędem zapisu godzin",
     items: [

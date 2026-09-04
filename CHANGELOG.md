@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.149 — Payroll P1 visible freshness pull (2026-09-04)
+
+- **improve:** widoczna Lista Płac → `executeCloudFreshnessPull({ bypassThrottle: false })` co `MIN_PULL_INTERVAL_MS` (15 s)
+- Skip: hidden · `isBlocked()` · `hasPendingPayrollDomainPush()` · throttle
+- Bez `requestCloudFreshnessOnResume` / `force` / cancel pending / `pwrPush`
+- Test: `test-payroll-p1-visible-pull-isolation.mjs`
+
 ## 2.66.148 — Payroll P0 pipeline error isolation (2026-09-04)
 
 - **fix:** auto-sync / `runCloudSync` — `PIPELINE_CLOUD_UNCONFIRMED` toast jako pipeline, nie „Zapis listy płac zablokowany” / generic cloud po edycji godzin

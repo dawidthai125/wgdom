@@ -159,6 +159,7 @@ import {
   flushPayrollDomainPushOnBackground,
   bindPayrollDomainPushHandler,
   unbindPayrollDomainPushHandler,
+  hasPendingPayrollDomainPush,
 } from "@/lib/payroll-week-roster-bundle";
 import {
   buildSettlementRetryRosterBefore,
@@ -192,6 +193,7 @@ import {
 import type { PushWeekEmployeesOptions } from "@/lib/cloud-sync";
 import {
   AUTO_SYNC_DEBOUNCE_MS,
+  MIN_PULL_INTERVAL_MS,
   shouldPullNow,
   recordPushSkipped,
   getSyncMetrics,
@@ -206,6 +208,7 @@ import {
   resolveAutoCloudSyncFailureToast,
   PIPELINE_WRITE_BLOCKED_TOAST_TITLE,
 } from "@/lib/cloud-sync-failure-kind";
+import { decidePayrollVisibleFreshnessPull } from "@/lib/payroll-visible-freshness-pull";
 import {
   installPayrollRuntimeTraceGlobals,
   payrollTraceBumpRosterRevision,
@@ -1447,6 +1450,26 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       window.removeEventListener("pagehide", onPageHide);
     };
   }, [requestCloudFreshnessOnResume, jobs]);
+
+  // PAYROLL-P1-VISIBLE-FRESHNESS-PULL
+  // Visible Lista Płac only. Existing freshness pull, bypassThrottle false.
+  useEffect(() => {
+    if (view !== "payroll") return;
+    const tick = () => {
+      const decision = decidePayrollVisibleFreshnessPull({
+        view,
+        hidden: typeof document !== "undefined" ? document.hidden : true,
+        mutationGuardBlocked: cloudSyncMutationGuard.isBlocked(),
+        hasPendingDomainPush: hasPendingPayrollDomainPush(),
+        lastPullAt: lastPullAtRef.current,
+        now: Date.now(),
+      });
+      if (!decision.allow) return;
+      void executeCloudFreshnessPull({ bypassThrottle: false });
+    };
+    const id = window.setInterval(tick, MIN_PULL_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [view, executeCloudFreshnessPull]);
 
   // Backup
   const exportBackup = () => {
