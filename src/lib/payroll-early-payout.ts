@@ -269,30 +269,45 @@ export function applyEarlyPayoutFieldIntent(
   for (const [id, afterTx] of afterById) {
     const beforeTx = beforeById.get(id);
     const cloudTx = byId.get(id);
+    const afterDeleted = Boolean(afterTx.deletedAt);
 
-    if (!beforeTx) {
-      if (!cloudTx) {
+    // Pending local ADD: live after tx absent from cloud (even if already in before).
+    if (!cloudTx) {
+      if (!afterDeleted) {
         byId.set(id, { ...afterTx });
         changed = true;
-      } else if (cloudTx.deletedAt && !afterTx.deletedAt) {
+      }
+      continue;
+    }
+
+    if (!beforeTx) {
+      if (cloudTx.deletedAt && !afterTx.deletedAt) {
         // do not resurrect
       }
       continue;
     }
 
     const beforeDeleted = Boolean(beforeTx.deletedAt);
-    const afterDeleted = Boolean(afterTx.deletedAt);
     if (!beforeDeleted && afterDeleted) {
       const baselineOk =
-        cloudTx
-        && !cloudTx.deletedAt
+        !cloudTx.deletedAt
         && Math.abs(cloudTx.amount - beforeTx.amount) < 0.001
         && cloudTx.updatedAt === beforeTx.updatedAt;
-      if (baselineOk || (!cloudTx && !beforeDeleted)) {
-        byId.set(id, { ...(cloudTx ?? beforeTx), ...afterTx, deletedAt: afterTx.deletedAt });
+      if (baselineOk) {
+        byId.set(id, { ...cloudTx, ...afterTx, deletedAt: afterTx.deletedAt });
         changed = true;
       }
       continue;
+    }
+
+    // Pending local DELETE: after already deleted, cloud still live, tx clock newer.
+    if (afterDeleted && !cloudTx.deletedAt) {
+      const afterDelAt = Date.parse(String(afterTx.deletedAt));
+      const cloudUpd = Date.parse(String(cloudTx.updatedAt ?? ""));
+      if (!Number.isNaN(afterDelAt) && (Number.isNaN(cloudUpd) || afterDelAt > cloudUpd)) {
+        byId.set(id, { ...cloudTx, ...afterTx, deletedAt: afterTx.deletedAt });
+        changed = true;
+      }
     }
   }
 

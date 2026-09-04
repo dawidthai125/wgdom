@@ -9,6 +9,7 @@ import {
 } from "./payroll-hours-intent.ts";
 import { sanitizeStaleRosterMembership } from "./payroll-stale-roster-membership.ts";
 import { applyPayrollFieldIntentsOntoCanonical } from "./payroll-field-intent.ts";
+import { ackPayrollPendingAddsInRoster } from "./payroll-pending-add-intent.ts";
 import type { WeekEmployee } from "@/app/app-domain";
 import { getPayrollWeekRange, previousWeekRange } from "./payroll-cycle.ts";
 import {
@@ -3889,6 +3890,7 @@ async function pushWeekEmployeesToCloudUnchecked(
         rosterBefore: Array.isArray(options?.rosterBefore) ? options.rosterBefore : undefined,
       },
     );
+    ackPayrollPendingAddsInRoster(normalized);
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });
   } catch (e) {
     payrollTraceEmit("payroll.roster.push.error", "PUSH", "error", {

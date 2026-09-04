@@ -47,6 +47,10 @@ import {
 } from "@/lib/payroll-hours-collapse-gate";
 import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
 import { enqueueKwWeekEmployeesWrite } from "@/lib/cloud-sync-mutation-guard";
+import {
+  rememberPayrollPendingAdds,
+  revokePayrollPendingAdd,
+} from "@/lib/payroll-pending-add-intent";
 
 export {
   bindPayrollDomainPushHandler,
@@ -99,6 +103,7 @@ export async function pwrAdd(params: {
     }
     const newEmps = toAdd.map(weekEmployeeFromDir);
     const next = [...params.currentRoster, ...newEmps];
+    rememberPayrollPendingAdds(newEmps);
     removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, newEmps);
     const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
     const resolved = resolvePayrollDomainPushOptions(params.options);
@@ -141,6 +146,7 @@ export async function pwrRemove(params: {
       };
     }
     const next = params.currentRoster.filter((e) => e.id !== params.employeeId);
+    revokePayrollPendingAdd(removed);
     addDeletedWeekEmployeeKey(params.weekFrom, params.weekTo, removed);
     const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
     const resolved = resolvePayrollDomainPushOptions(params.options);
@@ -175,6 +181,7 @@ const PAYROLL_REBASE_MAX_ATTEMPTS = 3;
 export async function pwrPush(params: PwrPushParams): Promise<PwrPushResult> {
   return enqueueKwWeekEmployeesWrite(async () => {
     if (params.revokeIdentities?.length) {
+      rememberPayrollPendingAdds(params.revokeIdentities);
       removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, params.revokeIdentities);
     }
     reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, params.roster);

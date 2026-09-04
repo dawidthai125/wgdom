@@ -28,6 +28,8 @@ import {
 } from "@/lib/payroll-hours-intent";
 import { applyEarlyPayoutFieldIntent } from "@/lib/payroll-early-payout";
 import { applySettlementFieldIntent } from "@/lib/payroll-settlement";
+import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
+import { resolvePayrollPendingAddKeys } from "@/lib/payroll-pending-add-intent";
 
 const DAY_SLOTS: DayKey[] = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"];
 const SLOTS: PayrollHoursSlot[] = [...DAY_SLOTS, "prevSaturday"];
@@ -251,6 +253,7 @@ export function applyPayrollFieldIntentsOntoCanonical(
   hoursIntentsRaw: unknown,
   weekFrom = "",
   weekTo = "",
+  pendingAddMergeKeys?: Set<string>,
 ): PayrollFieldIntentApplyResult {
   const cloudList = asEmpList(cloud);
   const beforeList = intentBefore === undefined ? null : asEmpList(intentBefore);
@@ -295,10 +298,18 @@ export function applyPayrollFieldIntentsOntoCanonical(
     roster.push(applied.emp);
   }
 
-  // 2) Outgoing-only rows — legal ADD only (absent from before). Stale ghosts drop.
+  // 2) Outgoing-only rows — legal ADD (absent from before) or pending ADD intent.
+  const pendingAdds = resolvePayrollPendingAddKeys(pendingAddMergeKeys);
   for (const afterEmp of outList) {
     if (consumedAfterKeys.has(afterEmp)) continue;
     if (findMatchingEmployee(cloudList, afterEmp)) continue; // already handled
+
+    const pendingAdd = pendingAdds.has(weekEmployeeMergeKey(afterEmp));
+    if (pendingAdd) {
+      roster.push(cloneJson(afterEmp));
+      changed = true;
+      continue;
+    }
 
     if (beforeList == null) {
       // No membership baseline → fail-closed (same as P1 sanitize).
@@ -311,7 +322,7 @@ export function applyPayrollFieldIntentsOntoCanonical(
       changed = true;
       continue;
     }
-    // before+after, missing from cloud → remote DELETE ghost
+    // before+after, missing from cloud, no pending ADD → remote DELETE ghost
     changed = true;
   }
 
@@ -330,6 +341,7 @@ export function rebasePayrollFieldIntents(
   hoursIntents?: PayrollScopedHoursIntent[] | null,
   weekFrom = "",
   weekTo = "",
+  pendingAddMergeKeys?: Set<string>,
 ): WeekEmployee[] {
   return applyPayrollFieldIntentsOntoCanonical(
     canonical,
@@ -338,6 +350,7 @@ export function rebasePayrollFieldIntents(
     hoursIntents ?? [],
     weekFrom,
     weekTo,
+    pendingAddMergeKeys,
   ).roster;
 }
 

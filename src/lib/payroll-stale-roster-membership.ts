@@ -10,6 +10,7 @@
 import type { WeekEmployee } from "@/app/app-domain";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { findMatchingEmployee } from "@/lib/payroll-hours-intent";
+import { resolvePayrollPendingAddKeys } from "@/lib/payroll-pending-add-intent";
 
 function asEmpList(list: unknown): WeekEmployee[] {
   return Array.isArray(list) ? (list as WeekEmployee[]) : [];
@@ -23,13 +24,16 @@ export type StaleMembershipSanitizeResult = {
 
 /**
  * Drop outgoing employees that are absent from cloud and were NOT intentional ADDs.
- * Intentional ADD = present in after, no match in intentBefore.
+ * Intentional ADD = present in after, no match in intentBefore
+ *   OR session pending-ADD intent (P2.2-A — survives later pwrPush).
+ * H14 ghost (before+after, not in cloud, no pending ADD) still drops.
  */
 export function sanitizeStaleRosterMembership(
   cloud: unknown,
   outgoing: unknown,
   intentBefore: unknown | undefined,
   tombstonedMergeKeys?: Set<string>,
+  pendingAddMergeKeys?: Set<string>,
 ): StaleMembershipSanitizeResult {
   const cloudList = asEmpList(cloud);
   const outList = asEmpList(outgoing);
@@ -38,6 +42,7 @@ export function sanitizeStaleRosterMembership(
   }
 
   const beforeList = intentBefore === undefined ? null : asEmpList(intentBefore);
+  const pendingAdds = resolvePayrollPendingAddKeys(pendingAddMergeKeys);
   const dropped: WeekEmployee[] = [];
   const roster: WeekEmployee[] = [];
 
@@ -48,6 +53,10 @@ export function sanitizeStaleRosterMembership(
       continue;
     }
     if (findMatchingEmployee(cloudList, emp)) {
+      roster.push(emp);
+      continue;
+    }
+    if (pendingAdds.has(key)) {
       roster.push(emp);
       continue;
     }
@@ -62,7 +71,7 @@ export function sanitizeStaleRosterMembership(
       roster.push(emp); // intentional ADD / legal RE-ADD (tomb already revoked)
       continue;
     }
-    // Was in before + after, missing from cloud → remote DELETE (or never synced). Drop.
+    // Was in before + after, missing from cloud, no pending ADD → remote DELETE ghost.
     dropped.push(emp);
   }
 

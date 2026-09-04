@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.151 — Payroll P2.2 pending ADD + early payout intent (2026-09-04)
+
+- **fix P2.2-A:** sesyjny pending ADD (`payroll-pending-add-intent`) — H14 ghost nie zrzuca legalnego ADD przy kolejnym `pwrPush` (godziny / zaliczka / freshness / rebase)
+- **fix P2.2-B:** `applyEarlyPayoutFieldIntent` zachowuje pending ADD/DELETE; `mergeWeekEmployeeRecord` scala wypłaty po `updatedAt` transakcji (nie `dataUpdatedAt`)
+- H14 remote-delete bez pending ADD bez zmian · CAS / freshness / FIFO bez zmian
+- Test: `test-payroll-p2-2-pending-add-payout.mjs`
+
 ## 2.66.150 — Payroll P2 cut roster → pipeline auto-sync (2026-09-04)
 
 - **fix:** auto-sync po `weekEmployees` / `savedWeeks` / week keys → `skipTenderPipeline` (debounce: admin wygrywa)

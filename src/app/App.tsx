@@ -162,6 +162,11 @@ import {
   hasPendingPayrollDomainPush,
 } from "@/lib/payroll-week-roster-bundle";
 import {
+  rememberPayrollPendingAdds,
+  revokePayrollPendingAdd,
+  clearPayrollPendingAddIntents,
+} from "@/lib/payroll-pending-add-intent";
+import {
   buildSettlementRetryRosterBefore,
   extractSettlementCloudIntents,
   finalizeSettlementCloudAckAfterPush,
@@ -2156,6 +2161,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         payrollTraceSetSubject(weekEmployeeMergeKey(first), first.id);
       }
       const next = [...prev, ...newEmps];
+      rememberPayrollPendingAdds(newEmps);
       payrollTraceEmit("payroll.roster.ui.add", "UI", "info", {
         operationId: opId,
         directoryIdsRequested: ids,
@@ -2198,6 +2204,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const removed = prev.find((e) => e.id === id);
       if (removed) {
         rememberPayrollSoftRestoreSnapshot(removed, weekFrom, weekTo);
+        revokePayrollPendingAdd(removed);
       }
       const next = prev.filter((e) => e.id !== id);
       if (next.length !== prev.length) {
@@ -2225,6 +2232,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const clearAllWeekEmployees = () => {
     // IC-7 — clear-all outside D2 hours gate; intentionalHoursClear for D3 after UI confirm
     withPayrollWeekEmployeesWriteSource("clearAllWeekEmployees", () => {
+      clearPayrollPendingAddIntents();
       setWeekEmployees([]);
     });
     persistPayrollRoster([], { intentionalHoursClear: true }, weekEmployees);

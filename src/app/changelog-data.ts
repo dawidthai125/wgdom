@@ -12,6 +12,21 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.151",
+    label: "Lista płac — dodany pracownik i zaliczka nie znikają przy zapisie",
+    items: [
+      {
+        type: "fix",
+        text: "Nowo dodany pracownik na Liście Płac zostaje w zapisie do chmury także po późniejszej zmianie godzin albo zaliczki — nie jest już traktowany jak usunięcie z innego komputera.",
+      },
+      {
+        type: "fix",
+        text: "Zaliczka (wypłata częściowa) zapisuje się po własnym czasie transakcji, nie po godzinach dnia. Usunięcie starej i dodanie nowej nie wraca do poprzedniej zaliczki z chmury.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.150",
     label: "Lista płac — zapis godzin nie rusza pipeline przetargów",
     items: [

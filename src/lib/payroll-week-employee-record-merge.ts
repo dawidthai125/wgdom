@@ -5,6 +5,10 @@
  */
 
 import { pickPayrollSettlementForMerge } from "./payroll-settlement-merge-pick.ts";
+import {
+  normalizeEarlyPayoutList,
+  type PayrollEarlyPayout,
+} from "./payroll-early-payout-types.ts";
 
 export type PayrollDayLike = {
   active?: boolean;
@@ -232,6 +236,53 @@ function pickPrevSaturdayByTimestamps(
   ).prev ?? lps ?? cps;
 }
 
+/**
+ * P2.2-B — per-transaction LWW for early payouts (never employee dataUpdatedAt).
+ * Union by tx id; newer updatedAt wins; full tie prefers first arg, then deletedAt.
+ */
+export function pickPayrollEarlyPayoutsForMerge(
+  localList: unknown,
+  cloudList: unknown,
+): PayrollEarlyPayout[] | undefined {
+  const localTxs = normalizeEarlyPayoutList(localList);
+  const cloudTxs = normalizeEarlyPayoutList(cloudList);
+  if (localTxs.length === 0 && cloudTxs.length === 0) return undefined;
+
+  const localById = new Map(localTxs.map((t) => [t.id, t]));
+  const cloudById = new Map(cloudTxs.map((t) => [t.id, t]));
+  const ids = new Set([...localById.keys(), ...cloudById.keys()]);
+  const out: PayrollEarlyPayout[] = [];
+
+  for (const id of ids) {
+    const localTx = localById.get(id);
+    const cloudTx = cloudById.get(id);
+    if (localTx && !cloudTx) {
+      out.push(localTx);
+      continue;
+    }
+    if (cloudTx && !localTx) {
+      out.push(cloudTx);
+      continue;
+    }
+    if (!localTx || !cloudTx) continue;
+    const localAt = parsePayrollRecordTs(localTx.updatedAt);
+    const cloudAt = parsePayrollRecordTs(cloudTx.updatedAt);
+    if (localAt > cloudAt) {
+      out.push(localTx);
+    } else if (cloudAt > localAt) {
+      out.push(cloudTx);
+    } else if (localTx.deletedAt && !cloudTx.deletedAt) {
+      out.push(localTx);
+    } else if (cloudTx.deletedAt && !localTx.deletedAt) {
+      out.push(cloudTx);
+    } else {
+      out.push(localTx);
+    }
+  }
+
+  return out.length ? out : undefined;
+}
+
 /** Canonical per-record merge — SSOT for client pull and Edge write-on-merge. */
 export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown {
   const l = local as Record<string, unknown>;
@@ -277,5 +328,9 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
     settledUpdatedAt,
     ...(payrollSettlement ? { payrollSettlement } : { payrollSettlement: undefined }),
     payrollCarryForward: pickPayrollCarryForward(l, c),
+    payrollEarlyPayouts: pickPayrollEarlyPayoutsForMerge(
+      l.payrollEarlyPayouts,
+      c.payrollEarlyPayouts,
+    ),
   };
 }
