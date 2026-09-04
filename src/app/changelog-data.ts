@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.150",
+    label: "Lista płac — zapis godzin nie rusza pipeline przetargów",
+    items: [
+      {
+        type: "fix",
+        text: "Zmiana godzin albo dodanie pracownika na Liście Płac zapisuje tylko skład w chmurze. Nie uruchamia zapisu pipeline przetargów i nie pokazuje komunikatu o zablokowanym pipeline. Skip pipeline należy tylko do tego auto-sync — po anulowaniu timera / ukryciu karty / P1 nie zostaje na później. Ochrona zapisu / CAS / odświeżanie widoku bez zmian.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.149",
     label: "Lista płac — godziny z chmury na otwartym widoku",
     items: [

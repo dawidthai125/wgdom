@@ -210,6 +210,11 @@ import {
 } from "@/lib/cloud-sync-failure-kind";
 import { decidePayrollVisibleFreshnessPull } from "@/lib/payroll-visible-freshness-pull";
 import {
+  classifyAutoSyncTriggerOrigin,
+  createAutoSyncSkipSession,
+  type AutoSyncTriggerOrigin,
+} from "@/lib/payroll-auto-sync-pipeline";
+import {
   installPayrollRuntimeTraceGlobals,
   payrollTraceBumpRosterRevision,
   payrollTraceCreateSyncTraceId,
@@ -431,6 +436,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, []);
   const pullInFlightRef = useRef(false);
   const pendingAutoSyncRef = useRef(false);
+  /** Skip is bound to the current scheduled auto-sync; cancel/abort discard it. */
+  const autoSyncSkipSessionRef = useRef(createAutoSyncSkipSession());
+  const prevAutoSyncTriggerRef = useRef<Record<string, unknown> | null>(null);
   const suppressWakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const remoteMergeInFlightRef = useRef(false);
   const autoSyncMountSettledRef = useRef(false);
@@ -712,6 +720,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       clearTimeout(suppressWakeTimerRef.current);
       suppressWakeTimerRef.current = null;
     }
+    autoSyncSkipSessionRef.current.cancel();
   }, []);
 
   const clearPendingAutoSync = useCallback(() => {
@@ -1051,7 +1060,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   const pushToCloud = pushAllDataToCloud;
 
-  const runCloudSync = useCallback(async (opts?: { toastSuccess?: boolean; writeOnly?: boolean }) => {
+  const runCloudSync = useCallback(async (opts?: {
+    toastSuccess?: boolean;
+    writeOnly?: boolean;
+    skipTenderPipeline?: boolean;
+  }) => {
     logJobsPhotosLiveTrace({
       event: "runCloudSync",
       caller: "App.runCloudSync",
@@ -1125,7 +1138,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (outgoingHash === lastPushedBundleHashRef.current) {
         recordPushSkipped();
       } else {
-        await pushMergedDataBundleToCloud(finalBundle);
+        await pushMergedDataBundleToCloud(finalBundle, {
+          skipTenderPipeline: opts?.skipTenderPipeline === true,
+        });
         lastPushedBundleHashRef.current = outgoingHash;
       }
       const opIdx = DATA_KEYS.indexOf("kw-operational-notes");
@@ -1160,6 +1175,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const fireDeferredAutoSync = useCallback(() => {
     suppressWakeTimerRef.current = null;
     if (remoteMergeInFlightRef.current) {
+      pendingAutoSyncRef.current = false;
+      autoSyncSkipSessionRef.current.cancel();
       return;
     }
     const guardDelay = cloudSyncMutationGuard.msUntilUnblocked();
@@ -1176,13 +1193,18 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     if (!tabVisibleRef.current) {
+      pendingAutoSyncRef.current = false;
+      autoSyncSkipSessionRef.current.cancel();
       return;
     }
     if (pullInFlightRef.current) {
+      pendingAutoSyncRef.current = false;
+      autoSyncSkipSessionRef.current.cancel();
       return;
     }
     pendingAutoSyncRef.current = false;
-    void runCloudSync({ writeOnly: true });
+    const skipTenderPipeline = autoSyncSkipSessionRef.current.consume();
+    void runCloudSync({ writeOnly: true, skipTenderPipeline });
   }, [runCloudSync]);
 
   const scheduleWakeAtSuppressExpiry = useCallback(() => {
@@ -1201,17 +1223,21 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }, delay);
   }, [fireDeferredAutoSync]);
 
-  const scheduleAutoCloudSync = useCallback(() => {
+  const scheduleAutoCloudSync = useCallback((origin?: AutoSyncTriggerOrigin) => {
     if (!initialSyncDone.current) {
       return;
     }
     if (remoteMergeInFlightRef.current) {
       return;
     }
+
+    const attachScheduledSkip = () => autoSyncSkipSessionRef.current.schedule(origin);
+
     if (cloudSyncMutationGuard.isBlocked()) {
       if (!autoSyncMountSettledRef.current) {
         return;
       }
+      attachScheduledSkip();
       pendingAutoSyncRef.current = true;
       const guardDelay = cloudSyncMutationGuard.msUntilUnblocked();
       const appDelay = suppressAutoSyncUntilRef.current - Date.now();
@@ -1234,16 +1260,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (!autoSyncMountSettledRef.current) {
         return;
       }
+      attachScheduledSkip();
       pendingAutoSyncRef.current = true;
       scheduleWakeAtSuppressExpiry();
       return;
     }
 
+    const scheduled = attachScheduledSkip();
     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
     payrollTraceEmit("sync.auto.schedule", "MERGE", "debug", { debounceMs: AUTO_SYNC_DEBOUNCE_MS });
     syncTimerRef.current = setTimeout(() => {
-      if (!tabVisibleRef.current) return;
-      if (pullInFlightRef.current) return;
+      if (autoSyncSkipSessionRef.current.generation() !== scheduled.generation) {
+        return;
+      }
+      if (!tabVisibleRef.current) {
+        autoSyncSkipSessionRef.current.cancel();
+        return;
+      }
+      if (pullInFlightRef.current) {
+        autoSyncSkipSessionRef.current.cancel();
+        return;
+      }
       if (cloudSyncMutationGuard.isBlocked()) {
         pendingAutoSyncRef.current = true;
         const guardDelay = cloudSyncMutationGuard.msUntilUnblocked();
@@ -1265,7 +1302,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       }
       pendingAutoSyncRef.current = false;
       payrollTraceEmit("sync.auto.fire", "MERGE", "debug", {});
-      void runCloudSync({ writeOnly: true });
+      const skipTenderPipeline = autoSyncSkipSessionRef.current.consume();
+      void runCloudSync({ writeOnly: true, skipTenderPipeline });
     }, AUTO_SYNC_DEBOUNCE_MS);
   }, [scheduleWakeAtSuppressExpiry, runCloudSync]);
 
@@ -1393,8 +1431,59 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   // Auto-save to cloud on any data change (debounced 2s, only after initial sync; nie w ukrytej karcie)
   // CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · B: wmTechnicalDrawings → domain push only
   // (commitWmTechnicalDrawings → pushWmTechnicalDrawingsToCloud). Do NOT schedule full RS here.
+  // P2: roster-only changes skip Tender Pipeline write; admin keys still allow it.
   useEffect(() => {
-    scheduleAutoCloudSync();
+    const prev = prevAutoSyncTriggerRef.current;
+    prevAutoSyncTriggerRef.current = {
+      directory,
+      weekEmployees,
+      savedWeeks,
+      weekFrom,
+      weekTo,
+      jobs,
+      contacts,
+      employeeLeaves,
+      recoverableCharges,
+      operationalNotes,
+      wmPrintTemplates,
+      wmPrintJobDocs,
+      wmPrintSettings,
+      wmPrintHistory,
+      deliveryPackagePublications,
+      electricalMeasurements,
+      electricalMeasurementRegistry,
+      electricalMeasurementSettings,
+      electricalSchematics,
+    };
+    if (!prev) {
+      scheduleAutoCloudSync();
+    } else {
+      const origin = classifyAutoSyncTriggerOrigin({
+        payrollRosterChanged:
+          prev.weekEmployees !== weekEmployees
+          || prev.savedWeeks !== savedWeeks
+          || prev.weekFrom !== weekFrom
+          || prev.weekTo !== weekTo,
+        adminChanged:
+          prev.directory !== directory
+          || prev.jobs !== jobs
+          || prev.contacts !== contacts
+          || prev.employeeLeaves !== employeeLeaves
+          || prev.recoverableCharges !== recoverableCharges
+          || prev.operationalNotes !== operationalNotes
+          || prev.wmPrintTemplates !== wmPrintTemplates
+          || prev.wmPrintJobDocs !== wmPrintJobDocs
+          || prev.wmPrintSettings !== wmPrintSettings
+          || prev.wmPrintHistory !== wmPrintHistory
+          || prev.deliveryPackagePublications !== deliveryPackagePublications
+          || prev.electricalMeasurements !== electricalMeasurements
+          || prev.electricalMeasurementRegistry !== electricalMeasurementRegistry
+          || prev.electricalMeasurementSettings !== electricalMeasurementSettings
+          || prev.electricalSchematics !== electricalSchematics,
+      });
+      if (origin) scheduleAutoCloudSync(origin);
+      else scheduleAutoCloudSync();
+    }
     remoteMergeInFlightRef.current = false;
   }, [directory, weekEmployees, savedWeeks, weekFrom, weekTo, jobs, contacts, employeeLeaves, recoverableCharges, operationalNotes, wmPrintTemplates, wmPrintJobDocs, wmPrintSettings, wmPrintHistory, deliveryPackagePublications, electricalMeasurements, electricalMeasurementRegistry, electricalMeasurementSettings, electricalSchematics, scheduleAutoCloudSync]);
 

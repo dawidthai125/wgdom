@@ -4425,7 +4425,10 @@ export function rsBundleFingerprintFromMerged(merged: unknown[]): string {
 }
 
 /** Zapis już scalonego bundle do chmury (bez ponownego merge). */
-export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<void> {
+export async function pushMergedDataBundleToCloud(
+  merged: unknown[],
+  opts?: { skipTenderPipeline?: boolean },
+): Promise<void> {
   payrollTraceEmit("sync.rs.push.start", "RS", "info", {});
   const { keys: assembledKeys, values: assembledValues } = assembleRsPushKeysAndValues(merged);
   const { pushWorkCatalogFromLocalUnionIfChanged } = await import(
@@ -4444,6 +4447,9 @@ export async function pushMergedDataBundleToCloud(merged: unknown[]): Promise<vo
       pushKeys = extracted.otherKeys;
       pushValues = extracted.otherValues;
     }
+  }
+  if (opts?.skipTenderPipeline === true) {
+    pipelineForCanonical = undefined;
   }
   if (pushKeys.length === 0 && pipelineForCanonical === undefined) {
     await pushWorkCatalogFromLocalUnionIfChanged();

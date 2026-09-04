@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.150 — Payroll P2 cut roster → pipeline auto-sync (2026-09-04)
+
+- **fix:** auto-sync po `weekEmployees` / `savedWeeks` / week keys → `skipTenderPipeline` (debounce: admin wygrywa)
+- **P2.1:** skip jest deskryptorem zaplanowanego auto-sync — cancel / hidden abort / P1 `clearAutoSyncTimers` go kasuje (brak stale skip)
+- `pushMergedDataBundleToCloud({ skipTenderPipeline })` nie woła `pushTenderPipelineToCloud`
+- `pwrPush` / Guard / CAS / latch / P1 bez zmian
+- Test: `test-payroll-p2-pipeline-coupling.mjs`
+
 ## 2.66.149 — Payroll P1 visible freshness pull (2026-09-04)
 
 - **improve:** widoczna Lista Płac → `executeCloudFreshnessPull({ bypassThrottle: false })` co `MIN_PULL_INTERVAL_MS` (15 s)
