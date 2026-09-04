@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.157 — Payroll P2.6 bootstrap must not write (2026-09-04)
+
+- **fix:** CloudLoader bootstrap NIE enqueue/CAS `kw-week-employees` tylko dlatego, że `merged !== cloud`
+- READ-ONLY BOOTSTRAP ≠ USER-INTENT WRITE — LS merge/persist OK; push payroll tylko przez pwrPush/pwrAdd
+- Guard / CAS / P2.4 / P2.5 / GO8.2 ACK / Pipeline / IK — bez zmian
+- Test: `test-payroll-p2-6-bootstrap-no-write.mjs`
+
 ## 2.66.156 — Payroll GO8.2 passive settlement vs unresolved cloud ACK (2026-09-04)
 
 - **fix:** pasywne LS `settled=true` z nierozstrzygniętym ACK (`pending`/`failure`) nie jedzie na barana z niezwiązanym zapisem (membership ADD, cudze godziny)

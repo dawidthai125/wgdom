@@ -3047,6 +3047,21 @@ export function bootstrapMergedShouldPush(
   fence?: ResurrectionFenceDecision,
 ): boolean {
   if (!isSupabaseConfigured()) return false;
+  /**
+   * P2.6 — READ-ONLY BOOTSTRAP ≠ USER-INTENT WRITE.
+   * CloudLoader may merge+persist kw-week-employees to LS for UI, but must NOT
+   * enqueue Payroll CAS merely because merged JSON ≠ cloud (hours-down,
+   * settlement-ahead, richness). User-intent writes stay on pwrPush/pwrAdd.
+   * Do not weaken Guard — never reach it from refresh.
+   */
+  if (key === "kw-week-employees") {
+    payrollTraceEmit("sync.bootstrap.push.decision", "MERGE", "info", {
+      key,
+      shouldPush: false,
+      reason: "p2_6_bootstrap_payroll_read_only",
+    });
+    return false;
+  }
   const weekBinding =
     key === "kw-week-employees" ? readPayrollWeekBindingContextFromLs() : undefined;
   if (fence) {

@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.157",
+    label: "Lista płac — odświeżenie strony nie próbuje zapisywać tygodnia",
+    items: [
+      {
+        type: "fix",
+        text: "Sam refresh albo pierwsze wczytanie aplikacji nie wysyła już listy płac do chmury, gdy lokalnie widać starsze godziny albo niepotwierdzone rozliczenie. Zapis do chmury nadal działa po świadomej edycji godzin, rozliczeniu albo dodaniu pracownika.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.156",
     label: "Lista płac — niepotwierdzone rozliczenie nie zapisuje się przy okazji",
     items: [
