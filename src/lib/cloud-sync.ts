@@ -8,6 +8,7 @@ import {
   type PayrollScopedHoursIntent,
 } from "./payroll-hours-intent.ts";
 import {
+  collectLegalAddMergeKeys,
   outgoingHasLegalMembershipAdd,
   sanitizeStaleRosterMembership,
 } from "./payroll-stale-roster-membership.ts";
@@ -3909,17 +3910,25 @@ async function pushWeekEmployeesToCloudUnchecked(
     /* guard fail-closed on push if cloud unreachable — keep intentAfter; pushKeys guard strips */
   }
 
+  // P2.7 — freshness UNION may re-introduce current-week tombs after earlier revoke;
+  // re-apply legal/pending-ADD revoke and re-snapshot before fence evaluation.
+  const legalAddMergeKeys = collectLegalAddMergeKeys(
+    cloudEmpsForFence,
+    normalized,
+    intentBefore,
+  );
+  if (legalAddMergeKeys.size > 0) {
+    removeDeletedWeekEmployeeMergeKeysForWeek(weekFrom, weekTo, legalAddMergeKeys);
+  }
   const tombstones = reconcileTombstonesWithRoster(weekFrom, weekTo, normalized);
+  tombstonedForFence = deletedWeekEmployeeMergeKeySet(
+    getDeletedWeekEmployeeKeys(),
+    weekFrom,
+    weekTo,
+  );
   // D-F3 / GO6 — residual clone / tombstone recreate fence (archive ID overlap alone ≠ block).
   if (options?.intentionalHoursClear !== true) {
     const binding = readPayrollWeekBindingContextFromLs();
-    if (!tombstonedForFence) {
-      tombstonedForFence = deletedWeekEmployeeMergeKeySet(
-        getDeletedWeekEmployeeKeys(),
-        weekFrom,
-        weekTo,
-      );
-    }
     const gate = mayPersistPayrollRosterUnderWeekKeys({
       weekFrom,
       weekTo,
@@ -3929,6 +3938,7 @@ async function pushWeekEmployeesToCloudUnchecked(
       currentTo: binding.currentTo,
       cloudRoster: cloudEmpsForFence,
       tombstonedMergeKeys: tombstonedForFence,
+      legalAddMergeKeys,
     });
     if (!gate.allow) {
       payrollTraceEmit("payroll.roster.push.skip", "PUSH", "warn", {
@@ -3942,6 +3952,12 @@ async function pushWeekEmployeesToCloudUnchecked(
       if (options?.settlementCloudAck === true) {
         throw new Error(
           "Rozliczenie nie zostało zapisane w chmurze (zablokowany zapis tygodnia). Odśwież i spróbuj ponownie.",
+        );
+      }
+      // P2.7 — legal membership ADD must not report silent success (pwrAdd pushed:true).
+      if (legalAddMergeKeys.size > 0) {
+        throw new Error(
+          "Nie udało się zapisać składu do chmury (zablokowany zapis tygodnia). Odśwież listę płac i spróbuj ponownie.",
         );
       }
       return normalized;

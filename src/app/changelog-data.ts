@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.158",
+    label: "Lista płac — ponowne dodanie pracownika działa mimo starego usunięcia",
+    items: [
+      {
+        type: "fix",
+        text: "Świadome dodanie pracownika z kartoteki nie jest już blokowane przez stary znacznik usunięcia z tego samego tygodnia. Zapis do chmury dochodzi do końca; przy blokadzie widać błąd zamiast fałszywego sukcesu.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.157",
     label: "Lista płac — odświeżenie strony nie próbuje zapisywać tygodnia",
     items: [

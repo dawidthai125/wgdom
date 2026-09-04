@@ -100,16 +100,32 @@ export function outgoingHasLegalMembershipAdd(
   intentBefore: unknown | undefined,
   pendingAddMergeKeys?: Set<string>,
 ): boolean {
+  return collectLegalAddMergeKeys(cloud, outgoing, intentBefore, pendingAddMergeKeys).size > 0;
+}
+
+/**
+ * P2.7 — merge keys that are explicit pending ADD or before→after legal ADD
+ * (cloud-absent). Used by Resurrection Fence so legal ADD beats stale tombstone
+ * without a global fence skip.
+ */
+export function collectLegalAddMergeKeys(
+  cloud: unknown,
+  outgoing: unknown,
+  intentBefore: unknown | undefined,
+  pendingAddMergeKeys?: Set<string>,
+): Set<string> {
   const cloudList = asEmpList(cloud);
   const outList = asEmpList(outgoing);
   const beforeList = intentBefore === undefined ? null : asEmpList(intentBefore);
   const pendingAdds = resolvePayrollPendingAddKeys(pendingAddMergeKeys);
+  const out = new Set<string>();
   for (const emp of outList) {
     if (findMatchingEmployee(cloudList, emp)) continue;
     const key = weekEmployeeMergeKey(emp);
+    if (!key) continue;
     const pendingAdd = pendingAdds.has(key);
     const legalAdd = beforeList != null && !findMatchingEmployee(beforeList, emp);
-    if (pendingAdd || legalAdd) return true;
+    if (pendingAdd || legalAdd) out.add(key);
   }
-  return false;
+  return out;
 }

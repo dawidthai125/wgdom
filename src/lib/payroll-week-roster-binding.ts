@@ -194,13 +194,15 @@ export type MayPersistPayrollRosterResult = {
 /**
  * D-F3 (+ GO6 / GO6.1 amend) — may we persist this roster under the given week keys?
  *
- * Control flow (GO6.1):
+ * Control flow (GO6.1 + P2.7):
  * 1. tombstone recreate → BLOCK
+ *    unless identity is explicit legal / pending membership ADD (P2.7)
  * 2. O2 true historical clone/residual (fingerprint) → BLOCK
  *    even when outgoing identity set === cloud identity set
  * 3. O1 outgoing ⊆ Cloud current → ALLOW (legal field update)
  * 4. else no residual signal → ALLOW
  *
+ * Precedence (P2.7): explicit REMOVE > legal/pending ADD > in-cloud > stale tomb.
  * Mere archive identity overlap alone is never sufficient to BLOCK.
  */
 export function mayPersistPayrollRosterUnderWeekKeys(params: {
@@ -219,6 +221,12 @@ export function mayPersistPayrollRosterUnderWeekKeys(params: {
   cloudRoster?: unknown;
   /** GO6 — current-week tombstone merge keys (dir:/name:/id:). */
   tombstonedMergeKeys?: Set<string>;
+  /**
+   * P2.7 — explicit legal / pending membership ADD merge keys.
+   * Precedence: legal ADD > stale current-week tombstone.
+   * Does NOT weaken fence for bootstrap / unauthorized resurrection.
+   */
+  legalAddMergeKeys?: Set<string>;
 }): MayPersistPayrollRosterResult {
   const hoursTotal = liveRosterTotalHours(params.roster);
   const keysAreCurrent =
@@ -240,12 +248,15 @@ export function mayPersistPayrollRosterUnderWeekKeys(params: {
   for (const k of liveKeys) {
     if (!cloudKeys.has(k)) novelKeys.push(k);
   }
+  const legalAdds = params.legalAddMergeKeys;
 
   // 1) Tombstone recreate: identity deleted for this week, reappearing in outgoing.
+  // P2.7 — skip BLOCK when this novel identity is an explicit/pending legal ADD.
   const tombs = params.tombstonedMergeKeys;
   if (tombs && tombs.size > 0) {
     for (const k of novelKeys.length > 0 ? novelKeys : liveKeys) {
       if (tombs.has(k) && !cloudKeys.has(k)) {
+        if (legalAdds?.has(k)) continue;
         return {
           allow: false,
           reason: BLOCK_TOMBSTONE_RECREATE,

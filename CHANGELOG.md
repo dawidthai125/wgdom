@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.158 — Payroll P2.7 legal ADD vs Resurrection Fence (2026-09-04)
+
+- **fix:** jawny `pwrAdd` / pending ADD przebija stale current-week tombstone w `mayPersistPayrollRosterUnderWeekKeys` (`legalAddMergeKeys`)
+- przed fence: ponowny revoke tombów legal ADD + świeży snapshot (freshness UNION nie blokuje)
+- fence BLOCK przy legal ADD → **throw** (brak cichego `pushed:true` bez CAS)
+- bez legal ADD + tombstone → nadal BLOCK; Guard / CAS / P2.6 / GO8.2 / Pipeline / IK — bez zmian
+- Test: `test-payroll-p2-7-legal-add-vs-fence.mjs`
+
 ## 2.66.157 — Payroll P2.6 bootstrap must not write (2026-09-04)
 
 - **fix:** CloudLoader bootstrap NIE enqueue/CAS `kw-week-employees` tylko dlatego, że `merged !== cloud`
