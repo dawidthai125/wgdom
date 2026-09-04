@@ -70,6 +70,7 @@ import {
   PAYROLL_GUARD_BLOCKED_MESSAGE,
   rsBundleFingerprintFromMerged,
   PayrollStaleRevisionError,
+  PayrollAlreadySettledError,
 } from "@/lib/cloud-sync";
 import {
   PAYROLL_WEEK_META_KEY,
@@ -173,12 +174,15 @@ import {
   extractSettlementCloudIntents,
   finalizeSettlementCloudAckAfterPush,
   hasUnresolvedSettlementCloudAck,
+  markSettlementCloudAlreadySettled,
   markSettlementCloudFailure,
   markSettlementCloudPending,
   markSettlementCloudPushAttempt,
   PAYROLL_SETTLEMENT_OUTGOING_MISMATCH,
+  resolveSettlementIdempotencyKeysForTargets,
   rosterHasSettlementFieldChange,
 } from "@/lib/payroll-settlement-cloud-ack";
+import { createSettlementIdempotencyKey } from "@/lib/payroll-settlement-mark-paid-if-unpaid";
 import {
   detectHoursCollapse,
   formatHoursCollapseConfirmMessage,
@@ -1053,10 +1057,41 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         const after = weekEmployeesRef.current;
         if (!after.length) return;
         const before = buildSettlementRetryRosterBefore(after, weekFrom, weekTo);
+        const intents = extractSettlementCloudIntents(before, after, weekFrom, weekTo);
+        const firstSettleIds = intents
+          .filter((i) => i.settled === true && i.beforeSettled !== true)
+          .map((i) => i.empId);
+        const settleKeys = firstSettleIds.length > 0
+          ? resolveSettlementIdempotencyKeysForTargets(
+              firstSettleIds,
+              weekFrom,
+              weekTo,
+              createSettlementIdempotencyKey,
+            )
+          : null;
         markSettlementCloudPending(
-          extractSettlementCloudIntents(before, after, weekFrom, weekTo),
+          intents.map((i) => ({
+            ...i,
+            settlementIdempotencyKey:
+              i.settled === true && i.beforeSettled !== true
+                ? settleKeys?.key
+                : undefined,
+          })),
         );
-        schedulePayrollDomainPush(after, { settlementCloudAck: true }, before);
+        schedulePayrollDomainPush(
+          after,
+          {
+            settlementCloudAck: true,
+            ...(settleKeys
+              ? {
+                  settlementIntent: true,
+                  settlementIdempotencyKey: settleKeys.key,
+                  settlementTargetEmpIds: settleKeys.targetEmpIds,
+                }
+              : {}),
+          },
+          before,
+        );
       })
       .catch(() => {
         /* offline — gate stays unconfirmed; writes blocked */
@@ -2011,9 +2046,27 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             id: "payroll-roster-rebase",
           });
         }
+        if (settlementAck) {
+          toast.success("Rozliczono w chmurze — możesz wypłacić", {
+            id: "payroll-settlement-cloud-ok",
+          });
+        }
       })
       .catch((e) => {
         const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+        if (e instanceof PayrollAlreadySettledError) {
+          markSettlementCloudAlreadySettled(weekFrom, weekTo, "already_settled");
+          if (Array.isArray(e.roster) && e.roster.length > 0) {
+            withPayrollWeekEmployeesWriteSource("pwrPush.already_settled", () => {
+              setWeekEmployees(e.roster as WeekEmployee[]);
+            });
+          }
+          toast.info("Ten pracownik został już rozliczony.", {
+            description: "Odświeżono stan z chmury. Nie wypłacaj ponownie.",
+            id: "payroll-settlement-already",
+          });
+          return;
+        }
         if (settlementAck) {
           markSettlementCloudFailure(weekFrom, weekTo, msg);
         }
@@ -2105,12 +2158,44 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     const findings = detectHoursCollapse(before, next);
     const hoursIntents = deriveHoursIntentsFromLocalEdit(before, next, weekFrom, weekTo);
     const settlementCloudAck = rosterHasSettlementFieldChange(before, next);
+    const settlementIntents = settlementCloudAck
+      ? extractSettlementCloudIntents(before, next, weekFrom, weekTo)
+      : [];
+    const firstSettleEmpIds = settlementIntents
+      .filter((i) => i.settled === true && i.beforeSettled !== true)
+      .map((i) => i.empId);
+    const settleKeys = firstSettleEmpIds.length > 0
+      ? resolveSettlementIdempotencyKeysForTargets(
+          firstSettleEmpIds,
+          weekFrom,
+          weekTo,
+          createSettlementIdempotencyKey,
+        )
+      : null;
     const registerSettlementAck = () => {
       if (!settlementCloudAck) return;
       markSettlementCloudPending(
-        extractSettlementCloudIntents(before, next, weekFrom, weekTo),
+        settlementIntents.map((i) => ({
+          ...i,
+          settlementIdempotencyKey:
+            i.settled === true && i.beforeSettled !== true
+              ? settleKeys?.key
+              : undefined,
+        })),
       );
     };
+    const settlementPushOpts: PushWeekEmployeesOptions = settlementCloudAck
+      ? {
+          settlementCloudAck: true,
+          ...(settleKeys
+            ? {
+                settlementIntent: true,
+                settlementIdempotencyKey: settleKeys.key,
+                settlementTargetEmpIds: settleKeys.targetEmpIds,
+              }
+            : {}),
+        }
+      : {};
     if (findings.length > 0) {
       const needDialog = isPayrollHoursCollapseConfirmEnabled();
       if (needDialog) {
@@ -2126,7 +2211,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       schedulePayrollDomainPush(next, {
         intentionalHoursClear: true,
         hoursIntents: hoursIntents.length > 0 ? hoursIntents : undefined,
-        ...(settlementCloudAck ? { settlementCloudAck: true } : {}),
+        ...settlementPushOpts,
       }, before);
       return true;
     }
@@ -2136,7 +2221,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       next,
       {
         ...(hoursIntents.length > 0 ? { hoursIntents } : {}),
-        ...(settlementCloudAck ? { settlementCloudAck: true } : {}),
+        ...settlementPushOpts,
       },
       before,
     );
@@ -2699,11 +2784,43 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     );
   }, [patchArchiveWeek]);
 
-  const confirmSettle = useCallback((
+  const confirmSettle = useCallback(async (
     id: string,
     payload: { paymentMethod: PayrollPayoutMethod; amount: number },
   ) => {
     if (!adminSession?.id || !adminSession.displayName) return;
+    // P0 — stale UI gate: freshness + Cloud check before local settle
+    try {
+      await ensureCloudFreshBeforeWrite({ reason: "settlement_precheck", force: true });
+    } catch {
+      toast.error("Brak połączenia z chmurą", {
+        description: "Nie można potwierdzić rozliczenia bez aktualnego stanu. Spróbuj ponownie.",
+        id: "payroll-settlement-precheck-offline",
+      });
+      return;
+    }
+    try {
+      const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+      const list = Array.isArray(cloudEmps) ? (cloudEmps as WeekEmployee[]) : [];
+      const cloudEmp =
+        list.find((e) => e.id === id)
+        ?? list.find((e) => weekEmployeesSamePerson(e, { id }));
+      if (cloudEmp?.settled === true) {
+        withPayrollWeekEmployeesWriteSource("confirmSettle.already_cloud", () => {
+          setWeekEmployees((prev) => {
+            const byId = new Map(list.map((e) => [e.id, e]));
+            return prev.map((e) => byId.get(e.id) ?? e);
+          });
+        });
+        toast.info("Ten pracownik został już rozliczony.", {
+          description: "Odświeżono stan z chmury. Nie wypłacaj ponownie.",
+          id: "payroll-settlement-already-precheck",
+        });
+        return;
+      }
+    } catch {
+      /* Edge conditional settle remains ultimate gate */
+    }
     const now = new Date().toISOString();
     let settlement: PayrollSettlement;
     try {

@@ -23,6 +23,11 @@ export type PayrollHoursClearPushOptions = {
   skipPayrollGuard?: boolean;
   /** P0 — scoped hours intents (cloud-verified); not a broad boolean. */
   hoursIntents?: PayrollScopedHoursIntent[];
+  /** P0 Settlement Safety — passthrough (not interpreted by hours gate). */
+  settlementCloudAck?: boolean;
+  settlementIntent?: boolean;
+  settlementIdempotencyKey?: string;
+  settlementTargetEmpIds?: string[];
 };
 
 /** D14 — DF threshold */
@@ -199,16 +204,37 @@ export function resolvePayrollDomainPushOptions(
 ): PayrollHoursClearPushOptions {
   const intentional = input?.intentionalHoursClear === true;
   const hoursIntents = Array.isArray(input?.hoursIntents) ? input!.hoursIntents : undefined;
+  const settlementPassthrough: PayrollHoursClearPushOptions = {
+    ...(input?.settlementCloudAck === true ? { settlementCloudAck: true as const } : {}),
+    ...(input?.settlementIntent === true
+      ? {
+          settlementIntent: true as const,
+          settlementIdempotencyKey: input.settlementIdempotencyKey,
+          settlementTargetEmpIds: input.settlementTargetEmpIds,
+        }
+      : {}),
+  };
   if (intentional) {
-    return { intentionalHoursClear: true, skipPayrollGuard: true, hoursIntents };
+    return {
+      intentionalHoursClear: true,
+      skipPayrollGuard: true,
+      hoursIntents,
+      ...settlementPassthrough,
+    };
   }
   if (!isPayrollDomainPushGuardStrictEnabled() && input?.skipPayrollGuard === true) {
-    return { intentionalHoursClear: false, skipPayrollGuard: true, hoursIntents };
+    return {
+      intentionalHoursClear: false,
+      skipPayrollGuard: true,
+      hoursIntents,
+      ...settlementPassthrough,
+    };
   }
   return {
     intentionalHoursClear: false,
     skipPayrollGuard: false,
     hoursIntents,
+    ...settlementPassthrough,
   };
 }
 

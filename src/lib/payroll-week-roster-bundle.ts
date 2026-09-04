@@ -12,6 +12,7 @@ import {
   mergeDeletedWeekEmployeeKeys,
   mergeWeekEmployees,
   mergeWeekEmployeesForWeekRange,
+  PayrollAlreadySettledError,
   PayrollStaleRevisionError,
   pushWeekEmployeesToCloud,
   reconcileTombstonesWithRoster,
@@ -112,6 +113,7 @@ async function pushRosterWithRebase(params: {
       });
       return { roster, rebased: attempt > 0 };
     } catch (e) {
+      if (e instanceof PayrollAlreadySettledError) throw e;
       if (!(e instanceof PayrollStaleRevisionError)) throw e;
       writePayrollWeekMetaToLs(
         normalizePayrollWeekMeta(
@@ -132,6 +134,26 @@ async function pushRosterWithRebase(params: {
           canonical = Array.isArray(cloudEmps) ? (cloudEmps as WeekEmployee[]) : [];
         } catch {
           throw e;
+        }
+      }
+      // P0 — after 409, settle intent against already-settled Cloud → ALREADY_SETTLED
+      if (resolved.settlementIntent === true && Array.isArray(resolved.settlementTargetEmpIds)) {
+        const targets = new Set(
+          resolved.settlementTargetEmpIds.map((id) => String(id ?? "").trim()).filter(Boolean),
+        );
+        const conflicts = canonical.filter(
+          (emp) =>
+            targets.has(String(emp.id ?? "").trim())
+            && emp.settled === true
+            && resolved.settlementIntent === true,
+        );
+        if (conflicts.length > 0) {
+          throw new PayrollAlreadySettledError(
+            e.serverRevision,
+            canonical,
+            conflicts.map((c) => String(c.id ?? "")),
+            "Payroll already settled after rebase",
+          );
         }
       }
       roster = isPayrollExtraCostsOnlyIntent(intentBefore, intentAfter)

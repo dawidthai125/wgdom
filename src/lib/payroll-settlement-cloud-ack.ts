@@ -22,6 +22,8 @@ export type SettlementCloudAckEntry = {
   beforeSettled: boolean;
   beforeSettledUpdatedAt?: string;
   beforePayrollSettlement?: unknown;
+  /** P0 — stable across retries for the same settle click. */
+  settlementIdempotencyKey?: string;
   status: SettlementCloudAckStatus;
   attempts: number;
   lastError?: string;
@@ -247,6 +249,7 @@ export function markSettlementCloudPending(
     beforePayrollSettlement?: unknown;
     weekFrom: string;
     weekTo: string;
+    settlementIdempotencyKey?: string;
   }>,
 ): void {
   if (!intents.length) return;
@@ -268,6 +271,11 @@ export function markSettlementCloudPending(
       beforeSettled: intent.beforeSettled,
       beforeSettledUpdatedAt: intent.beforeSettledUpdatedAt,
       beforePayrollSettlement: intent.beforePayrollSettlement ?? null,
+      // Preserve key across retries; only assign new when first pending.
+      settlementIdempotencyKey:
+        intent.settlementIdempotencyKey
+        || prev?.settlementIdempotencyKey
+        || undefined,
       status: "pending",
       attempts: prev ? prev.attempts : 0,
       updatedAt: now,
@@ -281,6 +289,60 @@ export function markSettlementCloudPending(
     count: intents.length,
     empIds: intents.map((i) => i.empId),
   });
+}
+
+/** Resolve stable idempotency key for settle targets (reuse pending ACK keys). */
+export function resolveSettlementIdempotencyKeysForTargets(
+  empIds: string[],
+  weekFrom: string,
+  weekTo: string,
+  createKey: () => string,
+): { key: string; targetEmpIds: string[] } {
+  const targets = [...new Set(empIds.map((id) => String(id ?? "").trim()).filter(Boolean))];
+  if (targets.length === 0) {
+    return { key: createKey(), targetEmpIds: [] };
+  }
+  for (const empId of targets) {
+    const existing = entries.find(
+      (e) =>
+        e.empId === empId
+        && e.weekFrom === weekFrom
+        && e.weekTo === weekTo
+        && (e.status === "pending" || e.status === "failure")
+        && e.settlementIdempotencyKey,
+    );
+    if (existing?.settlementIdempotencyKey) {
+      return { key: existing.settlementIdempotencyKey, targetEmpIds: targets };
+    }
+  }
+  return { key: createKey(), targetEmpIds: targets };
+}
+
+/** Mark unresolved settle ACK as terminal already-settled (no retry with new key). */
+export function markSettlementCloudAlreadySettled(
+  weekFrom: string,
+  weekTo: string,
+  message = "already_settled",
+): void {
+  const now = Date.now();
+  let hit = 0;
+  entries = entries.map((e) => {
+    if (e.weekFrom !== weekFrom || e.weekTo !== weekTo) return e;
+    if (e.status !== "pending" && e.status !== "failure") return e;
+    if (e.settled !== true) return e;
+    hit += 1;
+    return {
+      ...e,
+      status: "failure" as const,
+      lastError: message,
+      updatedAt: now,
+    };
+  });
+  if (hit > 0) {
+    persist();
+    notify();
+    emitAck("payroll.settlement.cloud_ack.already_settled", { count: hit, weekFrom, weekTo });
+  }
 }
 
 /**

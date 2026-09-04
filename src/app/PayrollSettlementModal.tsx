@@ -39,6 +39,9 @@ export function PayrollSettlementModal({
             Rozliczenie wypłaty
           </p>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{employeeName}</p>
+          <p className="text-xs text-amber-700 dark:text-amber-400 mt-2">
+            Najpierw zapis w chmurze. Gotówkę/przelew wypłać dopiero po komunikacie sukcesu.
+          </p>
         </div>
 
         <div className="rounded-lg bg-secondary/50 px-3 py-2.5">
@@ -89,7 +92,7 @@ export function PayrollSettlementModal({
             onClick={() => method && onConfirm(method)}
             className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-40"
           >
-            Rozlicz
+            Rozlicz w chmurze
           </button>
         </div>
       </div>

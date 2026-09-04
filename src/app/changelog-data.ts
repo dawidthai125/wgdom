@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-04",
+    version: "2.66.162",
+    label: "PAYROLL — P0 settlement markPaidIfUnpaid",
+    items: [
+      {
+        type: "fix",
+        text: "P0 Settlement Safety: Edge markPaidIfUnpaid (false→true once) + ALREADY_SETTLED 409 + idempotencyKey; stary klient silent keep-prev; UX najpierw chmura potem wypłata; GO4 ACK zachowany. Test: test-payroll-settlement-p0-mark-paid-if-unpaid.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-04",
     version: "2.66.161",
     label: "Lista płac — zapis godzin nie kasuje historii usunięć",
     items: [

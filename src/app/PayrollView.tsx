@@ -775,7 +775,7 @@ export function PayrollView({
       ? `${d.statusLabel}\nKwota: ${d.amountLine}\nForma: ${d.methodLabel}\nRozliczył: ${d.settledByLine}\nData: ${d.settledAtLine}`
       : d.isSettled
         ? "Rozliczono"
-        : "Oczekuje — kliknij po wypłacie";
+        : "Oczekuje — najpierw rozlicz w systemie, potem wypłać";
     if (opts?.mobile) {
       return (
         <button
@@ -1052,7 +1052,7 @@ export function PayrollView({
                 <Bell size={15} className="text-yellow-400 shrink-0"/>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-yellow-400">Dziś sobota — wypłaty (w tym co 2 tyg.)</p>
-                  <p className="text-xs text-muted-foreground">Oznacz „Rozliczony” po wypłacie. Tydzień trafi do archiwum w <strong>niedzielę</strong> (gdy wszyscy rozliczeni) — po <strong>{PAYROLL_WEEK_ROLLOVER_HOUR}:00</strong> startuje nowy tydzień. Możesz też kliknąć „Zapisz tydzień”.</p>
+                  <p className="text-xs text-muted-foreground">Najpierw „Rozlicz” w systemie (zapis w chmurze). Dopiero po komunikacie sukcesu wypłać gotówkę/przelew. Tydzień trafi do archiwum w <strong>niedzielę</strong> (gdy wszyscy rozliczeni) — po <strong>{PAYROLL_WEEK_ROLLOVER_HOUR}:00</strong> startuje nowy tydzień. Możesz też kliknąć „Zapisz tydzień”.</p>
                 </div>
                 <button onClick={()=>setSatDismissed(true)} className="p-1 text-muted-foreground hover:text-foreground transition-colors shrink-0"><X size={14}/></button>
               </div>

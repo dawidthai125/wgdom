@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.162 — P0 Settlement markPaidIfUnpaid (2026-09-04)
+
+- **fix:** Edge `batch-set` — `markPaidIfUnpaid` (false→true raz) + `payroll_already_settled` 409 + `settlementIdempotencyKey`; stary klient silent keep-prev metadata
+- UX A′: najpierw SUCCESS w chmurze („możesz wypłacić”), potem gotówka; pre-check freshness przed settle
+- GO4 / ACK / CAS roster zachowane; unsettle poza P0
+- Test: `test-payroll-settlement-p0-mark-paid-if-unpaid.mjs`
+
 ## 2.66.161 — Payroll hours write preserves week-employee tombstones (2026-09-04)
 
 - **fix:** `pushWeekEmployeesToCloud` hydrates `kw-week-employees-deleted-ids` from Cloud before coupled PWRB (`prepareWeekEmployeeTombsForCoupledPwrb`) — empty/unhydrated LS nie zastępuje Cloud tombów przez `[]`

@@ -7,6 +7,14 @@ import {
   weekEmployeeMergeKey,
 } from "../../../src/lib/payroll-week-employee-merge.ts";
 import { mergeWeekEmployeeRecord } from "../../../src/lib/payroll-week-employee-record-merge.ts";
+import {
+  PAYROLL_ALREADY_SETTLED_CODE,
+  applySettlementMarkPaidIfUnpaidGuard,
+  isUsableSettlementIdempotencyKey,
+  parseSettlementIdempotencyRecord,
+  settlementIdempotencyKvKey,
+  type SettlementIdempotencyRecord,
+} from "../../../src/lib/payroll-settlement-mark-paid-if-unpaid.ts";
 import { cors } from "npm:hono/cors";
 import { logger } from "npm:hono/logger";
 import { createClient } from "jsr:@supabase/supabase-js@2.49.8";
@@ -955,10 +963,37 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   // i zwróć {ok:false,error,requestId} zamiast gołego 500. Flow synchronizacji bez zmian.
   const requestId = crypto.randomUUID();
   try {
-  const { keys, values, replaceJobsKeys = [], replaceDirectoryKeys = [], replaceWeekEmployeesKeys = [], payrollWeekCas = false, expectedRevision, workCatalogCas = false, expectedCatalogRevision, intentionalHoursClear = false, payrollDomainUserWrite = false, hoursIntents = [], clientAppVersion } = await c.req.json();
+  const {
+    keys,
+    values,
+    replaceJobsKeys = [],
+    replaceDirectoryKeys = [],
+    replaceWeekEmployeesKeys = [],
+    payrollWeekCas = false,
+    expectedRevision,
+    workCatalogCas = false,
+    expectedCatalogRevision,
+    intentionalHoursClear = false,
+    payrollDomainUserWrite = false,
+    hoursIntents = [],
+    clientAppVersion,
+    /** P0 Settlement Safety — intentional settle (new clients). */
+    settlementIntent = false,
+    settlementIdempotencyKey = undefined,
+    settlementTargetEmpIds = [],
+  } = await c.req.json();
+  const settlementIntentFlag = settlementIntent === true;
+  const settlementIdemKey = isUsableSettlementIdempotencyKey(settlementIdempotencyKey)
+    ? String(settlementIdempotencyKey).trim()
+    : "";
+  const settlementTargets = Array.isArray(settlementTargetEmpIds)
+    ? settlementTargetEmpIds.filter((x: unknown): x is string => typeof x === "string" && x.trim().length > 0)
+    : [];
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   let payrollMetaAfterWrite: Record<string, unknown> | null = null;
   let catalogMetaAfterWrite: Record<string, unknown> | null = null;
+  let settlementIdemPending: SettlementIdempotencyRecord | null = null;
+  let settlementIdemPendingKey = "";
   const archBatchIdx = keys.indexOf("kw-archive");
   const archiveInBatch = archBatchIdx >= 0 ? normalizeArrayKv(values[archBatchIdx]) : [];
   const deletedBatchIdx = keys.indexOf("kw-jobs-deleted-ids");
@@ -1131,6 +1166,101 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
           // intentCount > 0: sanitized unauthorized slots kept; authorized deltas persist.
           void payrollDomainUserWrite; // explicitly ignored for hours authorization
         }
+
+        // P0 SETTLEMENT SAFETY — idempotency replay (same key → same result, no 2nd mutation)
+        if (settlementIntentFlag && settlementIdemKey) {
+          const idemRaw = await kv.get(settlementIdempotencyKvKey(settlementIdemKey));
+          const idemRec = parseSettlementIdempotencyRecord(idemRaw);
+          if (idemRec) {
+            const livePrev = prev != null
+              ? filterWeekEmployeesByTombstones(normalizeArrayKv(prev), weekEmpTombstoned)
+              : prevNorm;
+            const liveMetaRaw = await kv.get(PAYROLL_WEEK_META_KEY);
+            const liveMeta = normalizePayrollWeekMetaEdge(liveMetaRaw, batchFromStr, batchToStr);
+            if (idemRec.result === "already_settled") {
+              return c.json(
+                {
+                  ok: false,
+                  code: PAYROLL_ALREADY_SETTLED_CODE,
+                  error: PAYROLL_ALREADY_SETTLED_CODE,
+                  serverRevision: liveMeta.rosterRevision,
+                  roster: livePrev,
+                  requestId,
+                  settlementIdempotentReplay: true,
+                  message: "Payroll settlement already processed — already settled",
+                },
+                409,
+              );
+            }
+            // success replay — no second business mutation
+            payrollMetaAfterWrite = null; // do not bump revision
+            safeValues[i] = livePrev;
+            const responseBody: Record<string, unknown> = {
+              ok: true,
+              requestId,
+              settlementIdempotentReplay: true,
+              payrollWeekMeta: liveMeta,
+              persistedWeekEmployees: livePrev,
+            };
+            return c.json(responseBody);
+          }
+        }
+
+        // P0 SETTLEMENT SAFETY — markPaidIfUnpaid (after merge; old clients too)
+        const settleGuard = applySettlementMarkPaidIfUnpaidGuard(prevNorm, nextNorm, {
+          settlementIntent: settlementIntentFlag,
+          settlementTargetEmpIds: settlementTargets,
+        });
+        nextNorm = settleGuard.roster as typeof nextNorm;
+        if (settleGuard.action === "already_settled") {
+          if (settlementIntentFlag && settlementIdemKey) {
+            const alreadyRec: SettlementIdempotencyRecord = {
+              result: "already_settled",
+              empId: settleGuard.conflictEmpIds[0],
+              weekFrom: batchFromStr,
+              weekTo: batchToStr,
+              serverRevision: serverMeta.rosterRevision,
+              createdAt: Date.now(),
+            };
+            try {
+              await kv.set(settlementIdempotencyKvKey(settlementIdemKey), alreadyRec);
+            } catch { /* best-effort idem map */ }
+          }
+          return c.json(
+            {
+              ok: false,
+              code: PAYROLL_ALREADY_SETTLED_CODE,
+              error: PAYROLL_ALREADY_SETTLED_CODE,
+              serverRevision: serverMeta.rosterRevision,
+              roster: prevNorm,
+              conflictEmpIds: settleGuard.conflictEmpIds,
+              requestId,
+              message: "Payroll already settled — settlement not applied",
+            },
+            409,
+          );
+        }
+
+        // CAS strengthen: re-read meta immediately before commit (concurrent same-rev)
+        {
+          const metaRawRecheck = await kv.get(PAYROLL_WEEK_META_KEY);
+          const serverMetaRecheck = normalizePayrollWeekMetaEdge(
+            metaRawRecheck,
+            batchFromStr,
+            batchToStr,
+          );
+          if (expRev !== serverMetaRecheck.rosterRevision) {
+            return payrollRevisionConflictResponse(
+              c,
+              requestId,
+              PAYROLL_STALE_REVISION_CODE,
+              serverMetaRecheck.rosterRevision,
+              prevNorm,
+              "stale payroll revision (pre-commit recheck)",
+            );
+          }
+        }
+
         await rotateKvBackups("kw-week-employees");
         payrollMetaAfterWrite = {
           rosterRevision: serverMeta.rosterRevision + 1,
@@ -1138,6 +1268,17 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
           weekTo: batchToStr,
           updatedAt: Date.now(),
         };
+        if (settlementIntentFlag && settlementIdemKey && settleGuard.firstSettleCount > 0) {
+          settlementIdemPending = {
+            result: "success",
+            empId: settlementTargets[0],
+            weekFrom: batchFromStr,
+            weekTo: batchToStr,
+            serverRevision: serverMeta.rosterRevision + 1,
+            createdAt: Date.now(),
+          };
+          settlementIdemPendingKey = settlementIdemKey;
+        }
       } else if (forceReplaceWeekEmployees) {
         const metaRaw = await kv.get(PAYROLL_WEEK_META_KEY);
         const serverMeta = normalizePayrollWeekMetaEdge(metaRaw, batchFromStr, batchToStr);
@@ -1363,6 +1504,13 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   console.log(
     `[batch-set] requestId=${requestId} OK chunkCount=${msetMeta.chunkCount} estimatedBytes=${msetMeta.estimatedBytes} chunkMs=${JSON.stringify(msetMeta.chunkMs)} soloOversizedKeys=${JSON.stringify(msetMeta.soloOversizedKeys)}`,
   );
+  if (settlementIdemPending && settlementIdemPendingKey) {
+    try {
+      await kv.set(settlementIdempotencyKvKey(settlementIdemPendingKey), settlementIdemPending);
+    } catch (e) {
+      console.log("settlement idempotency map:", e);
+    }
+  }
   try {
     await saveDailyFullBackup(keys, safeValues);
   } catch (e) {

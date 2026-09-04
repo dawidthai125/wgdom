@@ -61,6 +61,15 @@ export function schedulePayrollDomainPush(
   }
   const mergedIntents = mergeHoursIntents(pendingOptions?.hoursIntents, options?.hoursIntents);
   const settlementCloudAck = stickySettlementCloudAck(options, pendingOptions);
+  const settlementIntent =
+    options?.settlementIntent === true || pendingOptions?.settlementIntent === true;
+  const settlementIdempotencyKey =
+    options?.settlementIdempotencyKey
+    || pendingOptions?.settlementIdempotencyKey;
+  const settlementTargetEmpIds =
+    options?.settlementTargetEmpIds?.length
+      ? options.settlementTargetEmpIds
+      : pendingOptions?.settlementTargetEmpIds;
   // Sticky intentionalHoursClear once ACK'd in this debounce window
   if (options?.intentionalHoursClear === true || pendingOptions?.intentionalHoursClear === true) {
     pendingOptions = {
@@ -68,12 +77,26 @@ export function schedulePayrollDomainPush(
       skipPayrollGuard: true,
       hoursIntents: mergedIntents.length > 0 ? mergedIntents : undefined,
       settlementCloudAck,
+      ...(settlementIntent
+        ? {
+            settlementIntent: true as const,
+            settlementIdempotencyKey,
+            settlementTargetEmpIds,
+          }
+        : {}),
     };
   } else {
     pendingOptions = {
       ...(options ?? {}),
       hoursIntents: mergedIntents.length > 0 ? mergedIntents : options?.hoursIntents,
       settlementCloudAck,
+      ...(settlementIntent
+        ? {
+            settlementIntent: true as const,
+            settlementIdempotencyKey,
+            settlementTargetEmpIds,
+          }
+        : {}),
     };
   }
   if (debounceTimer != null) clearTimeout(debounceTimer);

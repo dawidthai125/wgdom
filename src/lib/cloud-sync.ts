@@ -1233,6 +1233,10 @@ export {
 export const PAYROLL_STALE_REVISION_CODE = "stale_revision";
 export const PAYROLL_LEGACY_CLIENT_CODE = "legacy_client_rejected";
 
+export {
+  PAYROLL_ALREADY_SETTLED_CODE,
+} from "./payroll-settlement-mark-paid-if-unpaid.ts";
+
 export class PayrollStaleRevisionError extends Error {
   readonly code: string;
   readonly serverRevision: number;
@@ -1244,6 +1248,27 @@ export class PayrollStaleRevisionError extends Error {
     this.code = code;
     this.serverRevision = serverRevision;
     this.roster = roster;
+  }
+}
+
+/** P0 Settlement Safety — Edge rejected settle because employee already settled. */
+export class PayrollAlreadySettledError extends Error {
+  readonly code = "payroll_already_settled" as const;
+  readonly serverRevision: number;
+  readonly roster?: unknown[];
+  readonly conflictEmpIds: string[];
+
+  constructor(
+    serverRevision: number,
+    roster?: unknown[],
+    conflictEmpIds?: string[],
+    message?: string,
+  ) {
+    super(message ?? "Payroll already settled");
+    this.name = "PayrollAlreadySettledError";
+    this.serverRevision = serverRevision;
+    this.roster = roster;
+    this.conflictEmpIds = Array.isArray(conflictEmpIds) ? conflictEmpIds : [];
   }
 }
 
@@ -1628,6 +1653,10 @@ export type PushKeysToCloudOptions = {
    * User and domain writes MUST NOT set this.
    */
   skipCloudFreshnessGate?: boolean;
+  /** P0 Settlement Safety — intentional settle write. */
+  settlementIntent?: boolean;
+  settlementIdempotencyKey?: string;
+  settlementTargetEmpIds?: string[];
 };
 
 export type PushWeekEmployeesOptions = {
@@ -1650,6 +1679,14 @@ export type PushWeekEmployeesOptions = {
    * Does not skip guard/CAS. Client-only option (not a KV field).
    */
   settlementCloudAck?: boolean;
+  /**
+   * P0 Settlement Safety — intentional settle (Edge markPaidIfUnpaid + ALREADY_SETTLED).
+   */
+  settlementIntent?: boolean;
+  /** Stable UUID for one settle click; reused on retry. */
+  settlementIdempotencyKey?: string;
+  /** Employee ids targeted by this settle operation. */
+  settlementTargetEmpIds?: string[];
 };
 
 /**
@@ -3625,6 +3662,13 @@ export async function pushKeysToCloud(
     hoursIntents: Array.isArray(pushOptions.hoursIntents) ? pushOptions.hoursIntents : [],
     /** @deprecated — not an hours-down authorization signal */
     payrollDomainUserWrite: pushOptions.payrollDomainUserWrite === true,
+    settlementIntent: pushOptions.settlementIntent === true,
+    settlementIdempotencyKey: typeof pushOptions.settlementIdempotencyKey === "string"
+      ? pushOptions.settlementIdempotencyKey
+      : undefined,
+    settlementTargetEmpIds: Array.isArray(pushOptions.settlementTargetEmpIds)
+      ? pushOptions.settlementTargetEmpIds
+      : [],
   });
   const keysCount = pushKeys.length;
   const batchSizeBytes = requestBody.length;
@@ -3701,6 +3745,30 @@ export async function pushKeysToCloud(
           serverRevision,
           roster,
           typeof errJson.error === "string" ? errJson.error : errCode,
+        );
+      }
+      if (res.status === 409 && errCode === "payroll_already_settled") {
+        const serverRevision = typeof errJson.serverRevision === "number" ? errJson.serverRevision : -1;
+        const roster = Array.isArray(errJson.roster) ? errJson.roster : undefined;
+        const conflictEmpIds = Array.isArray(errJson.conflictEmpIds)
+          ? errJson.conflictEmpIds.filter((x): x is string => typeof x === "string")
+          : [];
+        payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "warn", {
+          httpStatus: 409,
+          ok: false,
+          edgeRequestId,
+          latencyMs,
+          httpSeq,
+          httpRequestId,
+          attempt,
+          code: errCode,
+          serverRevision,
+        });
+        throw new PayrollAlreadySettledError(
+          serverRevision,
+          roster,
+          conflictEmpIds,
+          typeof errJson.message === "string" ? errJson.message : errCode,
         );
       }
       if (
@@ -4039,6 +4107,9 @@ async function pushWeekEmployeesToCloudUnchecked(
         rosterBefore: Array.isArray(options?.rosterBefore) ? options.rosterBefore : undefined,
         /** P2.8 — coupled PWRB: Edge uses batch tombs (not UNION with stale stored). */
         replaceWeekEmployeesKeys: ["kw-week-employees"],
+        settlementIntent: options?.settlementIntent === true,
+        settlementIdempotencyKey: options?.settlementIdempotencyKey,
+        settlementTargetEmpIds: options?.settlementTargetEmpIds,
       },
     );
     if (pendingKeysToConfirm.size > 0) {
