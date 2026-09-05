@@ -2,7 +2,7 @@
 
 > **★★ AI START:** [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md) → [`AI/MASTER-AI-HANDOFF.md`](AI/MASTER-AI-HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)
 > **★★ PAYROLL = CRITICAL PROTECTED MODULE:** [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) — GO6.1 / GO8.1 / GO9.2 **FROZEN** · GO10 **NO-FIX** · **NOWY FEATURE ≠** Payroll sync refactor
-> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — CURRENT **2.66.165 / `75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · **TPI Full IK E2E OPEN / NOT VERIFIED** · live `version.json` · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
+> **★★ Tip produkcji (SSOT):** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) — APP **2.66.165** · DEPLOYED tip **`14ec9bd9`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · **TPI Full IK E2E OPEN / NOT VERIFIED** · live `version.json` · **nie** traktuj numerów w bannerach poniżej jako tip (historyczne closeouty).
 > **★★ IK Master SSOT:** [`architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) — **CURRENT NODE = ŚRODA A0.2** · frontend PV **VERIFIED** · **hydration §10.0.2** · **LINE-TOLERANT §2A.9 HISTORY** · **CHROBREGO CLOSED** · **GLOBAL IK PV = NO** · **Track B CLOSED / VERIFIED**
 > **★★ Session handoff:** [`architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) — Wrocław targets · Połczyn NOT TARGET · NEXT AUDIT ONLY
 > **★★ TM-01 MASTER:** [`architecture/TENDER-MODERNIZATION-01-MASTER.md`](architecture/TENDER-MODERNIZATION-01-MASTER.md) · DF [`architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md`](architecture/TENDER-MODERNIZATION-01-DESIGN-FREEZE.md)
@@ -15,14 +15,14 @@
 |--|--|
 | **Status** | **code+KV LIVE** · **frontend PV VERIFIED (OD-OCR-37)** |
 | **Tender** | `08deff6c-bc34-619e-b346-0300010ce2e5` · Gmina Środa Śląska |
-| **Commit** | **`590f95e9`** (A0.2 seed) · live tip **`75d0f09` / 2.66.165** · LINE-TOLERANT HISTORY **`a5d19047`** · OD-OCR-47 HISTORY **`2f3d1847` / 2.66.147** |
+| **Commit** | **`590f95e9`** (A0.2 seed) · live tip **`14ec9bd9` / 2.66.165** · HYDRATION VERIFY **`75d0f09`** · LINE-TOLERANT HISTORY **`a5d19047`** · OD-OCR-47 HISTORY **`2f3d1847` / 2.66.147** |
 | **KV** | rev **56→57** · work **862→878** · **8/8** wrocław + **8/8** dolnyslask · idempotency **PASS** |
 | **8 CatalogWork** | brodzik · syfon · podejście PVC · ustęp kompakt · silikon · okna · ościeżnice/kraty · parapety |
 | **Hard** | `descriptionPl=""` · metadata FP **0** · **≠** mapper/F5/scoring/P1–P3 · **≠** AUTONOMY-08 close |
 | **F5** | baseline **84** · delta **not** acceptance |
 | **SSOT** | Master [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 · §10.0.2 · §22 · §24 |
 | **CHROBREGO** | **CLOSED** 56/0 · **NIE reopen** |
-| **Capability** | **TPI HYDRATION DESIGN-C CLOSED/PV** @ **`75d0f09`** · **TPI Full IK E2E OPEN / NOT VERIFIED** · **OD-OCR-47 PASS** HISTORY · **≠** nowy Decision Tree · **GLOBAL IK PV = NO** |
+| **Capability** | **TPI HYDRATION DESIGN-C CLOSED/PV** @ VERIFY **`75d0f09`** · **≠** DEPLOYED tip **`14ec9bd9`** · **TPI Full IK E2E OPEN / NOT VERIFIED** · **OD-OCR-47 PASS** HISTORY · **≠** nowy Decision Tree · **GLOBAL IK PV = NO** |
 | **NEXT** | Owner GO · jedna gałąź Master §9 · **NIE** auto G1/G2/G3 na TPI |
 
 ## Payroll Protected Core — docs hardening (2026-08-30)
