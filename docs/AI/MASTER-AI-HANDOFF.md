@@ -7,7 +7,7 @@
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)
 > **★★ IK Master (NO REBUILD · PRIMARY):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)
 > **★★ CURRENT NODE:** **ŚRODA A0.2** — Master §10.0 · KV **rev 57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
-> **★★ CURRENT PRODUCTION:** APP **2.66.165** · DEPLOYED tip **`14ec9bd9`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 **HISTORY** · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO**
+> **★★ CURRENT PRODUCTION:** APP **2.66.165** · LIVE = **FETCH** `/version.json` · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 **HISTORY** · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **no** SSOT≡live equality
 > **★★ Track B:** **CLOSED / VERIFIED / UNCHANGED**
 > **★★ CHROBREGO:** **CLOSED CASE** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)
@@ -25,14 +25,14 @@ Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
 START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT (§10.0 CURRENT NODE) → TEN plik → 09 + version.json
 Tip = wyłącznie 09 + version.json
 CURRENT = ŚRODA A0.2 · TPI HYDRATION DESIGN-C CLOSED/PV · LINE-TOLERANT HISTORY · CHROBREGO CLOSED · OD-OCR-47 HISTORY capability · TPI Full IK E2E OPEN / NOT VERIFIED · AUTONOMY-08 OPEN · Phase 5 NOT AUTHORIZED · W3–W6 NOT auto-authorized
-ACTIVE IMPLEMENT = NONE bez Owner GO · production tip APP 2.66.165 / DEPLOYED 14ec9bd9 / HYDRATION VERIFY 75d0f09 · GLOBAL IK PV = NO
+ACTIVE IMPLEMENT = NONE bez Owner GO · APP 2.66.165 · LIVE=fetch /version.json · LAST VERIFIED SOURCE 32a90fef · HYDRATION VERIFY 75d0f09 · GLOBAL IK PV = NO · docs-only tip lag EXPECTED
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + live `version.json` — **APP 2.66.165 · DEPLOYED tip `14ec9bd9` · HYDRATION VERIFY `75d0f09`**. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** (Master §10.0.2 · ≠ TPI Full IK E2E · ≠ Global IK PV). **LINE-TOLERANT** = HISTORY feature tip **`a5d19047`**. **OD-OCR-47 PASS** = HISTORY capability tip. **TPI Full IK E2E = OPEN / NOT VERIFIED**. **CHROBREGO CLOSED**. **Track B CLOSED / VERIFIED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
+W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + **FETCH** live `version.json` — **APP 2.66.165 · LAST VERIFIED SOURCE `32a90fef` · HYDRATION VERIFY `75d0f09`** · LIVE commit = tylko z `/version.json` · **brak** exact-equality SSOT↔live. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** (Master §10.0.2 · ≠ TPI Full IK E2E · ≠ Global IK PV). **LINE-TOLERANT** = HISTORY feature tip **`a5d19047`**. **OD-OCR-47 PASS** = HISTORY capability tip. **TPI Full IK E2E = OPEN / NOT VERIFIED**. **CHROBREGO CLOSED**. **Track B CLOSED / VERIFIED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
 
 **NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. Środa follow-up · TPI IK E2E · Phase 5 · epic closeout) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** start G1/G2/G3 na TPI bez GO.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
@@ -48,7 +48,8 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **czytaj [`09`](09_PRODUCTION_BASELINE.md)** + live `version.json` (**nie** hardcoduj tutaj) |
-| **CURRENT LIVE / REPOSITORY TIP** | **`14ec9bd9`** / **2.66.165** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · HYDRATION VERIFY **`75d0f09`** · TPI HYDRATION DESIGN-C CLOSED/PV · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · TPI Full IK E2E OPEN / NOT VERIFIED |
+| **LIVE PRODUCTION** | **FETCH** `/version.json` · runtime authority · **nie** SSOT mirror |
+| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** / APP **2.66.165** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · HYDRATION VERIFY **`75d0f09`** · TPI HYDRATION DESIGN-C CLOSED/PV · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · TPI Full IK E2E OPEN / NOT VERIFIED · docs-only lag EXPECTED |
 | **A08-P3 FEATURE TIP** | **`3822acb`** · **IMPLEMENTED · OPEN** · harness **27/0** · G2 PV **WAIT** |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · see [`09`](09_PRODUCTION_BASELINE.md) |
 | **Feature tip** | A08-P3 @ **`3822acb`** · S6/P4 @ **`2fce3caf`** · Phase 2E targeted @ **`1a9c5484`** (FULL 2E OPEN) · APF **FROZEN** · validation = harness GREEN · interactive UI = Owner residual · **≠** global IK FINAL |

@@ -5,7 +5,7 @@
 > **Data:** 2026-09-05 (Master SSOT continuity · TPI HYDRATION DESIGN-C) · prior 2026-09-05 (LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-24 (Observability Phases 1–4)
 > **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · **§10.0 · §2A.9 · §10.0.2 · §10.0.3 · §22 · §24** — **JEDYNY Master SSOT IK**
 > **CURRENT NODE:** **ŚRODA A0.2** — 8 CatalogWork · KV rev **57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
-> **CURRENT PRODUCTION:** APP **2.66.165** · DEPLOYED tip **`14ec9bd9`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO**
+> **CURRENT PRODUCTION:** APP **2.66.165** · LIVE = **FETCH** `/version.json` · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **no** SSOT≡live equality
 > **Track B:** **CLOSED / VERIFIED / UNCHANGED**
 > **CLOSED CASE:** **CHROBREGO** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **Sesja hist.:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior Autonomy [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)
@@ -25,9 +25,9 @@ AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-
 
 | | |
 |--|--|
-| **CURRENT REPOSITORY / LIVE TIP** | **`14ec9bd9`** / **2.66.165** |
-| **LIVE `/version.json` (last check)** | **2.66.165 / `14ec9bd`** (`14ec9bd9`) · READY / verified |
-| **TPI FULL SNAPSHOT HYDRATION** | **DESIGN-C CLOSED / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · **≠** DEPLOYED tip · Master §10.0.2 · §24 |
+| **LIVE PRODUCTION** | **FETCH** `/version.json` · runtime authority |
+| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** / **2.66.165** · documentary · lag EXPECTED |
+| **TPI FULL SNAPSHOT HYDRATION** | **DESIGN-C CLOSED / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · **≠** LIVE · **≠** LAST VERIFIED SOURCE · Master §10.0.2 · §24 |
 | **TPI Full IK E2E** | **OPEN / NOT VERIFIED** · no usable FULL in `kw-tender-ingest-v1` |
 | **LINE-TOLERANT** | **CLOSED / PRODUCTION VERIFIED** · HISTORY tip **`a5d19047`** · Master §2A.9 · §10.0.3 |
 | **A0.2 KV** | **rev 57 LIVE** · 8/8 × 2 regions · frontend PV **VERIFIED (OD-OCR-37)** |

@@ -2,14 +2,18 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ JEDYNY MASTER SSOT Inteligentnego Kosztorysanta** · **★★ JEDYNY cold-start IK dla nowego GPT/Cursor**
-> **Data:** 2026-09-05 (**MASTER POINTER SEMANTICS** · APP **2.66.165** · DEPLOYED tip **`14ec9bd9`** · HYDRATION VERIFY **`75d0f09`**) · prior 2026-09-05 (LINE-TOLERANT / tip `a5d19047`) · prior 2026-09-04 (OD-OCR-47 / tip `2f3d1847`) · prior 2026-09-03 (A0.2 ŚRODA) · prior 2026-08-31 (G3 Final Bid CHROBREGO)
+> **Data:** 2026-09-05 (**STABLE PRODUCTION IDENTITY** · APP **2.66.165** · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`**) · prior tip-continuity HISTORY `14ec9bd9` / `98f4b5e` · prior 2026-09-05 (LINE-TOLERANT / tip `a5d19047`) · prior 2026-09-04 (OD-OCR-47 / tip `2f3d1847`) · prior 2026-09-03 (A0.2 ŚRODA) · prior 2026-08-31 (G3 Final Bid CHROBREGO)
 > **Doc hash:** see git after this closeout
+> **★★ PRODUCTION IDENTITY (HARD):** LIVE = **fetch** [`/version.json`](https://www.wgdom.fun/version.json) · SSOT **nie** mirroruje live SHA · **brak** exact-equality gate SSOT↔live · docs-only lag = **EXPECTED / NOT FAIL**
 > **★★ APPLICATION VERSION:** **2.66.165** (UI / changelog · **no** bump on docs-only deploy)
-> **★★ DEPLOYED REPOSITORY TIP:** **`14ec9bd9`** (`14ec9bd98f90a2363f448dd69438cf60af5864be`) · live `version.json` commit **`14ec9bd`** / **`14ec9bd9`** · https://www.wgdom.fun · HTTP **200** · tip [`09`](../AI/09_PRODUCTION_BASELINE.md)
-> **★★ LATEST PRODUCTION DEPLOYMENT:** **`14ec9bd9`** — **docs-only tip continuity** · **≠** new application version · prior tip HISTORY **`98f4b5e`**
-> **★★ LATEST VERIFIED CAPABILITY:** **TPI FULL SNAPSHOT HYDRATION** — **DESIGN-C CLOSED / PRODUCTION VERIFIED** · **VERIFICATION CHECKPOINT `75d0f09`** (`75d0f0907ab2937e9624cb0c338e56a6195fbb88`) · `kw-tender-ingest-v1` → `loadTendersPipeline` hydrate → existing bridge → local cold · Track B lean **UNCHANGED** · **≠** DEPLOYED tip · **≠** TPI Full IK E2E PASS · **≠** nowy Decision Tree · **≠** GLOBAL IK PRODUCTION VERIFIED
-> **★★ PRIOR CAPABILITY TIP (HISTORY):** **IK-LINE-TOLERANT-EXPERT-ADMISSION-01** — **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · DOCUMENT TRUTH ≠ EXPERT ADMISSION · Paczka XI · **≠** DEPLOYED REPOSITORY TIP
-> **★★ PRIOR CAPABILITY TIP (HISTORY):** **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147** — Owner Ingest → OCR → C2 → authoritative persist · **ancestor** · **≠** DEPLOYED REPOSITORY TIP
+> **★★ LIVE PRODUCTION:** **runtime authority** = `GET https://www.wgdom.fun/version.json` · odczytuj przy każdym production audit · **nie** hardcoduj „CURRENT LIVE COMMIT = X” w SSOT
+> **★★ LAST VERIFIED PRODUCTION SOURCE CHECKPOINT:** **`32a90fef`** (`32a90fef10f45069a857dc6c4f1191ddf23024e1`) — Owner PV PASS (tip continuity) · documentary · **może ≠** live SHA po kolejnych docs-only · tip [`09`](../AI/09_PRODUCTION_BASELINE.md)
+> **★★ Alias (HISTORY / compatibility):** „DEPLOYED REPOSITORY TIP” = **ten sam** LAST VERIFIED SOURCE checkpoint · **nie** oznacza aktualnego live SHA
+> **★★ TPI HYDRATION VERIFICATION CHECKPOINT:** **`75d0f09`** (`75d0f0907ab2937e9624cb0c338e56a6195fbb88`) · DESIGN-C CLOSED/PV · **≠** LIVE · **≠** LAST VERIFIED SOURCE · **≠** TPI Full IK E2E PASS · **≠** nowy Decision Tree · **≠** GLOBAL IK PRODUCTION VERIFIED
+> **★★ LATEST VERIFIED CAPABILITY:** **TPI FULL SNAPSHOT HYDRATION** — **DESIGN-C CLOSED / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · Track B lean **UNCHANGED**
+> **★★ PRIOR CAPABILITY TIP (HISTORY):** **IK-LINE-TOLERANT-EXPERT-ADMISSION-01** — **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · DOCUMENT TRUTH ≠ EXPERT ADMISSION · Paczka XI · **≠** LAST VERIFIED SOURCE
+> **★★ PRIOR CAPABILITY TIP (HISTORY):** **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147** — Owner Ingest → OCR → C2 → authoritative persist · **ancestor** · **≠** LAST VERIFIED SOURCE
+> **★★ HISTORY tip-continuity (broken loop era):** **`14ec9bd9`** · **`98f4b5e`** — prior docs tip sync under exact live-mirror semantics · **superseded** by STABLE PRODUCTION IDENTITY
 > **★★ CURRENT CASE BRANCH / CURRENT NODE:** **ŚRODA A0.2** — §10.0 · tender `08deff6c-bc34-619e-b346-0300010ce2e5` · **8 CatalogWork** · KV **rev 57 LIVE** · **A0.2 frontend PV = VERIFIED (OD-OCR-37)** · residual **L+T+U admission noise** (outside A0.2) · **hydration / line-tolerant NIE przesuwają CURRENT NODE**
 > **★★ CHROBREGO (CLOSED CASE):** §10.0 · tender `08df0363-7b22-e462-ab56-940001283cba` · **56/0 PASS** · **G3 159000 net / 36570 VAT / 195570 gross** · **NIE reopen** · line-tolerant regression **56/56 admitted · readyForExperts=true · mayProceed=true**
 > **★★ GLOBAL IK PRODUCTION VERIFIED = NO** — hydration + line-tolerant + OD-OCR-47 = capability paths only · nie pełny E2E Document→…→Final Bid na każdym tenderze
@@ -462,8 +466,9 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **AUTONOMY-08 epic** | **NOT CLOSED** (**≠** A0.2 closeout) |
 | **G1 durable persist PV** | **PASS** (Paczka VII · LS OfferBoq · reload) |
 | **★★ APPLICATION VERSION** | **2.66.165** (UI · **no** bump on docs-only) |
-| **★★ DEPLOYED REPOSITORY TIP** | **`14ec9bd9`** · live `version.json` commit **`14ec9bd9`** · HTTP 200 · **LATEST PRODUCTION DEPLOYMENT** (docs-only) |
-| **★★ HYDRATION VERIFY CHECKPOINT** | **`75d0f09`** · TPI FULL SNAPSHOT HYDRATION DESIGN-C **CLOSED / PRODUCTION VERIFIED** · **≠** DEPLOYED tip |
+| **★★ LIVE PRODUCTION** | **fetch** `/version.json` · runtime authority · **nie** SSOT mirror |
+| **★★ LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** · documentary · **może ≠** live (docs-only lag EXPECTED) |
+| **★★ HYDRATION VERIFY CHECKPOINT** | **`75d0f09`** · TPI FULL SNAPSHOT HYDRATION DESIGN-C **CLOSED / PRODUCTION VERIFIED** · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
 | **★★ GLOBAL IK PRODUCTION VERIFIED** | **NO** |
 | **★★ LINE-TOLERANT ADMISSION** | **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · §2A.9 · DOCUMENT TRUTH ≠ EXPERT ADMISSION |
 | **★★ ŚRODA A0.2** | **CURRENT CASE BRANCH** — §10.0 · §22 · tender `08deff6c-…` · Work Catalog coverage |
@@ -493,13 +498,13 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **A01-LP5 identity (LP5/LP10)** | **`f012d39a`** · **FROZEN GREEN** |
 | **A01-LP5 catalog OPS** | **`cf802cbd`** · **PRODUCTION VERIFIED** |
 | **A09-PACKAGE-S1 (G177)** | **`8ccb3e9b`** · **PRODUCTION VERIFIED GREEN** · **NOT identity** |
-| **OD-OCR-47** | **PASS** · Owner Ingest → OCR → C2 → authoritative persist · TPI **4 shells** · cloud **470** · local prune **70** dozwolone · tip HISTORY **`2f3d1847` / 2.66.147** (**≠** DEPLOYED tip **`14ec9bd9`**) |
+| **OD-OCR-47** | **PASS** · Owner Ingest → OCR → C2 → authoritative persist · TPI **4 shells** · cloud **470** · local prune **70** dozwolone · tip HISTORY **`2f3d1847` / 2.66.147** (**≠** LAST VERIFIED SOURCE **`32a90fef`**) |
 | **OD-OCR-45** | **CLOSED** · `persistIngestArtifactPatchToCloud` · **`2f3d1847`** |
 | **Track B** | **CLOSED / PRODUCTION VERIFIED** · lean+guard · raw-bypass RCA CLOSED · stale-client gate **2.66.146** · **nie reopen** |
 | **C2 Intra-PDF Multi-BOQ** | **PRODUCTION VERIFIED** through OD-OCR-47 · reuse existing Multi-BOQ · **≠** nowy Multi-BOQ |
 | **OCR B1 / JBig2 / PSM11** | **CLOSED / VERIFIED** · `e46595e7` · `ea7cfdc3` |
 | **TPI/729 canonical** | `ocds-148610-15299a87-45b5-465d-872c-6aa6f11f076c` · stub `bzp:TPI/729/2026` **osobny** · **≠** CURRENT NODE |
-| Tip produkcji | **czytaj 09** + live `version.json` · APP **2.66.165** · DEPLOYED tip **`14ec9bd9`** · HYDRATION VERIFY **`75d0f09`** |
+| Tip produkcji | **czytaj 09** + **fetch** live `version.json` · APP **2.66.165** · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · **brak** SSOT≡live equality |
 
 ### 8.1 Owner Map — identity + PACKAGE (latest production)
 
@@ -544,8 +549,9 @@ Handoff: [`IK-OWNER-A09-PACKAGE-S1-IMPLEMENTATION.md`](./IK-OWNER-A09-PACKAGE-S1
 | Decision Tree | **ACTIVE / PRIMARY** (§10.0) · **jeden** systemowy tree · OCR/C2/Track B **nie** tworzą drugiego tree |
 | CURRENT case branch | **ŚRODA A0.2** |
 | APPLICATION VERSION | **2.66.165** |
-| DEPLOYED REPOSITORY TIP | **`14ec9bd9`** · live `version.json` commit **`14ec9bd9`** · HTTP 200 |
-| Latest capability | **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED / PV** · **VERIFICATION CHECKPOINT `75d0f09`** · **≠** DEPLOYED tip |
+| LIVE PRODUCTION | **fetch** `/version.json` (runtime authority) |
+| LAST VERIFIED PRODUCTION SOURCE CHECKPOINT | **`32a90fef`** · documentary · **może ≠** live |
+| Latest capability | **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED / PV** · **VERIFICATION CHECKPOINT `75d0f09`** · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
 | Orchestra | **CONNECTED** · **single sequencer** |
 | Host | **IkEntryHost = adapter/consumer** · **≠** sequencer |
 | Core E2E harness | **GREEN** (exit 0) |
@@ -615,7 +621,7 @@ Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT (gdy Decision Tree wymaga 
 **★★ CURRENT NODE (2026-09-04):**
 **`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV VERIFIED (OD-OCR-37)`**
 (SSOT: **§10.0** — szczegóły LP/coverage tylko tam; nie duplikuj tu).
-**Capability checkpoint (NIE nowy CURRENT NODE · NIE DEPLOYED tip):** **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · **VERIFICATION CHECKPOINT `75d0f09`** · APP **2.66.165** · §10.0.2 · §24 · **≠** live tip **`14ec9bd9`**.
+**Capability checkpoint (NIE nowy CURRENT NODE · NIE LIVE tip · NIE LAST VERIFIED SOURCE mirror):** **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · **VERIFICATION CHECKPOINT `75d0f09`** · APP **2.66.165** · §10.0.2 · §24 · LIVE = fetch `/version.json`.
 **Prior capability tip (HISTORY):** **LINE-TOLERANT ADMISSION CLOSED/PV** @ **`a5d19047` / 2.66.165** · §2A.9 · §10.0.3.
 **Prior capability tip (HISTORY):** **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147**.
 
@@ -702,8 +708,9 @@ Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-
 | **PRIMARY CONTRACT** | **Decision Tree (§10.0) = PRIMARY CONTINUITY CONTRACT** · HISTORY/LEGACY ≠ CURRENT · chat memory ≠ SSOT |
 | **CURRENT NODE** | **`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV VERIFIED (OD-OCR-37)`** |
 | **APPLICATION VERSION** | **2.66.165** |
-| **DEPLOYED REPOSITORY TIP** | **`14ec9bd9`** · live `version.json` commit **`14ec9bd9`** · LATEST PRODUCTION DEPLOYMENT (docs-only · **≠** APP bump) |
-| **LATEST capability (≠ NODE)** | **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED / PV** · **VERIFICATION CHECKPOINT `75d0f09`** · §10.0.2 · §24 · **≠** DEPLOYED tip |
+| **LIVE PRODUCTION** | **fetch** `/version.json` · **nie** hardcoduj live SHA w SSOT |
+| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** · documentary · docs-only lag vs live = **EXPECTED** |
+| **LATEST capability (≠ NODE)** | **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED / PV** · **VERIFICATION CHECKPOINT `75d0f09`** · §10.0.2 · §24 · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
 | **TPI Full IK E2E** | **OPEN / NOT VERIFIED** |
 | **GLOBAL IK PRODUCTION VERIFIED** | **NO** |
 | **CURRENT tender** | `08deff6c-bc34-619e-b346-0300010ce2e5` · Gmina Środa Śląska |
@@ -919,10 +926,12 @@ HARD: TPI FULL SNAPSHOT HYDRATION DESIGN-C
   = capability track
   = CLOSED / PRODUCTION VERIFIED
   = VERIFICATION CHECKPOINT 75d0f09
-  ≠ DEPLOYED REPOSITORY TIP / live version.json.commit 14ec9bd9
+  ≠ LIVE PRODUCTION (fetch /version.json)
+  ≠ LAST VERIFIED PRODUCTION SOURCE CHECKPOINT
   ≠ TPI Full IK E2E PASS
   ≠ CURRENT NODE
   ≠ GLOBAL IK PRODUCTION VERIFIED
+  HARD: SSOT SHA == live SHA is NOT required (docs-only lag EXPECTED)
 ```
 
 #### VERIFIED (capability)
@@ -941,9 +950,9 @@ HARD: TPI FULL SNAPSHOT HYDRATION DESIGN-C
 | Track B raw-bypass RCA | **CLOSED / PASS** | `437e5797` · **2.66.145** |
 | Stale-client gate | **CLOSED / VERIFIED** | `a13a431d` · **2.66.146** · `APP_VERSION >= 2.66.145` |
 | Authoritative ingest persist | **CLOSED** | OD-OCR-45 · `2f3d1847` · **2.66.147** (HISTORY tip) |
-| OD-OCR-47 production path | **PASS** | Owner Ingest → OCR → C2 → cloud 470 / 4 shells · **≠** DEPLOYED tip |
-| **Line-tolerant Expert Admission** | **CLOSED / PRODUCTION VERIFIED** | **`a5d19047`** · **2.66.165** · §2A.9 · §10.0.3 · Paczka XI · **≠** DEPLOYED tip |
-| **TPI FULL SNAPSHOT HYDRATION (DESIGN-C)** | **CLOSED / PRODUCTION VERIFIED** | **VERIFICATION CHECKPOINT `75d0f09`** · APP **2.66.165** · `kw-tender-ingest-v1` authoritative FULL → `loadTendersPipeline` hydrate → `applyIngestArtifactsToPipelineItem` → local cold `tenders-pipeline-full` · Track B lean **UNCHANGED** · **≠** DEPLOYED tip **`14ec9bd9`** · **≠** TPI Full IK E2E PASS |
+| OD-OCR-47 production path | **PASS** | Owner Ingest → OCR → C2 → cloud 470 / 4 shells · **≠** LAST VERIFIED SOURCE |
+| **Line-tolerant Expert Admission** | **CLOSED / PRODUCTION VERIFIED** | **`a5d19047`** · **2.66.165** · §2A.9 · §10.0.3 · Paczka XI · **≠** LAST VERIFIED SOURCE |
+| **TPI FULL SNAPSHOT HYDRATION (DESIGN-C)** | **CLOSED / PRODUCTION VERIFIED** | **VERIFICATION CHECKPOINT `75d0f09`** · APP **2.66.165** · `kw-tender-ingest-v1` authoritative FULL → `loadTendersPipeline` hydrate → `applyIngestArtifactsToPipelineItem` → local cold `tenders-pipeline-full` · Track B lean **UNCHANGED** · **≠** LIVE · **≠** LAST VERIFIED SOURCE **`32a90fef`** · **≠** TPI Full IK E2E PASS |
 
 #### OD-OCR TIMELINE (ta sesja)
 
@@ -1020,9 +1029,10 @@ Track B unchanged · no prune write of 70 · no 471
 ```
 
 **OD-OCR-45 CLOSED. OD-OCR-47 PASS. GLOBAL IK PRODUCTION VERIFIED = NO.**
-**HARD:** OD-OCR-47 tip **`2f3d1847` / 2.66.147** = **HISTORY capability checkpoint** · **≠** DEPLOYED REPOSITORY TIP (**`14ec9bd9`**) · APP still **2.66.165**.
-**HARD:** LINE-TOLERANT tip **`a5d19047`** = **HISTORY feature tip** under same UI **2.66.165** · **≠** DEPLOYED REPOSITORY TIP (**`14ec9bd9`**).
-**HARD:** HYDRATION VERIFICATION CHECKPOINT **`75d0f09`** = DESIGN-C CLOSED/PV · **≠** DEPLOYED tip **`14ec9bd9`**.
+**HARD:** OD-OCR-47 tip **`2f3d1847` / 2.66.147** = **HISTORY capability checkpoint** · **≠** LAST VERIFIED SOURCE (**`32a90fef`**) · APP still **2.66.165**.
+**HARD:** LINE-TOLERANT tip **`a5d19047`** = **HISTORY feature tip** under same UI **2.66.165** · **≠** LAST VERIFIED SOURCE (**`32a90fef`**).
+**HARD:** HYDRATION VERIFICATION CHECKPOINT **`75d0f09`** = DESIGN-C CLOSED/PV · **≠** LIVE · **≠** LAST VERIFIED SOURCE.
+**HARD:** LIVE PRODUCTION = fetch `/version.json` · SSOT **nie** wymaga SSOT SHA == live SHA.
 **HARD:** TPI Full IK E2E = **OPEN / NOT VERIFIED** (no usable FULL currently in `kw-tender-ingest-v1`; no re-ingest/fabrication).
 
 ### 10.0.3 CAPABILITY — LINE-TOLERANT EXPERT ADMISSION (CLOSED / PRODUCTION VERIFIED)
@@ -1886,26 +1896,21 @@ DECISION TREE
 
 APPLICATION VERSION:
 2.66.165
+(must match live version.json.version · docs-only = no APP bump)
 
-DEPLOYED REPOSITORY TIP:
-14ec9bd9
+LIVE PRODUCTION:
+AUTHORITY = GET /version.json
+READ AT EVERY AUDIT
+DO NOT treat SSOT SHA as live mirror
+DO NOT require SSOT checkpoint SHA == live commit
 
-LATEST PRODUCTION DEPLOYMENT:
-14ec9bd9
-(docs-only · no application version bump)
+LAST VERIFIED PRODUCTION SOURCE CHECKPOINT:
+32a90fef
+(documentary · may lag live after docs-only · EXPECTED)
 
-LIVE /version.json:
-version = 2.66.165
-commit = 14ec9bd9
-
-LATEST VERIFIED CAPABILITY:
-TPI FULL SNAPSHOT HYDRATION
-DESIGN-C
-CLOSED / PRODUCTION VERIFIED
-
-VERIFICATION CHECKPOINT:
+TPI HYDRATION VERIFICATION CHECKPOINT:
 75d0f09
-(≠ deployed repository tip)
+(≠ LIVE · ≠ LAST VERIFIED SOURCE)
 
 CURRENT CASE / NODE:
 ŚRODA A0.2
@@ -1921,6 +1926,10 @@ OPEN / NOT VERIFIED
 
 TRACK B:
 UNCHANGED
+
+RUNTIME GATE ON DEPLOYED/TIP SHA:
+NONE
+(lean gate = APP_VERSION only)
 ```
 
 ```text
@@ -1928,15 +1937,32 @@ READ MASTER SSOT FIRST
 READ CURRENT DECISION TREE
 READ CURRENT NODE
 READ CLOSED/OPEN BRANCHES
-READ LATEST VERIFIED CHECKPOINT
-READ PRODUCTION BASELINE
-CHECK LIVE version.json
+READ LAST VERIFIED SOURCE CHECKPOINT (+ capability VERIFY)
+READ PRODUCTION BASELINE (09)
+FETCH LIVE version.json  ← sole live authority
 CHECK git
 THEN REPO AUDIT
 ```
 
 ```text
-CHECKPOINT (2026-09-04 · ŚRODA A0.2 CURRENT · CHROBREGO CLOSED · OD-OCR-47 PASS):
+COLD START PASS (required):
+  1. Master → §10.0 → CURRENT NODE coherent (ŚRODA A0.2)
+  2. APPLICATION VERSION matches live version.json.version
+  3. LIVE commit always read from /version.json (report it; do not invent)
+  4. LAST VERIFIED SOURCE is labeled checkpoint — NOT live mirror
+  5. 75d0f09 remains hydration VERIFY only
+  6. no mixing capability VERIFY with production identity
+  7. docs-only SHA lag (checkpoint ≠ live) = EXPECTED / NOT FAIL
+
+COLD START FAIL only if real inconsistency:
+  wrong CURRENT NODE · APP vs live.version mismatch (non-docs) ·
+  SSOT claims "CURRENT LIVE COMMIT = X" as durable mirror ·
+  capability checkpoint confused with live/source ·
+  Decision Tree / architecture chain broken
+```
+
+```text
+CHECKPOINT (2026-09-05 · STABLE PRODUCTION IDENTITY · ŚRODA A0.2 CURRENT · CHROBREGO CLOSED):
   ★★ FIRST: CURRENT DECISION TREE = §10.0 (ŚRODA A0.2 CURRENT · CHROBREGO CLOSED case)
   ★★ CURRENT NODE = ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV VERIFIED (OD-OCR-37)
   ★★ CHROBREGO = CLOSED CASE — 56/0 — FINAL BID 159000/195570 — NIE reopen · NIE flow Środy/TPI przez CHROBREGO
@@ -1951,7 +1977,8 @@ CHECKPOINT (2026-09-04 · ŚRODA A0.2 CURRENT · CHROBREGO CLOSED · OD-OCR-47 P
   A08-P3 IMPLEMENTED · P3 OPEN (epic) · G1 PV PASS · CHROBREGO G1+G2+G3 CLOSED 56/0 · FINAL BID 159000
   FULL IK E2E harness GREEN (§10.0.1) · **≠** global prod PV · **≠** Phase 5
   Experience Phase 5 NOT AUTHORIZED · AUTONOMY-08 OPEN · W3–W6 NOT auto-authorized
-  Tip = docs/AI/09_PRODUCTION_BASELINE.md + live version.json · APP 2.66.165 · DEPLOYED tip 14ec9bd9 · HYDRATION VERIFY 75d0f09 (≠ deployed tip)
+  Tip = 09 + FETCH live version.json · APP 2.66.165 · LAST VERIFIED SOURCE 32a90fef · HYDRATION VERIFY 75d0f09
+  HARD: no SSOT≡live equality · docs-only tip lag EXPECTED
   LINE-TOLERANT CLOSED/PV (§2A.9) · TPI HYDRATION DESIGN-C CLOSED/PV · OD-OCR-47 tip = HISTORY · GLOBAL IK PV = NO · TPI Full IK E2E = OPEN / NOT VERIFIED
   Protected invariants = §8.4 · regression harness test-ik-full-pipeline-e2e.mjs
   REUSE: SEARCH → TRACE → REUSE → CONNECT → VERIFY → NEW only if proven GAP
@@ -1968,7 +1995,7 @@ Nowy agent (Cursor / ChatGPT) **MUSI**:
 3. Przeczytaj CLOSED BRANCHES + OPEN BRANCHES (§10.0 · §9 · §22) + capability tracks (§10.0.2)
 4. Przeczytaj ostatni verified checkpoint (§22 CURRENT + OD-OCR-47) — nie mylić z HISTORY/PRIOR STATE
 5. Przeczytaj Decision Framework W0 — IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md (OD-W0-GO)
-6. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + live version.json (rozdziel REPO tip vs LIVE tip)
+6. Przeczytaj docs/AI/09_PRODUCTION_BASELINE.md + **FETCH** live version.json (LIVE authority · LAST VERIFIED SOURCE = checkpoint · **nie** exact equality)
 7. Dopiero potem: grep/repo audit (REUSE MAP · orchestra · ownerGate)
 8. Trace Orchestra: IkOrchestraPageBridge → useIkOrchestra → engine/runtime → ownerGate
 9. git status — rozpoznaj pre-existing WIP · NIE stage WIP · NIE git add -A
@@ -2006,7 +2033,7 @@ Nowy agent (Cursor / ChatGPT) **MUSI**:
 
 **KONTYNUUJ WGDOM IK — NIE BUDUJ OD NOWA. NIE POWTARZAJ CLOSED.**
 
-Tip produkcji = `docs/AI/09_PRODUCTION_BASELINE.md` + live `version.json`.
+Tip produkcji = `docs/AI/09_PRODUCTION_BASELINE.md` + **FETCH** live `version.json` (LIVE authority) · LAST VERIFIED SOURCE checkpoint · HYDRATION VERIFY `75d0f09` · **brak** SSOT≡live equality.
 
 **Nie twórz:** drugiego TenderModule · drugiego Orchestra · drugiego Decision Tree · drugiego Master SSOT · drugiego IkEntryHost-as-sequencer · Chief-as-IK-sequencer · KNR system · Work Catalog · Price Memory · F5 · Bid engine · chat store · LLM per expert · storytelling Experience · drugiego refresh/epoch bus · Final Bid persist w P3.
 
@@ -2057,7 +2084,7 @@ Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phas
 
 ---
 
-## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-09-05 · TPI HYDRATION PV CHECKPOINT)
+## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-09-05 · STABLE PRODUCTION IDENTITY)
 
 ### CURRENT HEAD
 
@@ -2065,12 +2092,14 @@ Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phas
 |------|---------|
 | **CURRENT CASE / NODE** | **ŚRODA A0.2** · §10.0 · Work Catalog coverage · frontend PV **VERIFIED (OD-OCR-37)** |
 | **APPLICATION VERSION** | **2.66.165** |
-| **DEPLOYED REPOSITORY TIP** | **`14ec9bd9`** · live `version.json` commit **`14ec9bd9`** · HTTP 200 |
-| **LATEST PRODUCTION DEPLOYMENT** | **`14ec9bd9`** — docs-only · **≠** APP bump |
+| **LIVE PRODUCTION** | **runtime authority** = `GET /version.json` · odczyt przy każdym audit · **nie** hardcoduj live SHA w SSOT |
+| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** · documentary · **może ≠** live po docs-only · lag **EXPECTED** |
+| **Alias „DEPLOYED REPOSITORY TIP”** | = LAST VERIFIED SOURCE checkpoint · **nie** current live SHA |
 | **LATEST VERIFIED CAPABILITY** | **TPI FULL SNAPSHOT HYDRATION DESIGN-C** · **CLOSED / PRODUCTION VERIFIED** · §10.0.2 · §24 · **≠** nowy CURRENT NODE |
-| **HYDRATION VERIFICATION CHECKPOINT** | **`75d0f09`** · **≠** DEPLOYED tip **`14ec9bd9`** |
+| **HYDRATION VERIFICATION CHECKPOINT** | **`75d0f09`** · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
 | **PRIOR CAPABILITY TIP (HISTORY)** | **LINE-TOLERANT EXPERT ADMISSION** · **CLOSED / PV** @ **`a5d19047`** · §2A.9 · §10.0.3 |
-| **PRIOR CAPABILITY TIP (HISTORY)** | **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147** · §10.0.2 · **≠** DEPLOYED tip |
+| **PRIOR CAPABILITY TIP (HISTORY)** | **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147** · §10.0.2 · **≠** LAST VERIFIED SOURCE |
+| **HISTORY tip-continuity** | **`14ec9bd9`** · **`98f4b5e`** — prior exact live-mirror era · **superseded** |
 | **Pipeline tenderId (CURRENT CASE)** | `08deff6c-bc34-619e-b346-0300010ce2e5` |
 | **A0.2 commit** | **`590f95e9`** |
 | **A0.2 KV** | **LIVE** · rev **57** · **8/8×2** · idempotency **PASS** |
@@ -2079,10 +2108,11 @@ Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phas
 | **TPI canonical (capability)** | `ocds-148610-15299a87-45b5-465d-872c-6aa6f11f076c` · **4 shells** · cloud **470** · Full IK E2E **OPEN / NOT VERIFIED** (no usable FULL in registry) |
 | **CLOSED CASE** | **CHROBREGO** · `08df0363-7b22-e462-ab56-940001283cba` · **56/0** · Final Bid **159000/195570** · line-tolerant regression **56/56** |
 | **P3 deploy commit (gates)** | **`3822acb3724493b349c08a33bc584c7afe5dde31`** |
-| **UI version / tip SSOT** | [`09`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` |
+| **UI version / tip SSOT** | [`09`](../AI/09_PRODUCTION_BASELINE.md) + **FETCH** live `version.json` |
 | **Production** | https://www.wgdom.fun |
 | **Master SSOT** | **TEN PLIK** (jedyne Master SSOT IK) |
 | **GLOBAL IK PRODUCTION VERIFIED** | **NO** |
+| **RUNTIME GATE on tip SHA** | **NONE** (lean = `APP_VERSION` only) |
 
 ### CURRENT PHASE / CURRENT NODE
 
@@ -2096,7 +2126,7 @@ A08-P3 epic: **IMPLEMENTED · nadal OPEN**.
 
 ### CLOSED (do not reopen without Owner GO)
 
-- **TPI FULL SNAPSHOT HYDRATION DESIGN-C** — **CLOSED / PRODUCTION VERIFIED** · **VERIFICATION CHECKPOINT `75d0f09`** · §10.0.2 · §24 · **≠** DEPLOYED tip **`14ec9bd9`**
+- **TPI FULL SNAPSHOT HYDRATION DESIGN-C** — **CLOSED / PRODUCTION VERIFIED** · **VERIFICATION CHECKPOINT `75d0f09`** · §10.0.2 · §24 · **≠** LIVE · **≠** LAST VERIFIED SOURCE **`32a90fef`**
 - **IK-LINE-TOLERANT-EXPERT-ADMISSION-01** — **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · §2A.9 · §10.0.3
 - IK-MIGRATION-01 P0–P9 · AUTONOMY-05…08-P2 · F5 MARGIN · Observability Phases 1–4 · KNR Slice A · A01/A09 Owner Map slices · G1 durable persist PV
 - **CHROBREGO G1** — AUTO_SAFE 22/22 · OWNER_REVIEW · NO_SAFE — wszystko dla **56/0**
@@ -2194,9 +2224,9 @@ TPI FULL SNAPSHOT HYDRATION — DOCUMENTATION CLOSEOUT
 
 CURRENT NODE: ŚRODA A0.2 (unchanged)
 SESSION TIP (then): APP 2.66.165 / version.json commit 75d0f09
-  ← HISTORY snapshot · CURRENT DEPLOYED tip now = 14ec9bd9 (docs tip continuity · prior HISTORY tip 98f4b5e · see §22 CURRENT HEAD)
+  ← HISTORY snapshot (hydration PV moment) · CURRENT LAST VERIFIED SOURCE = 32a90fef · LIVE = fetch /version.json · prior tip-continuity HISTORY 14ec9bd9 / 98f4b5e
 CAPABILITY: DESIGN-C CLOSED / PRODUCTION VERIFIED
-VERIFICATION CHECKPOINT: 75d0f09 (≠ current DEPLOYED tip)
+VERIFICATION CHECKPOINT: 75d0f09 (≠ LIVE · ≠ LAST VERIFIED SOURCE)
 SEAM: kw-tender-ingest-v1 → loadTendersPipeline hydrate → applyIngestArtifactsToPipelineItem → tenders-pipeline-full cache
 TRACK B: UNCHANGED (lean shells · no cloud FULL)
 TPI Full IK E2E: OPEN / NOT VERIFIED (no usable FULL in registry; no re-ingest)
@@ -2211,13 +2241,13 @@ GLOBAL IK PRODUCTION VERIFIED: NO
 LINE-TOLERANT EXPERT ADMISSION — DOCUMENTATION CLOSEOUT
 
 CURRENT NODE: ŚRODA A0.2 (unchanged case branch)
-SESSION PRODUCTION TIP (then): 2.66.165 / a5d19047 (version.json a5d1904) ← HISTORY tip vs CURRENT DEPLOYED 14ec9bd9
+SESSION PRODUCTION TIP (then): 2.66.165 / a5d19047 (version.json a5d1904) ← HISTORY tip vs LAST VERIFIED SOURCE 32a90fef · LIVE = fetch
 LINE-TOLERANT: CLOSED / PRODUCTION VERIFIED
 PACZKA XI: 167 · 166/1 · LP43 qty0 · mayProceed · G3 NOT READY · mutation NONE
 CHROBREGO regression: 56/56 · ready=true · mayProceed=true
 DOCUMENT TRUTH ≠ EXPERT ADMISSION: FROZEN §2A.9
 OD-OCR-47 tip 2f3d1847/2.66.147: HISTORY capability (still valid)
-HYDRATION VERIFY 75d0f09: HISTORY verification checkpoint (≠ DEPLOYED tip 14ec9bd9)
+HYDRATION VERIFY 75d0f09: HISTORY verification checkpoint (≠ LIVE · ≠ LAST VERIFIED SOURCE 32a90fef)
 GLOBAL IK PRODUCTION VERIFIED: NO
 CODE / DATA this docs closeout: 0
 WIP: PRESERVED
@@ -2232,7 +2262,7 @@ MASTER SSOT CONTINUITY CLOSEOUT
 
 CURRENT NODE: ŚRODA A0.2 (unchanged case branch)
 A0.2 frontend PV: VERIFIED (OD-OCR-37)  — HISTORY WAITING = PRIOR
-CURRENT PRODUCTION (then): 2.66.147 / 2f3d1847   ← NOW HISTORY tip vs live APP 2.66.165 / DEPLOYED 14ec9bd9
+CURRENT PRODUCTION (then): 2.66.147 / 2f3d1847   ← NOW HISTORY tip vs live APP 2.66.165 · LAST VERIFIED SOURCE 32a90fef · LIVE = fetch
 OD-OCR-47: PASS
 OD-OCR-45: CLOSED
 Track B: CLOSED / VERIFIED
@@ -2558,8 +2588,9 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 | KV rev 57 | ✅ ops evidence | ✅ §8 · §10.0 · §22 | **recorded LIVE** |
 | A0.2 frontend PV | OD-OCR-37 | ✅ **VERIFIED** | **CURRENT** |
 | APPLICATION VERSION | **2.66.165** | ✅ header · §17 · §22 · §10.0 | **CURRENT** |
-| DEPLOYED REPOSITORY TIP | **`14ec9bd9`** | ✅ header · §17 · §22 · §10.0 | **CURRENT** (live `version.json`) |
-| TPI FULL SNAPSHOT HYDRATION | **VERIFICATION CHECKPOINT `75d0f09`** | ✅ §10.0.2 · §24 | **CLOSED / PV** · **≠** DEPLOYED tip |
+| LIVE PRODUCTION | **fetch `/version.json`** | ✅ header · §17 · §22 | **runtime authority** · **nie** SSOT mirror |
+| LAST VERIFIED PRODUCTION SOURCE CHECKPOINT | **`32a90fef`** | ✅ header · §17 · §22 · §10.0 | **documentary** · lag vs live EXPECTED |
+| TPI FULL SNAPSHOT HYDRATION | **VERIFICATION CHECKPOINT `75d0f09`** | ✅ §10.0.2 · §24 | **CLOSED / PV** · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
 | Line-tolerant | **`a5d19047`** | ✅ §2A.9 · §10.0.3 | **CLOSED / PV · HISTORY tip** |
 | OD-OCR-47 tip | **2.66.147 / `2f3d1847`** | ✅ §10.0.2 | **HISTORY capability** |
 | OD-OCR-47 | prod ingest | ✅ §10.0.2 | **PASS** |
@@ -2585,7 +2616,8 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 
 | ID | Source A | Source B | Resolution |
 |----|----------|----------|------------|
-| **C-FE-TIP** | HISTORY: Repo **2.66.137 / 590f95e9** vs live **2.66.136** (2026-09-03) | Later OD-OCR-47 tip **2.66.147 / 2f3d184** = HISTORY | **RESOLVED** · A0.2 frontend PV **VERIFIED** · APP **2.66.165** · DEPLOYED tip **`14ec9bd9`** · HYDRATION VERIFY **`75d0f09`** |
+| **C-FE-TIP** | HISTORY: Repo **2.66.137 / 590f95e9** vs live **2.66.136** (2026-09-03) | Later OD-OCR-47 tip **2.66.147 / 2f3d184** = HISTORY | **RESOLVED** · A0.2 frontend PV **VERIFIED** · APP **2.66.165** · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · **no** SSOT≡live equality |
+| **C-TIP-LOOP** | Exact live-mirror tip continuity (`14ec9bd9`/`98f4b5e` era) | Docs commit became new live SHA | **RESOLVED** by STABLE PRODUCTION IDENTITY (2026-09-05) |
 | **C-CAP-vs-NODE** | OD-OCR-47 capability PASS | CURRENT NODE = ŚRODA A0.2 | **INTENDED** · capability ≠ nowy Decision Tree |
 
 *(Prior C-09-P3 / C-P3-DF = RESOLVED 2026-08-28 — retained in git history.)*
@@ -2596,9 +2628,10 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 
 | SHA | Scope |
 |-----|-------|
-| `14ec9bd9` | **DEPLOYED REPOSITORY TIP** — docs tip continuity repair · live `version.json` · APP **2.66.165** · **≠** feature implementation checkpoint · **≠** APP bump · **≠** HYDRATION VERIFY |
-| `98f4b5e` | **HISTORY** — prior docs tip (`docs(ik): align continuity docs with hydration PV`) · **≠** current DEPLOYED tip |
-| `75d0f09` | **TPI FULL SNAPSHOT HYDRATION DESIGN-C** — hydrate FULL on pipeline load · **2.66.165** · **VERIFICATION CHECKPOINT** · **≠** DEPLOYED tip |
+| `32a90fef` | **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** — Owner tip-continuity PV · APP **2.66.165** · documentary · **≠** live mirror · **≠** HYDRATION VERIFY |
+| `14ec9bd9` | **HISTORY** — tip continuity under broken exact live-mirror semantics · **superseded** |
+| `98f4b5e` | **HISTORY** — prior docs tip (`docs(ik): align continuity docs with hydration PV`) · **superseded** |
+| `75d0f09` | **TPI FULL SNAPSHOT HYDRATION DESIGN-C** — hydrate FULL on pipeline load · **2.66.165** · **VERIFICATION CHECKPOINT** · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
 | `a5d19047` | **LINE-TOLERANT** — Expert Admission · **2.66.165** · Paczka XI / CHROBREGO PV · **HISTORY tip** |
 | `2f3d1847` | **OD-OCR-45** — authoritative ingest persist · **2.66.147** · OD-OCR-47 PV (HISTORY tip) |
 | `a13a431d` | **OD-OCR-34** — stale-client gate by APP_VERSION · **2.66.146** |
@@ -2635,7 +2668,7 @@ SYSTEM:      Intelligent Estimator (IK)
 HISTORY STATE (do not use as CURRENT NODE):
   A08-P3 @ 3822acb IMPLEMENTED · P3 OPEN · G2 WAIT = PRIOR (pre-CHROBREGO m²)
   Pointer only → CURRENT = ŚRODA A0.2 §10.0 / §22 · CHROBREGO = CLOSED CASE (56/0)
-  HISTORY tip snapshot (superseded · do not treat as live): APP 2.66.165 / then-live 75d0f09 · CURRENT DEPLOYED tip = see §22 (**14ec9bd9**) · TPI HYDRATION DESIGN-C CLOSED/PV @ VERIFY 75d0f09 · LINE-TOLERANT = HISTORY feature tip a5d19047 · OD-OCR-47 = HISTORY capability PASS · GLOBAL IK PV = NO · TPI Full IK E2E = OPEN / NOT VERIFIED
+  HISTORY tip snapshot (superseded · do not treat as live): APP 2.66.165 / then-live 75d0f09 · CURRENT = see §22 (LAST VERIFIED SOURCE 32a90fef · LIVE = fetch /version.json) · TPI HYDRATION DESIGN-C CLOSED/PV @ VERIFY 75d0f09 · LINE-TOLERANT = HISTORY feature tip a5d19047 · OD-OCR-47 = HISTORY capability PASS · GLOBAL IK PV = NO · TPI Full IK E2E = OPEN / NOT VERIFIED · tip-continuity HISTORY 14ec9bd9 / 98f4b5e
 
 BASELINE (frozen at time of legacy block — may drift):
   A08-P3 deploy = 3822acb3724493b349c08a33bc584c7afe5dde31

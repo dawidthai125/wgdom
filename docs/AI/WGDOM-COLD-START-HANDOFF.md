@@ -4,12 +4,13 @@
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
 > **Data:** 2026-09-05 (pointer sync · TPI HYDRATION DESIGN-C) · prior 2026-09-05 (LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-08-26 / 2026-08-24 / 2026-08-18
 > **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
-> **CURRENT LIVE / REPOSITORY TIP:** APP **2.66.165** · DEPLOYED **`14ec9bd9`** · see [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
+> **LIVE PRODUCTION:** **FETCH** [`/version.json`](https://www.wgdom.fun/version.json) · runtime authority · see [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
+> **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT:** APP **2.66.165** · **`32a90fef`** · documentary · may lag live
 > **★★ IK CURRENT NODE:** **ŚRODA A0.2** · Master §10.0 · **TPI HYDRATION DESIGN-C CLOSED/PV** · **LINE-TOLERANT** HISTORY (§2A.9) · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO**
 > **S6/P4 FEATURE TIP:** **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · **≠** cały IK E2E GREEN  
 > **Phase 2E:** targeted discovery **LANDED** **`1a9c5484`** · **FULL PHASE 2E OPEN** · **OUT OF SCOPE A08** · **≠** Phase 2E CLOSED  
-> **Live tip (czytaj 09):** CURRENT DEPLOYED **2.66.165 / `14ec9bd9`** · HYDRATION VERIFY **`75d0f09`** · HISTORY line-tolerant **`a5d19047`** · HISTORY OD-OCR-47 **2.66.147/`2f3d1847`** · **≠** cały IK E2E GREEN
-> **TPI FULL SNAPSHOT HYDRATION:** **DESIGN-C / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · **≠** DEPLOYED tip · **TPI Full IK E2E: OPEN / NOT VERIFIED**
+> **Identity (czytaj 09):** APP **2.66.165** · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · LIVE = fetch · HISTORY line-tolerant **`a5d19047`** · HISTORY OD-OCR-47 **2.66.147/`2f3d1847`** · **≠** cały IK E2E GREEN · **no** SSOT≡live equality
+> **TPI FULL SNAPSHOT HYDRATION:** **DESIGN-C / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · **≠** LIVE · **≠** LAST VERIFIED SOURCE · **TPI Full IK E2E: OPEN / NOT VERIFIED**
 > **Track B:** **CLOSED / VERIFIED / UNCHANGED**
 > **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
 > **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED**  
@@ -31,8 +32,8 @@ SEARCH BEFORE CREATE.
 
 | | |
 |--|--|
-| **Version** | **czytaj 09 + version.json** (CURRENT live: **2.66.165 / `14ec9bd9`**) |
-| **Commit** | **czytaj 09** · CURRENT DEPLOYED **`14ec9bd9`** · HYDRATION VERIFY **`75d0f09`** · LINE-TOLERANT HISTORY **`a5d19047`** · OD-OCR-47 HISTORY **`2f3d1847`** · S6/P4 FEATURE **`2fce3caf`** · Phase 2E targeted **`1a9c5484`** (FULL 2E OPEN) |
+| **Version** | **czytaj 09 + FETCH version.json** (APP **2.66.165** · LIVE commit = fetch only) |
+| **Commit** | **czytaj 09** · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · LINE-TOLERANT HISTORY **`a5d19047`** · OD-OCR-47 HISTORY **`2f3d1847`** · S6/P4 FEATURE **`2fce3caf`** · Phase 2E targeted **`1a9c5484`** (FULL 2E OPEN) · **no** SSOT≡live equality |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **IK SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |

@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-09-05 · **LIVE `/version.json`** **2.66.165 / `14ec9bd`** (`14ec9bd9`) · **DEPLOYED REPOSITORY TIP `14ec9bd9`** · **TPI HYDRATION VERIFICATION CHECKPOINT `75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED / PRODUCTION VERIFIED** · **LINE-TOLERANT** FEATURE tip HISTORY **`a5d19047`** · **OD-OCR-47 PASS** (HISTORY tip `2f3d1847` / 2.66.147) · **A0.2 frontend PV VERIFIED (OD-OCR-37)** · **A0.2 KV LIVE rev 57** · **CURRENT CASE = ŚRODA A0.2** · **CHROBREGO CLOSED** · **TPI Full IK E2E = OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **A08-P3 IMPLEMENTED · OPEN** · Experience Phase 5 **NOT AUTHORIZED** · epic **NOT CLOSED** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · Payroll **REGRESSION WATCH ACTIVE**
+**Snapshot dokumentacji:** 2026-09-05 · **STABLE PRODUCTION IDENTITY** · **APPLICATION VERSION 2.66.165** · **LIVE = FETCH `/version.json`** (runtime authority · **nie** SSOT mirror) · **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT `32a90fef`** (documentary · docs-only lag EXPECTED) · **TPI HYDRATION VERIFICATION CHECKPOINT `75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED / PRODUCTION VERIFIED** · **LINE-TOLERANT** FEATURE tip HISTORY **`a5d19047`** · **OD-OCR-47 PASS** (HISTORY tip `2f3d1847` / 2.66.147) · tip-continuity HISTORY **`14ec9bd9` / `98f4b5e`** · **A0.2 frontend PV VERIFIED (OD-OCR-37)** · **A0.2 KV LIVE rev 57** · **CURRENT CASE = ŚRODA A0.2** · **CHROBREGO CLOSED** · **TPI Full IK E2E = OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **A08-P3 IMPLEMENTED · OPEN** · Experience Phase 5 **NOT AUTHORIZED** · epic **NOT CLOSED** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · Payroll **REGRESSION WATCH ACTIVE**
 
 ---
 
@@ -18,10 +18,10 @@
 4. IK sesja (2026-08-24 · F5 MARGIN): docs/architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md
 5. Cold-start entry: docs/AI/WGDOM-COLD-START-HANDOFF.md · MASTER-AI-HANDOFF.md
 6. NIE kopiuj tipu do AI_ENTRY / AGENTS / Continuity / cursor rules
-7. Rozdziel: REPOSITORY tip (git/changelog) vs LIVE tip (version.json) — PV wymaga zgodności
+7. Rozdziel: **APPLICATION VERSION** (changelog) · **LIVE** (`/version.json` fetch) · **LAST VERIFIED SOURCE** (SSOT checkpoint) · **HYDRATION VERIFY** (`75d0f09`) — **brak** exact-equality SSOT↔live
 ```
 
-Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge Base bez bumpów numerów.
+Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge Base bez bumpów numerów. **Docs-only:** nie twórz pętli „SSOT tip = live SHA”.
 
 ---
 
@@ -30,16 +30,17 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / intended tip)** | **2.66.165** (live tip · **bez** CHANGELOG bump na hydrate hotfix) |
-| **LIVE `/version.json` (last check 2026-09-05)** | **2.66.165** / commit **`14ec9bd`** (`14ec9bd9`) · HTTP 200 · **DEPLOYED REPOSITORY TIP** · **≠** HYDRATION VERIFY |
-| **CURRENT REPOSITORY TIP (`origin/main`)** | **`14ec9bd9`** (`14ec9bd98f90a2363f448dd69438cf60af5864be`) · `docs(ik): reconcile master ssot production pointers` · LATEST PRODUCTION DEPLOYMENT |
-| **TPI HYDRATION VERIFICATION CHECKPOINT** | **`75d0f09`** (`75d0f0907ab2937e9624cb0c338e56a6195fbb88`) · **≠** DEPLOYED tip |
-| **TPI FULL SNAPSHOT HYDRATION FEATURE TIP** | **CLOSED / PRODUCTION VERIFIED** · DESIGN-C · **VERIFICATION CHECKPOINT `75d0f09`** · `kw-tender-ingest-v1` → `loadTendersPipeline` hydrate → `applyIngestArtifactsToPipelineItem` → local cold `tenders-pipeline-full` · Track B lean **UNCHANGED** · Master **§10.0.2 · §24** · **≠** DEPLOYED tip · **≠** TPI Full IK E2E PASS · **≠** GLOBAL IK PV · **≠** new CURRENT NODE |
+| **UI version (changelog / APPLICATION VERSION)** | **2.66.165** (live tip · **bez** CHANGELOG bump na docs-only) |
+| **LIVE PRODUCTION (`/version.json`)** | **FETCH at audit** · runtime authority · `version` + `commit` · **nie** hardcoduj jako trwały „CURRENT LIVE = X” w SSOT |
+| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** (`32a90fef10f45069a857dc6c4f1191ddf23024e1`) · documentary · Owner tip-continuity PV · **może ≠** live po docs-only · lag **EXPECTED** |
+| **Alias „DEPLOYED REPOSITORY TIP”** | = LAST VERIFIED SOURCE · **nie** current live SHA |
+| **TPI HYDRATION VERIFICATION CHECKPOINT** | **`75d0f09`** (`75d0f0907ab2937e9624cb0c338e56a6195fbb88`) · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
+| **TPI FULL SNAPSHOT HYDRATION FEATURE TIP** | **CLOSED / PRODUCTION VERIFIED** · DESIGN-C · **VERIFICATION CHECKPOINT `75d0f09`** · `kw-tender-ingest-v1` → `loadTendersPipeline` hydrate → `applyIngestArtifactsToPipelineItem` → local cold `tenders-pipeline-full` · Track B lean **UNCHANGED** · Master **§10.0.2 · §24** · **≠** LIVE · **≠** TPI Full IK E2E PASS · **≠** GLOBAL IK PV · **≠** new CURRENT NODE |
 | **LINE-TOLERANT FEATURE TIP** | **CLOSED / PRODUCTION VERIFIED** · HISTORY tip **`a5d19047`** · DOCUMENT TRUTH ≠ EXPERT ADMISSION · Paczka XI 166/1 · CHROBREGO 56/56 regression · Master **§2A.9 · §10.0.3** · **≠** CURRENT production tip · **≠** GLOBAL IK PV · **≠** new CURRENT NODE |
 | **OD-OCR-47 / OD-OCR-45 FEATURE TIP** | **PASS / CLOSED** · Owner Ingest → OCR → C2 → authoritative cloud persist · TPI **4 shells** · cloud **470** · local prune **70** allowed · tip HISTORY **`2f3d1847` / 2.66.147** · **≠** current production tip · **≠** GLOBAL IK PV · Master §10.0.2 |
 | **A0.2 FEATURE TIP** | **CODE+KV LIVE · FRONTEND PV VERIFIED (OD-OCR-37)** · commit **`590f95e9`** · KV **rev 56→57** · work **862→878** · **8/8** wrocław + **8/8** dolnyslask · Master [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 · **CURRENT CASE** · **≠** mapper/F5/scoring/P1–P3 · **≠** AUTONOMY-08 CLOSED · tender `08deff6c-bc34-619e-b346-0300010ce2e5` |
 | **Feature tip (PAYROLL Freshness + Canonical Payload)** | **CLOSED / PRODUCTION VERIFIED · GREEN** · prior UI **2.66.126** · tip **`c7337a2a`** · prior gate **2.66.125** / **`03a0802c`** · Freshness Gate + `rebuildPayrollOutgoingAfterFreshness` + `extraCosts` `before ≡ cloud` · **Freshness ≠ canonical payload** · REQUIRED FIXES COMPLETE · REGRESSION WATCH ACTIVE · residuals **NON-BLOCKING** · [`CLOSEOUT`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md) · **≠** IK change · **≠** rollover/archive rewrite · **live tip superseded by** payroll CAS **`96dd9324`** then later tips |
-| **CURRENT LIVE / REPOSITORY TIP (legacy row — use split above)** | Prefer **LIVE+REPO `14ec9bd9` / 2.66.165** · HYDRATION VERIFY **`75d0f09`** · HISTORY: prior docs **`98f4b5e`** · line-tolerant **`a5d19047`** · OD-OCR-47 **2.66.147 / `2f3d1847`** · prior 2026-09-03 **2.66.136 / f3ec166** · **TPI Full IK E2E = OPEN / NOT VERIFIED** |
+| **CURRENT LIVE / REPOSITORY TIP (legacy row — use split above)** | Prefer **FETCH live `/version.json`** + LAST VERIFIED SOURCE **`32a90fef`** + HYDRATION VERIFY **`75d0f09`** · HISTORY tip-continuity **`14ec9bd9` / `98f4b5e`** · line-tolerant **`a5d19047`** · OD-OCR-47 **2.66.147 / `2f3d1847`** · **TPI Full IK E2E = OPEN / NOT VERIFIED** · **no** SSOT≡live equality |
 | **A08-P3 FEATURE TIP** | **`3822acb`** (`3822acb3724493b349c08a33bc584c7afe5dde31`) — Owner Gates G1/G2 · harness **27/0** · **IMPLEMENTED · OPEN** · **CHROBREGO G1+G2+G3 CLOSED/PASS** · **G2 Material** other tenders **case-by-case** · prod use **REQUIRE EVIDENCE BEFORE PROD** (OD-P3-5) · **≠** P3 CLOSED · **≠** epic CLOSED |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** (`2fce3caf3e4a54c215d95c6673336df791283489`) — last **production-code** feature commit for S6-A / S6-B / P4 · P4 flag **ON** · CHAIN **`2fce3caf`** (P4) ← **`12e9c59d`** (S6-B) ← **`a9d59fd0`** (S6-A) · ancestors KL-6 **`85a1ad7`** · Phase 2D **`77385b0c`** · F5 MARGIN **`82f3520e`** |
 | **Feature tip (S6-A / S6-B / P4)** | **CLOSED** · **FEATURE TIP** **`2fce3caf`** · live tip SHA may be docs successor **`bf2a9168`** · UI **2.66.115** · **CHAIN:** **`2fce3caf`** P4 — KNR WC trusted identity seam (**flag ON**) · **`12e9c59d`** S6-B — multi-dwelling primary-graph fallback isolation · **`a9d59fd0`** S6-A — Outcome Bid Document Expert bridge · **STATUS:** S6-A **CLOSED** · S6-B **CLOSED** · P4 **CLOSED** · P4 flag **ON** · **VALIDATION:** harness **GREEN** · production bundle markers present · **interactive UI smoke remains Owner residual** · **PARTIALLY VALIDATED** for interactive paths · **NOT CLAIMED:** global IK E2E CLOSED · AUTONOMY-08 CLOSED · Phase 2E CLOSED · S10 · AUTONOMY-08 **NOT CLOSED** · S10 **OUT OF SCOPE** |
@@ -224,8 +225,9 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 
 | Version / tip | Temat | Status |
 |---------------|-------|--------|
-| **2.66.165** / live **`14ec9bd9`** | Docs tip continuity · DEPLOYED tip · APP unchanged | **CURRENT LIVE TIP** · **≠** HYDRATION VERIFY · **≠** APP bump |
-| **2.66.165** / VERIFY **`75d0f09`** | TPI FULL SNAPSHOT HYDRATION DESIGN-C · registry FULL → pipeline load hydrate · Track B lean UNCHANGED | **CLOSED / PRODUCTION VERIFIED** · **HYDRATION CHECKPOINT** · **≠** DEPLOYED tip · **≠** TPI Full IK E2E · **≠** GLOBAL IK PV · Master §10.0.2 · §24 |
+| **2.66.165** / LAST VERIFIED **`32a90fef`** | STABLE PRODUCTION IDENTITY · tip continuity PV · docs-only | **LAST VERIFIED SOURCE checkpoint** · LIVE = fetch · **≠** HYDRATION VERIFY · **≠** APP bump |
+| **2.66.165** / HISTORY **`14ec9bd9`** | Tip continuity under broken exact live-mirror semantics | **HISTORY** · superseded by stable identity |
+| **2.66.165** / VERIFY **`75d0f09`** | TPI FULL SNAPSHOT HYDRATION DESIGN-C · registry FULL → pipeline load hydrate · Track B lean UNCHANGED | **CLOSED / PRODUCTION VERIFIED** · **HYDRATION CHECKPOINT** · **≠** LIVE · **≠** LAST VERIFIED SOURCE · **≠** TPI Full IK E2E · **≠** GLOBAL IK PV · Master §10.0.2 · §24 |
 | **2.66.165** / hist. **`a5d19047`** | LINE-TOLERANT Expert Admission · DOCUMENT TRUTH ≠ EXPERT ADMISSION | **CLOSED / PV** · FEATURE tip HISTORY · **≠** CURRENT tip |
 | **2.66.147** / live **`2f3d1847`** | OD-OCR-45 authoritative ingest persist · OD-OCR-47 production ingest PASS · TPI 4 shells / cloud 470 | **CLOSED / PASS** · **≠** GLOBAL IK PV · Master §10.0.2 |
 | **2.66.146** / hist. **`a13a431d`** | Stale-client lean gate by APP_VERSION ≥ 2.66.145 | **CLOSED / VERIFIED** · HISTORY tip |
