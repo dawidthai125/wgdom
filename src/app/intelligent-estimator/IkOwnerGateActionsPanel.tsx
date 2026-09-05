@@ -1,12 +1,19 @@
 /**
  * A08-P3 — Owner Gate G1/G2 action panel (Hybrid D).
  * SSOT queue items + existing acceptance engines via orchestra.ownerGate.
+ *
+ * P0 Identity Coverage Option D:
+ * evidence prefill (SUGGESTION) → explicit Owner G1 → existing persist.
+ * Prefill ≠ trusted · competing ≠ auto-select · no bulk.
  */
 
 import { useCallback, useMemo, useState } from "react";
 import type { IkOrchestraSnapshot } from "@/lib/intelligent-estimator/orchestra/orchestra-types";
 import type { IkOwnerActionItem } from "@/lib/intelligent-estimator/orchestra/ik-owner-action-queue";
-import { resolveSuggestedCatalogWorkIdForG1 } from "@/lib/intelligent-estimator/orchestra/ik-owner-gate-actions";
+import {
+  resolveG1IdentityPrefill,
+  type G1MappedLineForPrefill,
+} from "@/lib/intelligent-estimator/orchestra/ik-owner-gate-actions";
 import { TEUX_FONT_CAPTION } from "@/lib/tender-ux-tokens";
 import { cn } from "@/app/components/ui/utils";
 
@@ -15,31 +22,63 @@ type GateRowProps = {
   orchestra: IkOrchestraSnapshot;
 };
 
+function findMappedLineForG1(
+  orchestra: IkOrchestraSnapshot,
+  dwellingId: string,
+  lineId: string,
+): G1MappedLineForPrefill | null {
+  const ref = orchestra.postIdentityExpert?.masterBoqLines?.find(
+    (r) => r.dwellingId === dwellingId && r.line.lineId === lineId,
+  );
+  return ref?.line ?? null;
+}
+
 function G1IdentityRow({ item, orchestra }: GateRowProps) {
   const { ownerGate, identityCoverage } = orchestra;
-  const suggested = resolveSuggestedCatalogWorkIdForG1(
-    identityCoverage,
-    item.dwellingId,
-    item.lineRef,
+  const mappedLine = useMemo(
+    () => findMappedLineForG1(orchestra, item.dwellingId, item.lineRef),
+    [orchestra, item.dwellingId, item.lineRef],
   );
+  const prefill = useMemo(
+    () =>
+      resolveG1IdentityPrefill({
+        identityCoverage,
+        dwellingId: item.dwellingId,
+        lineId: item.lineRef,
+        mappedLine,
+      }),
+    [identityCoverage, item.dwellingId, item.lineRef, mappedLine],
+  );
+  const suggested =
+    prefill.kind === "unique_suggestion" ? prefill.suggestedCatalogWorkId : null;
   const [catalogWorkId, setCatalogWorkId] = useState(suggested ?? "");
   const rejected = ownerGate.isG1Rejected(item.dwellingId, item.lineRef);
+  const qtyBlocked = prefill.kind === "qty_blocked";
+  const alreadyTrusted = prefill.kind === "trusted";
+  const canAccept =
+    !qtyBlocked
+    && !alreadyTrusted
+    && catalogWorkId.trim().length > 0;
 
   const runAccept = useCallback(() => {
+    const id = catalogWorkId.trim();
+    if (!id || qtyBlocked || alreadyTrusted) return;
     ownerGate.g1Accept({
       dwellingId: item.dwellingId,
       lineId: item.lineRef,
-      catalogWorkId: catalogWorkId.trim() || suggested || "",
+      catalogWorkId: id,
     });
-  }, [ownerGate, item, catalogWorkId, suggested]);
+  }, [ownerGate, item, catalogWorkId, qtyBlocked, alreadyTrusted]);
 
   const runEdit = useCallback(() => {
+    const id = catalogWorkId.trim();
+    if (!id || qtyBlocked || alreadyTrusted) return;
     ownerGate.g1Edit({
       dwellingId: item.dwellingId,
       lineId: item.lineRef,
-      catalogWorkId,
+      catalogWorkId: id,
     });
-  }, [ownerGate, item, catalogWorkId]);
+  }, [ownerGate, item, catalogWorkId, qtyBlocked, alreadyTrusted]);
 
   return (
     <li
@@ -47,28 +86,86 @@ function G1IdentityRow({ item, orchestra }: GateRowProps) {
       data-ik-owner-gate-row
       data-ik-owner-gate-domain="identity"
       data-ik-owner-gate-line-ref={item.lineRef}
+      data-ik-g1-prefill-kind={prefill.kind}
+      data-ik-g1-prefill-source={prefill.source}
     >
       <p className={`${TEUX_FONT_CAPTION} font-medium`}>{item.labelPl}</p>
+      {prefill.prefillLabelPl ? (
+        <p
+          className={`${TEUX_FONT_CAPTION} text-muted-foreground`}
+          data-ik-g1-prefill-label="1"
+        >
+          {prefill.prefillLabelPl}
+        </p>
+      ) : null}
+      {suggested ? (
+        <p
+          className={`${TEUX_FONT_CAPTION} text-violet-800 dark:text-violet-200`}
+          data-ik-g1-suggestion={suggested}
+        >
+          SUGGESTION / PREFILL: <code className="text-[10px]">{suggested}</code>
+        </p>
+      ) : null}
+      {prefill.kind === "competing" && prefill.candidateWorkIds.length > 0 ? (
+        <div
+          className="flex flex-wrap gap-1"
+          data-ik-g1-competing-candidates={prefill.candidateWorkIds.length}
+        >
+          {prefill.candidateWorkIds.map((cid) => (
+            <button
+              key={cid}
+              type="button"
+              className={cn(
+                "text-[10px] px-1.5 py-0.5 rounded border border-border",
+                catalogWorkId.trim() === cid
+                  ? "bg-primary/15 border-primary/40"
+                  : "bg-secondary/20 hover:bg-secondary/50",
+              )}
+              data-ik-g1-candidate={cid}
+              onClick={() => setCatalogWorkId(cid)}
+            >
+              {cid}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <input
         type="text"
         className="w-full text-[11px] px-2 py-1 rounded border border-border bg-background"
-        placeholder="catalogWorkId"
+        placeholder={
+          prefill.kind === "competing"
+            ? "wybierz kandydata lub wpisz catalogWorkId"
+            : "catalogWorkId"
+        }
         value={catalogWorkId}
         onChange={(e) => setCatalogWorkId(e.target.value)}
+        disabled={qtyBlocked || alreadyTrusted}
         data-ik-owner-gate-catalog-work-id
       />
       <div className="flex flex-wrap gap-1">
-        <GateBtn label="Accept" onClick={runAccept} dataAction="g1-accept" />
-        <GateBtn label="Edit→Confirm" onClick={runEdit} dataAction="g1-edit" />
+        <GateBtn
+          label="Accept"
+          onClick={runAccept}
+          dataAction="g1-accept"
+          disabled={!canAccept}
+        />
+        <GateBtn
+          label="Edit→Confirm"
+          onClick={runEdit}
+          dataAction="g1-edit"
+          disabled={!canAccept}
+        />
         <GateBtn
           label="Reject"
           variant="muted"
+          disabled={alreadyTrusted}
           onClick={() => ownerGate.g1Reject({ dwellingId: item.dwellingId, lineId: item.lineRef })}
           dataAction="g1-reject"
         />
         <GateBtn
           label="Research Again"
           variant="muted"
+          disabled={qtyBlocked}
           onClick={() =>
             ownerGate.g1ResearchAgain({ dwellingId: item.dwellingId, lineId: item.lineRef })
           }

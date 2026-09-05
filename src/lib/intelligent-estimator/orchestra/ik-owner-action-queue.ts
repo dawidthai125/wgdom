@@ -116,6 +116,8 @@ export function buildIkOwnerActionQueue(
 
   if (input.identityCoverage) {
     for (const line of input.identityCoverage.lines) {
+      // P0 Identity — qty=0 (LP43 class) stays unresolved; never surface G1 map action.
+      if (Number(line.quantity) === 0) continue;
       if (line.status === "AMBIGUOUS") {
         pushUnique(items, {
           domain: "identity",
@@ -125,7 +127,8 @@ export function buildIkOwnerActionQueue(
           priority: PRIORITY_P0,
           deepLink: `ik:identity:ambiguous:${line.dwellingId}:${line.lineId}`,
           labelPl: `Identity AMBIGUOUS · ${line.lp}`,
-          suggestedActionPl: "Wybierz catalogWorkId — manual override.",
+          suggestedActionPl:
+            "Wybierz catalogWorkId z kandydatów — SUGGESTION ≠ trusted (G1 Accept).",
           blocksPackageGate: true,
         });
       } else if (
@@ -143,7 +146,7 @@ export function buildIkOwnerActionQueue(
           suggestedActionPl:
             line.status === "OWNER_MAPPING_POSSIBLE"
               ? "Owner KNR / catalog map — bez auto-trust."
-              : "Przypisz tożsamość pracy (manual / map).",
+              : "Przypisz tożsamość pracy (manual / map) — G1 Confirm.",
           blocksPackageGate: true,
         });
       }
