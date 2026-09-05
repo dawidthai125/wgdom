@@ -49,6 +49,10 @@ import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { TenderKosztorysSnapshot } from "@/lib/tenders-bzp-brief";
 import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import {
+  buildIkExpertAdmissionSummary,
+  type IkExpertAdmissionSummary,
+} from "@/lib/intelligent-estimator/ik-expert-admission";
+import {
   assessDwellingMappingCoverage,
   computeCompositionLineIntegrity,
   countKeepOneCollapsedFromWarnings,
@@ -156,6 +160,12 @@ export interface IkDocumentExpertReport {
    * Avoids cross-dwelling LP collisions (poz.5 in A ≠ poz.5 in B).
    */
   boqDependencyGraphsByDwelling: Record<string, BoqDependencyGraph> | null;
+  /**
+   * IK-LINE-TOLERANT-01 — derived Expert Admission (NOT persisted).
+   * DOCUMENT TRUTH (status / readyForExperts) ≠ EXPERT ADMISSION (mayProceed).
+   * Always set by runIkDocumentExpert; may be absent on legacy test fixtures.
+   */
+  expertAdmission?: IkExpertAdmissionSummary;
 }
 
 const COST_ROLES = new Set<DocumentRole>([
@@ -889,6 +899,17 @@ export function runIkDocumentExpert(opts: {
     }
   }
 
+  const readyForExperts = status === "ready";
+  const admissionLines =
+    masterBoqLines.length > 0
+      ? masterBoqLines.map((r) => r.line)
+      : (offerBoq?.lines ?? []);
+  const expertAdmission = buildIkExpertAdmissionSummary({
+    documentStatus: status,
+    readyForExperts,
+    lines: admissionLines,
+  });
+
   return {
     tenderId,
     discoverySettled,
@@ -918,7 +939,7 @@ export function runIkDocumentExpert(opts: {
       sourceCount,
       hasLineProvenance: Boolean(lineProvenance && Object.keys(lineProvenance).length > 0),
       status,
-      readyForExperts: status === "ready",
+      readyForExperts,
     },
     status,
     reasons,
@@ -927,5 +948,6 @@ export function runIkDocumentExpert(opts: {
     masterBoqLines,
     boqDependencyGraph,
     boqDependencyGraphsByDwelling,
+    expertAdmission,
   };
 }

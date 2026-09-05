@@ -53,6 +53,7 @@ import {
   runIkDocumentExpert,
   type IkDocumentExpertReport,
 } from "./ik-document-expert";
+import { expertChainMayProceedFromReport } from "./ik-expert-admission";
 import { researchEligible } from "./ik-material-expert";
 
 export const IK_COMPOSITE_BOTH_HOLD_SCHEMA_VERSION = 1 as const;
@@ -289,7 +290,7 @@ export function runIkCompositeBothHold(opts: {
     opts.expert
     ?? (opts.lines ? null : runIkDocumentExpert({ item, package: opts.package ?? null }));
 
-  if (!opts.lines && expert && !expert.masterBoq.readyForExperts) {
+  if (!opts.lines && expert && !expertChainMayProceedFromReport(expert)) {
     return emptyHold(tenderId, "MASTER_BOQ_NOT_READY", p5, p6);
   }
 

@@ -26,6 +26,10 @@ import {
 } from "@/lib/intelligent-estimator/knr-knowledge";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { IkDocumentExpertReport } from "@/lib/intelligent-estimator/ik-document-expert";
+import {
+  expertChainMayProceedFromReport,
+  resolveIkExpertAdmission,
+} from "@/lib/intelligent-estimator/ik-expert-admission";
 import type {
   IkKnrAppDiag,
   IkKnrKnowledgeDiag,
@@ -34,11 +38,11 @@ import type {
 } from "./orchestra-types";
 
 function computeKnrKnowledgeDiag(
-  readyForExperts: boolean,
+  mayProceed: boolean,
   knowledgeBusy: boolean,
   knrKnowledge: IkOrchestraSyncInput["knrKnowledge"],
 ): IkKnrKnowledgeDiag {
-  if (!readyForExperts) {
+  if (!mayProceed) {
     return {
       status: "skipped",
       hits: 0,
@@ -86,12 +90,12 @@ function computeKnrKnowledgeDiag(
 }
 
 function computeKnrApplicationResults(
-  readyForExperts: boolean,
+  mayProceed: boolean,
   knowledgeBusy: boolean,
   knrKnowledge: IkOrchestraSyncInput["knrKnowledge"],
   masterBoqLines: IkDocumentExpertReport["masterBoqLines"],
 ): KnrHostApplicationResult[] {
-  if (!readyForExperts || knowledgeBusy || !knrKnowledge) {
+  if (!mayProceed || knowledgeBusy || !knrKnowledge) {
     return [];
   }
   const boqByLineId = new Map<
@@ -120,12 +124,12 @@ function computeKnrApplicationResults(
 }
 
 function computeKnrAppDiag(
-  readyForExperts: boolean,
+  mayProceed: boolean,
   knowledgeBusy: boolean,
   knrKnowledge: IkOrchestraSyncInput["knrKnowledge"],
   knrApplicationResults: KnrHostApplicationResult[],
 ): IkKnrAppDiag {
-  if (!readyForExperts) {
+  if (!mayProceed) {
     return summarizeKnrHostAppDiag([], false);
   }
   if (knowledgeBusy) {
@@ -181,6 +185,8 @@ export function computeIkOrchestraSyncSnapshot(
   const report =
     ingest?.expert ?? runIkDocumentExpert({ item: effectiveItem, package: pkg });
 
+  const mayProceed = resolveIkExpertAdmission(report).expertChainMayProceed;
+
   const knr = runIkKnrExpert({
     tenderId: effectiveItem.id || effectiveItem.tenderId || "",
     documentExpert: report,
@@ -190,31 +196,31 @@ export function computeIkOrchestraSyncSnapshot(
   // G-ORD-01 — defer from real KNR workload (report/knr), never ingest-only.
   const knrLinesNeedingKnowledge = knr.lines.filter((l) => l.catalogBasis != null).length;
   const autoDeferDownstream = shouldDeferIkDownstreamUntilKnrKnowledge({
-    readyForExperts: report.masterBoq.readyForExperts === true,
+    readyForExperts: mayProceed,
     knrLineCount: knrLinesNeedingKnowledge,
     knowledgeBusy,
     knrKnowledge,
   });
   const knrDownstreamDeferred =
     typeof deferDownstreamUntilKnrKnowledge === "boolean"
-      ? deferDownstreamUntilKnrKnowledge && report.masterBoq.readyForExperts === true
+      ? deferDownstreamUntilKnrKnowledge && mayProceed
       : autoDeferDownstream;
 
   const knrKnowledgeDiag = computeKnrKnowledgeDiag(
-    report.masterBoq.readyForExperts,
+    mayProceed,
     knowledgeBusy,
     knrKnowledge,
   );
 
   const knrApplicationResults = computeKnrApplicationResults(
-    report.masterBoq.readyForExperts,
+    mayProceed,
     knowledgeBusy,
     knrKnowledge,
     report.masterBoqLines,
   );
 
   const knrAppDiag = computeKnrAppDiag(
-    report.masterBoq.readyForExperts,
+    mayProceed,
     knowledgeBusy,
     knrKnowledge,
     knrApplicationResults,
@@ -242,6 +248,7 @@ export function computeIkOrchestraSyncSnapshot(
   }
   const postIdentityExpert = identityPhase.postIdentityExpert;
   const identityContext = identityPhase.context;
+  const postMayProceed = expertChainMayProceedFromReport(postIdentityExpert);
 
   const classification = runIkMasterBoqClassification({
     item: effectiveItem,
@@ -253,7 +260,7 @@ export function computeIkOrchestraSyncSnapshot(
   if (
     !knrDownstreamDeferred
     && identityCoverageOn
-    && postIdentityExpert.masterBoq.readyForExperts
+    && postMayProceed
   ) {
     identityCoverage = runIkMasterBoqIdentityCoverage({
       item: effectiveItem,
@@ -267,7 +274,7 @@ export function computeIkOrchestraSyncSnapshot(
     !knrDownstreamDeferred
     && p5LaborOn
     && p6MaterialOn
-    && postIdentityExpert.masterBoq.readyForExperts
+    && postMayProceed
   ) {
     composite = runIkCompositeBothHold({
       item: effectiveItem,
@@ -284,7 +291,7 @@ export function computeIkOrchestraSyncSnapshot(
   if (
     !knrDownstreamDeferred
     && p7F5On
-    && (postIdentityExpert.masterBoq.readyForExperts
+    && (postMayProceed
       || (postIdentityExpert.offerBoq?.lines?.length ?? 0) > 0)
   ) {
     positionCostBid = runIkP7PositionCostBid({

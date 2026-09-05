@@ -50,6 +50,9 @@ function classifyGap(code: ShadowGapCode): IkPackageBlockerClassification {
     case "NIEJEDNOZNACZNA_ROBOTA":
     case "NIEPRAWIDLOWA_JEDNOSTKA":
       return "IDENTITY_GAP";
+    case "NIEPRAWIDLOWA_ILOSC":
+    case "BOQ_QUANTITY_HOLD":
+      return "OTHER_GAP";
     case "BRAK_STAWKI_ROBOT":
     case "PRZETERMINOWANA_STAWKA_ROBOT":
       return "OUR_RATE_GAP";
@@ -81,6 +84,10 @@ function suggestedActionFor(code: ShadowGapCode): string {
       return "Wybierz jedną pracę z kandydatów — bez auto-wyboru.";
     case "NIEPRAWIDLOWA_JEDNOSTKA":
       return "Popraw jednostkę BOQ lub Owner unit compatibility.";
+    case "NIEPRAWIDLOWA_ILOSC":
+      return "Uzupełnij ilość pozycji (qty>0) — Owner Review · bez invent.";
+    case "BOQ_QUANTITY_HOLD":
+      return "Quantity HOLD (S4-B) — Owner resolve · bez silent fallback.";
     case "BRAK_STAWKI_ROBOT":
     case "PRZETERMINOWANA_STAWKA_ROBOT":
       return "Owner Accept → OUR RATE w Work Catalog (P5 EC).";

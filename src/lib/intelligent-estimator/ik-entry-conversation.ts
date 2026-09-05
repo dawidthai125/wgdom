@@ -29,6 +29,7 @@ import {
   type IkDocumentExpertReport,
   type IkDocumentExpertStatus,
 } from "./ik-document-expert";
+import { resolveIkExpertAdmission } from "./ik-expert-admission";
 import { runIkMasterBoqClassification, type IkClassificationReport } from "./ik-classification";
 import type { IkLaborExpertReport } from "./ik-labor-expert";
 import type { IkMaterialExpertReport } from "./ik-material-expert";
@@ -663,6 +664,7 @@ export function buildIkEntryConversationViewModel(
   }
 
   const master = report.masterBoq;
+  const admission = resolveIkExpertAdmission(report);
   if (master.readyForExperts) {
     steps.push(
       step({
@@ -676,6 +678,7 @@ export function buildIkEntryConversationViewModel(
           master.dwellingCount ? `lokale=${master.dwellingCount}` : null,
           master.branchCount ? `branże=${master.branchCount}` : null,
           master.hasLineProvenance ? "lineProvenance=tak" : "lineProvenance=brak side-map",
+          `admitted=${admission.admittedCount}`,
         ].filter(Boolean).join(" · "),
         sourceRef: tenderRef({
           lineCount: master.lineCount,
@@ -698,21 +701,31 @@ export function buildIkEntryConversationViewModel(
       }),
     );
   } else {
+    const mayProceed = admission.expertChainMayProceed;
     steps.push(
       step({
         id: "boq_status",
         event: "BOQ_STATUS",
         status: statusFromExpert(report.status === "gap" ? "gap" : "partial"),
         messagePl: master.lineCount === 0
-          ? "BOQ NOT READY — brak wiarygodnego Master BOQ w runtime."
-          : `BOQ PARTIAL — ${master.lineCount} pozycji, nie READY FOR EXPERTS.`,
-        detailPl: report.reasons.slice(0, 4).join("; ") || `rowCount=${master.lineCount}. Kosztorys nie jest wykonany.`,
+          ? "DOCUMENT PARTIAL — brak wiarygodnego Master BOQ w runtime."
+          : mayProceed
+            ? `DOCUMENT PARTIAL — ${master.lineCount} pozycji · admitted=${admission.admittedCount} · unresolved=${admission.unresolvedCount} · Expert Chain może kontynuować admitted (≠ Final Bid READY).`
+            : `DOCUMENT PARTIAL — ${master.lineCount} pozycji · admitted=0 · Expert Chain STOP.`,
+        detailPl: [
+          `readyForExperts=false`,
+          `expertChainMayProceed=${mayProceed}`,
+          report.reasons.slice(0, 4).join("; ") || null,
+        ].filter(Boolean).join(" · "),
         sourceRef: tenderRef({
           rowCount: master.lineCount,
           detectedRowCount: report.extraction.detectedRowCount,
           extractedCount: report.extraction.extractedCount,
           status: report.status,
           reasons: report.reasons,
+          admittedCount: admission.admittedCount,
+          unresolvedCount: admission.unresolvedCount,
+          expertChainMayProceed: mayProceed,
         }, report.status === "gap" ? "hold" : "extraction"),
       }),
     );
@@ -726,8 +739,8 @@ export function buildIkEntryConversationViewModel(
     }
   }
 
-  // P3 — Classification Gate (only when Master BOQ READY; ZERO research/pricing claims).
-  if (master.readyForExperts) {
+  // P3 — Classification Gate (Expert Admission · ZERO research/pricing claims).
+  if (admission.expertChainMayProceed) {
     const classification: IkClassificationReport =
       opts.classification
       ?? runIkMasterBoqClassification({ item, package: pkg, expert: report });

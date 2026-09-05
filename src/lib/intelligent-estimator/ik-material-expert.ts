@@ -64,6 +64,10 @@ import {
   type IkDocumentExpertReport,
 } from "./ik-document-expert";
 import {
+  filterAdmittedMasterBoqLines,
+  resolveIkExpertAdmission,
+} from "./ik-expert-admission";
+import {
   IK_P6_SHOP_HTTP_PER_CLAIM_ESTIMATE,
   IkP6MaterialBudget,
 } from "./ik-p6-material-budget";
@@ -331,7 +335,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
   const laborResearchExecuted = false as const;
   const reasons: string[] = [];
 
-  if (!expert.masterBoq.readyForExperts) {
+  if (!resolveIkExpertAdmission(expert).expertChainMayProceed) {
     return {
       tenderId,
       status: "blocked",
@@ -366,11 +370,14 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     cenyMaterialowUplift: isCenyMaterialow01Enabled(),
   };
 
-  const inputRefs = expert.masterBoqLines;
-  const inputLineCount = expert.masterBoq.lineCount;
-  if (inputRefs.length !== inputLineCount) {
+  const inputRefs = filterAdmittedMasterBoqLines(
+    expert.masterBoqLines,
+    resolveIkExpertAdmission(expert),
+  );
+  const inputLineCount = inputRefs.length;
+  if (expert.masterBoqLines.length !== expert.masterBoq.lineCount) {
     reasons.push(
-      `MASTER_LINES_COUNT_MISMATCH lineCount=${inputLineCount} refs=${inputRefs.length}`,
+      `MASTER_LINES_COUNT_MISMATCH lineCount=${expert.masterBoq.lineCount} refs=${expert.masterBoqLines.length}`,
     );
   }
 

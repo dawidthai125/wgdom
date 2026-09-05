@@ -19,6 +19,10 @@ import {
   type IkDocumentExpertReport,
   type IkMasterBoqLineRef,
 } from "./ik-document-expert";
+import {
+  filterAdmittedMasterBoqLines,
+  resolveIkExpertAdmission,
+} from "./ik-expert-admission";
 
 /** Taxonomy alias: COMPOUND ≡ BOTH (gate HOLD — no research). UNKNOWN ≡ UNRESOLVED. */
 export type IkClassificationHandoff =
@@ -182,7 +186,7 @@ export function runIkMasterBoqClassification(opts: {
   const pricingExecuted = false as const;
   const autoAcceptExecuted = false as const;
 
-  if (!expert.masterBoq.readyForExperts) {
+  if (!resolveIkExpertAdmission(expert).expertChainMayProceed) {
     return {
       tenderId,
       status: "blocked",
@@ -193,7 +197,7 @@ export function runIkMasterBoqClassification(opts: {
         ok: false,
         unexplainedLoss: expert.masterBoq.lineCount,
         unexplainedDuplication: 0,
-        reasons: ["MASTER_BOQ_NOT_READY — Classification Gate wymaga Master BOQ READY"],
+        reasons: ["MASTER_BOQ_NOT_READY — Classification Gate wymaga Expert Admission"],
       },
       dwellingPreservation: false,
       branchPreservation: false,
@@ -207,11 +211,12 @@ export function runIkMasterBoqClassification(opts: {
     };
   }
 
-  const inputRefs = expert.masterBoqLines;
-  const inputLineCount = expert.masterBoq.lineCount;
-  if (inputRefs.length !== inputLineCount) {
+  const admission = resolveIkExpertAdmission(expert);
+  const inputRefs = filterAdmittedMasterBoqLines(expert.masterBoqLines, admission);
+  const inputLineCount = inputRefs.length;
+  if (expert.masterBoqLines.length !== expert.masterBoq.lineCount) {
     reasons.push(
-      `MASTER_LINES_COUNT_MISMATCH report.lineCount=${inputLineCount} masterBoqLines=${inputRefs.length}`,
+      `MASTER_LINES_COUNT_MISMATCH report.lineCount=${expert.masterBoq.lineCount} masterBoqLines=${expert.masterBoqLines.length}`,
     );
   }
 

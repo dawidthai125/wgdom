@@ -179,6 +179,24 @@ export type {
   IkPrzedmiarSource,
 } from "./ik-document-expert";
 
+export {
+  buildIkExpertAdmissionSummary,
+  classifyOfferBoqLineAdmission,
+  emptyIkExpertAdmissionSummary,
+  expertChainMayProceedFromReport,
+  filterAdmittedMasterBoqLines,
+  isIkDocumentGlobalIntegrityBlocker,
+  isOfferBoqLineStructurallyAdmitted,
+  resolveIkExpertAdmission,
+} from "./ik-expert-admission";
+export type {
+  IkAdmissionDocumentStatus,
+  IkExpertAdmissionLine,
+  IkExpertAdmissionReasonCode,
+  IkExpertAdmissionState,
+  IkExpertAdmissionSummary,
+} from "./ik-expert-admission";
+
 export { runIkKnrExpert } from "./ik-knr-expert";
 export type {
   IkKnrExpertCounts,

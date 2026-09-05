@@ -42,6 +42,7 @@ import {
 import type { IkP7PositionCostBidReport } from "./ik-p7-position-cost-bid";
 import type { IkKnrExpertReport } from "./ik-knr-expert";
 import type { IkDocumentExpertReport } from "./ik-document-expert";
+import { resolveIkExpertAdmission } from "./ik-expert-admission";
 import {
   buildIkP8QuantityAdvisory,
   collectIkP8QuantityAdvisoryInputs,
@@ -257,11 +258,22 @@ export function runIkP8RiskDecision(opts: {
     status = "needs_review";
   }
 
+  const expert = opts.expert ?? null;
+  const structuralUnresolved = expert
+    ? resolveIkExpertAdmission(expert).unresolvedCount
+    : 0;
+  const gapLineCount = opts.p7?.gapLineCount ?? 0;
+  // Line-tolerant: package incomplete ⇒ never P8 ready / Final Bid path.
+  if (structuralUnresolved > 0 || gapLineCount > 0) {
+    if (status === "ready" || status === "partial") {
+      status = "needs_review";
+    }
+  }
+
   const sourceRefKind: "evidence" | "hold" =
     status === "ready" || status === "partial" ? "evidence" : "hold";
 
   // S4-C — quantity advisory projection (does NOT mutate overlay.displayDecision).
-  const expert = opts.expert ?? null;
   const advisoryInputs = collectIkP8QuantityAdvisoryInputs({
     masterBoqLines: expert?.masterBoqLines ?? null,
     offerBoqLines: expert?.offerBoq?.lines ?? null,

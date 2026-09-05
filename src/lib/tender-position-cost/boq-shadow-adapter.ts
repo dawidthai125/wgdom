@@ -532,7 +532,7 @@ function tryComputeShadowLineFromEphemeralBasis(args: {
       ? qtyResolution.pricingQuantity
       : line.quantity;
 
-  if (!Number.isFinite(pricingQuantity) || pricingQuantity < 0) {
+  if (!Number.isFinite(pricingQuantity) || pricingQuantity <= 0) {
     pushGap(gaps, "NIEPRAWIDLOWA_ILOSC");
     base.gaps = gaps;
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
@@ -603,6 +603,34 @@ export function computeShadowPositionCostForOfferBoqLine(
     transport: null,
     provisionalAttestation: null,
   };
+
+  // Structural qty gate (IK-LINE-TOLERANT-01) — REUSE NIEPRAWIDLOWA_ILOSC / BOQ_QUANTITY_HOLD.
+  // Must run before identity early-returns so qty=0 never looks priced/complete.
+  {
+    const qtyResolution = resolveBoqPricingQuantity({
+      line,
+      lineIndex: input.lineIndex ?? 0,
+      dependencyGraph: input.boqDependencyGraph ?? null,
+      tenderId: input.tenderId ?? null,
+    });
+    if (qtyResolution.status === "HOLD") {
+      pushGap(gaps, "BOQ_QUANTITY_HOLD");
+      base.gaps = gaps;
+      base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+      return base;
+    }
+    const pricingQuantity =
+      qtyResolution.pricingQuantity != null
+      && Number.isFinite(qtyResolution.pricingQuantity)
+        ? qtyResolution.pricingQuantity
+        : line.quantity;
+    if (!Number.isFinite(pricingQuantity) || pricingQuantity <= 0) {
+      pushGap(gaps, "NIEPRAWIDLOWA_ILOSC");
+      base.gaps = gaps;
+      base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
+      return base;
+    }
+  }
 
   // 1) Noise — NEVER Owner Question / Bid Transport
   if (identity.status === "NOISE_SKIP") {
@@ -827,7 +855,7 @@ export function computeShadowPositionCostForOfferBoqLine(
       ? qtyResolution.pricingQuantity
       : line.quantity;
 
-  if (!Number.isFinite(pricingQuantity) || pricingQuantity < 0) {
+  if (!Number.isFinite(pricingQuantity) || pricingQuantity <= 0) {
     pushGap(gaps, "NIEPRAWIDLOWA_ILOSC");
     base.gaps = gaps;
     base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);

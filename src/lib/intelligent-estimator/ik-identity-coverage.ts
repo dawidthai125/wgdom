@@ -47,6 +47,10 @@ import {
   runIkDocumentExpert,
   type IkDocumentExpertReport,
 } from "./ik-document-expert";
+import {
+  filterAdmittedMasterBoqLines,
+  resolveIkExpertAdmission,
+} from "./ik-expert-admission";
 import type { DwellingLineProvenance } from "@/lib/multi-boq/types";
 
 /** Exclusive primary status — every Master BOQ line has exactly one. */
@@ -317,7 +321,7 @@ export function runIkMasterBoqIdentityCoverage(opts: {
   const identityInvention = false as const;
   const reasons: string[] = [];
 
-  if (!expert.masterBoq.readyForExperts) {
+  if (!resolveIkExpertAdmission(expert).expertChainMayProceed) {
     return {
       tenderId,
       status: "blocked",
@@ -353,11 +357,12 @@ export function runIkMasterBoqIdentityCoverage(opts: {
   };
   const knownWorkIds = new Set(works.map((w) => w.id));
 
-  const inputRefs = expert.masterBoqLines;
-  const inputLineCount = expert.masterBoq.lineCount;
-  if (inputRefs.length !== inputLineCount) {
+  const admission = resolveIkExpertAdmission(expert);
+  const inputRefs = filterAdmittedMasterBoqLines(expert.masterBoqLines, admission);
+  const inputLineCount = inputRefs.length;
+  if (expert.masterBoqLines.length !== expert.masterBoq.lineCount) {
     reasons.push(
-      `MASTER_LINES_COUNT_MISMATCH lineCount=${inputLineCount} refs=${inputRefs.length}`,
+      `MASTER_LINES_COUNT_MISMATCH lineCount=${expert.masterBoq.lineCount} refs=${expert.masterBoqLines.length}`,
     );
   }
 

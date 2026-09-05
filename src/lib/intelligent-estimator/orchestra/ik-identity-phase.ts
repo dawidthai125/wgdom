@@ -9,6 +9,10 @@ import type {
   IkDocumentExpertReport,
   IkMasterBoqLineRef,
 } from "@/lib/intelligent-estimator/ik-document-expert";
+import {
+  admittedLineIdSet,
+  resolveIkExpertAdmission,
+} from "@/lib/intelligent-estimator/ik-expert-admission";
 import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
 import {
   OFFER_BOQ_SCHEMA_VERSION,
@@ -174,8 +178,9 @@ function resolveExistingDwellingOfferBoq(
 export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhaseResult {
   const structural = input.structuralReport;
   const tenderId = input.item.id || input.item.tenderId || structural.tenderId || "";
+  const admission = resolveIkExpertAdmission(structural);
 
-  if (!structural.masterBoq.readyForExperts) {
+  if (!admission.expertChainMayProceed) {
     return {
       postIdentityExpert: structural,
       context: {
@@ -190,6 +195,8 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
       },
     };
   }
+
+  const admittedIds = admittedLineIdSet(admission);
 
   const nowMs = input.nowMs ?? Date.now();
   const mappedAt = new Date(nowMs).toISOString();
@@ -211,8 +218,17 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
   let provisionalBindingCount = 0;
   let ambiguousCount = 0;
   let noIdentityCount = 0;
+  let admittedProcessed = 0;
 
   for (const ref of sliceRefs) {
+    const lineId = String(ref.line.lineId ?? "").trim();
+    // UNRESOLVED / SKIPPED: keep in canonical BOQ · do not Identity-resolve · no invent.
+    if (!lineId || !admittedIds.has(lineId)) {
+      resolvedRefs.push(ref);
+      continue;
+    }
+    admittedProcessed += 1;
+
     const mapped = mapOfferBoqLine(ref.line, mapCtx);
     const withManual = applyManualOverride(mapped, ref, input.manualOverrides);
     let identity = resolveWorkIdentityFromOfferBoqLine(withManual);
@@ -297,13 +313,14 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
   const postIdentityExpert: IkDocumentExpertReport = {
     ...structural,
     masterBoqLines: resolvedRefs,
+    expertAdmission: admission,
   };
 
   return {
     postIdentityExpert,
     context: {
       status: "ready",
-      lineCount: resolvedRefs.length,
+      lineCount: admittedProcessed,
       trustedOkCount,
       provisionalBindingCount,
       ambiguousCount,

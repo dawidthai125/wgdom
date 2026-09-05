@@ -48,6 +48,10 @@ import {
   runIkDocumentExpert,
   type IkDocumentExpertReport,
 } from "./ik-document-expert";
+import {
+  filterAdmittedMasterBoqLines,
+  resolveIkExpertAdmission,
+} from "./ik-expert-admission";
 import type { DwellingLineProvenance } from "@/lib/multi-boq/types";
 import { lookupInternalFirst } from "./internal-first-semantic-match";
 import { buildInternalFirstIndexFromCatalogWorks } from "./ik-p5-internal-first-index";
@@ -283,7 +287,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
   const reasons: string[] = [];
   const researchBudget = new IkP5ResearchBudget();
 
-  if (!expert.masterBoq.readyForExperts) {
+  if (!resolveIkExpertAdmission(expert).expertChainMayProceed) {
     return {
       tenderId,
       status: "blocked",
@@ -320,14 +324,15 @@ export async function runIkMasterBoqLaborExpert(opts: {
     cenyMaterialowUplift: isCenyMaterialow01Enabled(),
   };
 
-  const inputRefs = expert.masterBoqLines;
+  const admission = resolveIkExpertAdmission(expert);
+  const inputRefs = filterAdmittedMasterBoqLines(expert.masterBoqLines, admission);
   const structuralByLineId = new Map(
-    inputRefs.map((ref) => [ref.line.lineId, ref.line] as const),
+    expert.masterBoqLines.map((ref) => [ref.line.lineId, ref.line] as const),
   );
-  const inputLineCount = expert.masterBoq.lineCount;
-  if (inputRefs.length !== inputLineCount) {
+  const inputLineCount = inputRefs.length;
+  if (expert.masterBoqLines.length !== expert.masterBoq.lineCount) {
     reasons.push(
-      `MASTER_LINES_COUNT_MISMATCH lineCount=${inputLineCount} refs=${inputRefs.length}`,
+      `MASTER_LINES_COUNT_MISMATCH lineCount=${expert.masterBoq.lineCount} refs=${expert.masterBoqLines.length}`,
     );
   }
 

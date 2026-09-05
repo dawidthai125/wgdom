@@ -19,6 +19,10 @@
 
 import type { CatalogBasis, CatalogBasisFamily } from "@/lib/tenders-bzp-swz";
 import type { IkDocumentExpertReport, IkMasterBoqLineRef } from "./ik-document-expert";
+import {
+  filterAdmittedMasterBoqLines,
+  resolveIkExpertAdmission,
+} from "./ik-expert-admission";
 import type { HistoricalExecutedIndex, HistoricalLookupResult } from "./historical-executed";
 import {
   lookupHistoricalExecuted,
@@ -209,15 +213,16 @@ export function runIkKnrExpert(input: {
   if (!expert) {
     return blockedReport(tenderId, "DOCUMENT_EXPERT_MISSING");
   }
-  if (expert.masterBoq.readyForExperts !== true) {
+  if (!resolveIkExpertAdmission(expert).expertChainMayProceed) {
     return blockedReport(tenderId || expert.tenderId || "", "MASTER_BOQ_NOT_READY");
   }
 
-  const refs = expert.masterBoqLines ?? [];
+  const admission = resolveIkExpertAdmission(expert);
+  const refs = filterAdmittedMasterBoqLines(expert.masterBoqLines ?? [], admission);
   const reasons: string[] = [];
-  if (expert.masterBoq.lineCount !== refs.length) {
+  if (expert.masterBoq.lineCount !== (expert.masterBoqLines ?? []).length) {
     reasons.push(
-      `MASTER_LINES_COUNT_MISMATCH lineCount=${expert.masterBoq.lineCount} refs=${refs.length}`,
+      `MASTER_LINES_COUNT_MISMATCH lineCount=${expert.masterBoq.lineCount} refs=${(expert.masterBoqLines ?? []).length}`,
     );
   }
   if (!historicalIndex || historicalIndex.occurrences.length === 0) {

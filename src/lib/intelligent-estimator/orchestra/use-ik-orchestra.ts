@@ -27,6 +27,10 @@ import {
   buildIkG3FinalBidRecord,
   persistIkG3FinalBid,
 } from "@/lib/intelligent-estimator/ik-g3-final-bid";
+import {
+  expertChainMayProceedFromReport,
+  resolveIkExpertAdmission,
+} from "@/lib/intelligent-estimator/ik-expert-admission";
 import type { IkMaterialExpertReport } from "@/lib/intelligent-estimator/ik-material-expert";
 import {
   isIkP2DocumentsBoqActive,
@@ -573,7 +577,7 @@ export function useIkOrchestra({
 
   // KL-3 HOST — lookup + on-MISS discovery (async · Orchestra reanalysis seam on complete).
   useEffect(() => {
-    if (!report.masterBoq.readyForExperts) {
+    if (!expertChainMayProceedFromReport(report)) {
       setKnrKnowledge(null);
       setKnowledgeBusy(false);
       setKnrReanalysisSignal(null);
@@ -630,7 +634,7 @@ export function useIkOrchestra({
     return () => {
       cancelled = true;
     };
-  }, [effectiveItem, knr, report.masterBoq.readyForExperts, identityResearchEpoch]);
+  }, [effectiveItem, knr, report, identityResearchEpoch]);
 
   // P5 Labor E2E — generation + sticky clear on cancel-before-settle (pending race fix).
   useEffect(() => {
@@ -647,7 +651,7 @@ export function useIkOrchestra({
       return;
     }
     const key = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!key || !postIdentityExpert.masterBoq.readyForExperts) {
+    if (!key || !expertChainMayProceedFromReport(postIdentityExpert)) {
       laborSettledRef.current = false;
       setLabor(null);
       return;
@@ -709,7 +713,7 @@ export function useIkOrchestra({
       return;
     }
     const key = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!key || !postIdentityExpert.masterBoq.readyForExperts) {
+    if (!key || !expertChainMayProceedFromReport(postIdentityExpert)) {
       setMaterial(null);
       return;
     }
@@ -899,6 +903,16 @@ export function useIkOrchestra({
         const liveItem = itemRef.current;
         const liveUpdate = onUpdateRef.current;
         const tenderPipelineId = String(liveItem.id || "").trim();
+        const admission = resolveIkExpertAdmission(postIdentityExpert);
+        const p7Gaps = positionCostBid?.gapLineCount ?? 0;
+        const packagePass = positionCostBid?.packageGatePass;
+        if (
+          admission.unresolvedCount > 0
+          || p7Gaps > 0
+          || packagePass === false
+        ) {
+          return { ok: false, reason: "FINAL_BID_NOT_READY_PACKAGE_PARTIAL" };
+        }
         const built = buildIkG3FinalBidRecord({
           tenderPipelineId,
           ocdsId: expectedOcds ?? liveItem.tenderId ?? null,
@@ -945,6 +959,8 @@ export function useIkOrchestra({
       material,
       chiefMaterialAvailable,
       refreshPhase,
+      postIdentityExpert,
+      positionCostBid,
     ],
   );
 
