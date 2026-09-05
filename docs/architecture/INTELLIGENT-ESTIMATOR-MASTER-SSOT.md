@@ -14,7 +14,7 @@
 > **★★ PRIOR CAPABILITY TIP (HISTORY):** **IK-LINE-TOLERANT-EXPERT-ADMISSION-01** — **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · DOCUMENT TRUTH ≠ EXPERT ADMISSION · Paczka XI · **≠** LAST VERIFIED SOURCE
 > **★★ PRIOR CAPABILITY TIP (HISTORY):** **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147** — Owner Ingest → OCR → C2 → authoritative persist · **ancestor** · **≠** LAST VERIFIED SOURCE
 > **★★ HISTORY tip-continuity (broken loop era):** **`14ec9bd9`** · **`98f4b5e`** — prior docs tip sync under exact live-mirror semantics · **superseded** by STABLE PRODUCTION IDENTITY
-> **★★ CURRENT CASE BRANCH / CURRENT NODE:** **ŚRODA A0.2** — §10.0 · tender `08deff6c-bc34-619e-b346-0300010ce2e5` · **8 CatalogWork** · KV **rev 57 LIVE** · **A0.2 frontend PV = VERIFIED (OD-OCR-37)** · residual **L+T+U admission noise** (outside A0.2) · **hydration / line-tolerant NIE przesuwają CURRENT NODE**
+> **★★ CURRENT CASE BRANCH / CURRENT NODE:** **ŚRODA A0.2** — §10.0 · tender `08deff6c-bc34-619e-b346-0300010ce2e5` · **8 CatalogWork** · KV **rev 57 LIVE** · **A0.2 frontend PV = VERIFIED (OD-OCR-37)** · **Środa L+T+U admission follow-up FREEZE** (≠ reopen A0.2 · IMPLEMENT NOT STARTED) · **hydration / line-tolerant NIE przesuwają CURRENT NODE**
 > **★★ CHROBREGO (CLOSED CASE):** §10.0 · tender `08df0363-7b22-e462-ab56-940001283cba` · **56/0 PASS** · **G3 159000 net / 36570 VAT / 195570 gross** · **NIE reopen** · line-tolerant regression **56/56 admitted · readyForExperts=true · mayProceed=true**
 > **★★ GLOBAL IK PRODUCTION VERIFIED = NO** — hydration + line-tolerant + OD-OCR-47 = capability paths only · nie pełny E2E Document→…→Final Bid na każdym tenderze
 > **★★ TPI Full IK E2E:** **OPEN / NOT VERIFIED** — brak usable FULL w `kw-tender-ingest-v1` · bez re-ingest/fabrication · capability hydrate **≠** historical E2E PASS
@@ -477,7 +477,7 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **A0.2 frontend PV** | **VERIFIED (OD-OCR-37)** · HISTORY: 2026-09-03 „WAITING / NOT VERIFIED / 2.66.136” = **PRIOR** |
 | **A0.2 CatalogWork** | **8/8** · `descriptionPl=""` · metadata-induced FP **0** · podejście objectMarkers ≠ ustęp · **≠** mapper/F5/scoring/P1–P3 |
 | **A0.2 baseline (Środa)** | raw **168** · composed **84** · TRUE_OWNER **44** · WEAK **40** · F5 **84** · **F5 delta ≠ acceptance** |
-| **A0.2 residual** | structural **L+T+U admission noise** · accepted / **outside A0.2** |
+| **Środa L+T+U follow-up** | Owner **FREEZE** · V1 signal expose · admission-only suppress structuralOnly when semantic peer exists · **≠** A0.2 reopen · **IMPLEMENT NOT STARTED** |
 | **★★ CHROBREGO (2026-08-31)** | **CLOSED CASE** — §10.0 · tender `08df0363-…` · **56/0 CUTOVER PASS** · **NIE reopen** |
 | **CHROBREGO G1 AUTO-SAFE** | **CLOSED / PASS** · **22/22** |
 | **CHROBREGO G1 OWNER_REVIEW + NO_SAFE** | **CLOSED / PASS** (final 56/0) |
@@ -686,10 +686,10 @@ Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-
 | 4 | **AUTONOMY-08 epic closeout** | **OPEN** | pozostałe gates · **≠** A0.2 alone |
 | 5 | **W3–W6 connectivity** | **NOT auto-authorized** | Chief/Hub convergence §2A |
 | 6 | **KNR full catalog / Phase 2E** | **PARTIAL / OPEN** | Global KNR on-MISS discovery+reanalysis **LANDED** (`0d9880fb`) · full Phase 2E catalog product **OPEN** |
-| 7 | **Środa follow-up / inny REAL SOURCE** | per audit | coverage residual L+T+U · LP20 rank1 not required · **≠** invent Expert |
+| 7 | **Środa follow-up / inny REAL SOURCE** | **L+T+U FREEZE** · IMPLEMENT **NOT STARTED** · inne REAL SOURCE per audit | L+T+U admission-only suppress · LP20 rank1 promotion **ACCEPTED** · **≠** A0.2 reopen · **≠** invent Expert |
 | 8 | **TM-01 residuals C1–C6** | backlog | Owner GO only |
 
-**Realne GAP-y (nie invent):** global material G2 Accept when Chief OFF · full Phase 2E catalog (beyond Global KNR discovery LANDED) · A09 Owner-priced rate · unit proof (pkt≠mb global) · interactive UI smoke residuals (Owner) · structural L+T+U admission noise (Środa · outside A0.2) · **≠** CHROBREGO billable lines · **≠** A0.2 F5 “fix”.
+**Realne GAP-y (nie invent):** global material G2 Accept when Chief OFF · full Phase 2E catalog (beyond Global KNR discovery LANDED) · A09 Owner-priced rate · unit proof (pkt≠mb global) · interactive UI smoke residuals (Owner) · Środa L+T+U admission follow-up (**FREEZE** · IMPLEMENT NOT STARTED · **≠** A0.2 reopen) · **≠** CHROBREGO billable lines · **≠** A0.2 F5 “fix”.
 
 ---
 
@@ -722,7 +722,7 @@ Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-
 | **Baseline BOQ** | raw **168** · composed **84** · TRUE_OWNER **44** · WEAK **40** |
 | **metadata-induced FP** | **0** · `descriptionPl=""` · podejście objectMarkers ≠ ustęp |
 | **Mapper / F5 / scoring / P1–P3** | **UNCHANGED** by A0.2 |
-| **Residual (outside A0.2)** | structural **L+T+U admission noise** · accepted |
+| **Środa L+T+U admission follow-up** | Owner **FREEZE** · V1 signal expose · admission-only suppress structuralOnly when semantic peer exists · **≠** A0.2 reopen · **≠** score/F5/P1/P2/primary change · LP20 promotion **ACCEPTED** · L∧U without T **OUT OF SCOPE** · **IMPLEMENT NOT STARTED** |
 | **CHROBREGO (CLOSED)** | tender `08df0363-7b22-e462-ab56-940001283cba` · **56/0** · Final Bid **159000/195570** · **NIE reopen** |
 | **Session artefacts** | `.tmp/catalog-ik-owner-sroda-a02-*.json` · TEMP audits · evidence only · **nie** drugi SSOT |
 | **Impl pointer** | `src/lib/work-catalog/ik-owner-create-sroda-a02-catalog.ts` · OPS `ik-owner-create-sroda-a02-ops.ts` · script `scripts/catalog-ik-owner-sroda-a02-ops.mjs` · tests **84/84** |
@@ -766,18 +766,39 @@ Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-
 │   ├── LP13 rank1
 │   ├── LP16 rank1
 │   ├── LP18 rank1
-│   └── LP20 rank2
-│       └── CATALOG COVERAGE PRESENT / RANK1 NOT GUARANTEED
-│           · NIE przedstawiaj LP20 jako failure
+│   └── LP20
+│       └── coverage PRESENT · rank1 promotion ACCEPTED
+│           when structural-only legacy suppressed and semantic parapet remains
+│           · NIE claim F5/scoring/mapper rewrite as „fix”
 │
 ├── F5
 │   └── baseline 84 · delta NOT acceptance · NIE claim F5 fixed/reduced/solved
 │
-└── OUT OF SCOPE (accepted residual)
-    └── structural L+T+U admission noise
+└── FOLLOW-UP (Owner FREEZE · admission-only · ≠ reopen A0.2)
+    └── L+T+U structural-only peer suppression
+        · IF ≥1 semantic candidate (knr|alias|kw|name|desc)
+          THEN suppress structuralOnly = L∧T∧U ∧ ¬semantic
+        · ELSE no suppression
+        · score / L/T/U weights / P1 / P2 / primary-pick / F5 UNCHANGED
+        · legacy L+T+U-only IN SCOPE
+        · L∧U without T OUT OF SCOPE
+        · LP20: structural legacy may drop → semantic parapet rank1 ACCEPTED
+        · IMPLEMENT NOT STARTED
 ```
 
-**A0.2 HARD:** Work Catalog coverage improvement only · **no** new Expert · **no** second Orchestra/Host/Decision Tree/Chief/Accept path/refresh bus · **no** mapper/F5/scoring/P1/P2/P3 changes.
+**A0.2 HARD:** Work Catalog coverage improvement only · **no** new Expert · **no** second Orchestra/Host/Decision Tree/Chief/Accept path/refresh bus · **no** mapper/F5/scoring/P1/P2/P3 changes · **A0.2 CLOSED** · **NIE reopen**.
+
+#### Środa L+T+U peer suppression (Owner FREEZE · SSOT CONTRACT · pre-IMPLEMENT)
+
+- **Follow-up po A0.2** — **≠** reopen A0.2 · A0.2 CatalogWork / KV rev 57 / OD-OCR-37 **PRESERVED**.
+- **Boundary:** OfferBoq **mapping admission** (`mapOfferBoqLineCore`) — **after P1 + P2**, **before** sort / TOP-4.
+- **V1 semantic (runtime):** `knrHit ∨ aliasHit ∨ keywordHit ∨ nameHit ∨ descHit`.
+- **Structural L+T+U:** `categoryHit ∧ tradeHit ∧ unitHit`.
+- **structuralOnly:** Structural L+T+U ∧ ¬semantic.
+- **Suppression:** iff ≥1 semantic candidate in post-P2 pool → suppress structuralOnly; else **idle**.
+- **IN SCOPE:** legacy L+T+U-only peers · **LP20** rank1 promotion **ACCEPTED**.
+- **OUT OF SCOPE:** L∧U without trade · L/T/U weight change · score change · F5 change · P1/P2 change · primary-pick change · Expert Admission · Orchestra · new Expert/mapper/registry.
+- **IMPLEMENT:** **NOT STARTED** — wymaga osobnego Owner **IMPLEMENT GO**.
 
 #### CASE BRANCH — CHROBREGO (CLOSED · 2026-08-31)
 
@@ -2148,8 +2169,8 @@ A08-P3 epic: **IMPLEMENTED · nadal OPEN**.
 - **W3–W6 connectivity waves** — **NOT auto-authorized**
 - Phase 2E full catalog · TM-01 residuals · A09 Owner-priced rate · unit-proof gaps — per audit · Owner GO
 - TPI Full IK E2E (Identity→…→Final Bid) — **OPEN / NOT VERIFIED** · no usable FULL currently in `kw-tender-ingest-v1` · no re-ingest/fabrication · hydrate capability **≠** E2E PASS · wymaga Owner GO
-- Structural L+T+U admission noise (Środa) — residual accepted / outside A0.2
-- LP20 Środa: coverage present / rank1 not guaranteed · **nie** fix via F5/scoring/mapper/Candidate Limit/new Expert
+- Środa L+T+U admission follow-up — Owner **FREEZE** · **IMPLEMENT NOT STARTED** · **≠** A0.2 reopen · admission-only · LP20 promotion **ACCEPTED**
+- LP20 Środa: coverage present · rank1 promotion **ACCEPTED** when structural-only legacy suppressed · **nie** fix via F5/scoring/mapper rewrite / Candidate Limit / new Expert
 
 ### BLOCKED / WAITING FOR
 
@@ -2315,11 +2336,11 @@ DEPLOY PROPAGATING at last verification
 /version.json still 2.66.136 / f3ec166
 Production frontend PV NOT VERIFIED
 
-Known residual:
-structural L+T+U admission noise
-accepted / outside A0.2 scope
+Known residual (HISTORY at A0.2 implement · **superseded** by §10.0 L+T+U FREEZE):
+structural L+T+U admission noise was outside A0.2 scope
+→ CURRENT: Owner FREEZE admission-only suppress · IMPLEMENT NOT STARTED · ≠ reopen A0.2
 
-No mapper/F5/scoring/P1/P2/P3 changes.
+No mapper/F5/scoring/P1/P2/P3 changes **by A0.2**.
 ```
 
 ### HISTORY / PRIOR STATE — §22 (2026-08-31 · CHROBREGO 56/0 CURRENT)
@@ -2523,7 +2544,7 @@ IK **nie** może samodzielnie przejąć Owner authority.
 **ŚRODA A0.2 summary (CURRENT CASE):**
 
 - 8 CatalogWork · KV rev **57** LIVE · frontend PV **VERIFIED (OD-OCR-37)**
-- metadata FP **0** · F5 baseline **84** (delta N/A) · residual L+T+U outside scope
+- metadata FP **0** · F5 baseline **84** (delta N/A) · L+T+U follow-up **FREEZE** (IMPLEMENT NOT STARTED · ≠ A0.2 reopen)
 
 **HISTORY / PRIOR STATE (2026-08-28):** G2 m² only CLOSED · LP48 OPEN · G1 OWNER_REVIEW OPEN — **superseded**.
 

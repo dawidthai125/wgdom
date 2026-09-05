@@ -40,12 +40,19 @@ import { isInvoicePurchaseCatalogWorkId } from "@/lib/price-intelligence/invoice
 import { preserveOfferBoqLineIfTrusted } from "@/lib/intelligent-estimator/ik-identity-trusted-preserve";
 import { areOfferBoqUnitFamiliesCompatible } from "@/lib/tender-offer-boq-unit-family";
 import { areOfferBoqObjectsCompatible } from "@/lib/tender-offer-boq-object-consistency";
+import { filterOfferBoqLtuAdmission } from "@/lib/tender-offer-boq-ltu-admission";
 
 const CANDIDATE_LIMIT = 4;
 
-/** Re-export P1 / P2 admission gates for focused tests / REUSE. */
+/** Re-export P1 / P2 / L+T+U admission gates for focused tests / REUSE. */
 export { areOfferBoqUnitFamiliesCompatible } from "@/lib/tender-offer-boq-unit-family";
 export { areOfferBoqObjectsCompatible } from "@/lib/tender-offer-boq-object-consistency";
+export {
+  filterOfferBoqLtuAdmission,
+  offerBoqHasSemanticSignal,
+  offerBoqIsStructuralLtuOnly,
+} from "@/lib/tender-offer-boq-ltu-admission";
+export type { OfferBoqLtuScoreSignals } from "@/lib/tender-offer-boq-ltu-admission";
 
 
 export interface OfferBoqMappingContext {
@@ -125,6 +132,14 @@ interface ScoredWork {
   knrHit: boolean;
   unitHit: boolean;
   categoryHit: boolean;
+  /** Trade match vs line category (+12) — structural T leg of L+T+U. */
+  tradeHit: boolean;
+  /** Keyword phrase hit (+12) — semantic V1. */
+  keywordHit: boolean;
+  /** Name token hit (+8) — semantic V1. */
+  nameHit: boolean;
+  /** Description token hit (+4) — semantic V1 (must be explicit; not in hitPhrases). */
+  descHit: boolean;
   /** CM-1 alias hit (tylko przy uplift). */
   aliasHit?: boolean;
 }
@@ -177,6 +192,10 @@ function scoreWorkAgainstLine(opts: {
   let knrHit = false;
   let unitHit = false;
   let categoryHit = false;
+  let tradeHit = false;
+  let keywordHit = false;
+  let nameHit = false;
+  let descHit = false;
   let aliasHit = false;
 
   if (knrKey) {
@@ -202,6 +221,7 @@ function scoreWorkAgainstLine(opts: {
   const trades = listTradeIdsForLegacyCategory(categoryId);
   if (trades.includes(work.tradeId)) {
     score += 12;
+    tradeHit = true;
   }
 
   const workUnit = normalizeWgdomCostUnit(work.unit);
@@ -216,6 +236,7 @@ function scoreWorkAgainstLine(opts: {
     if (k.length < 3) continue;
     if (hay.includes(k)) {
       score += 12;
+      keywordHit = true;
       if (hitPhrases.length < 6) hitPhrases.push(kw.trim());
     }
   }
@@ -225,6 +246,7 @@ function scoreWorkAgainstLine(opts: {
     if (token.length < 4) continue;
     if (hay.includes(token)) {
       score += 8;
+      nameHit = true;
       if (hitPhrases.length < 6) hitPhrases.push(token);
     }
   }
@@ -233,7 +255,10 @@ function scoreWorkAgainstLine(opts: {
   if (descFold) {
     for (const token of descFold.split(/\s+/)) {
       if (token.length < 5) continue;
-      if (hay.includes(token)) score += 4;
+      if (hay.includes(token)) {
+        score += 4;
+        descHit = true;
+      }
     }
   }
 
@@ -249,7 +274,19 @@ function scoreWorkAgainstLine(opts: {
     }
   }
 
-  return { work, score, hitPhrases, knrHit, unitHit, categoryHit, aliasHit };
+  return {
+    work,
+    score,
+    hitPhrases,
+    knrHit,
+    unitHit,
+    categoryHit,
+    tradeHit,
+    keywordHit,
+    nameHit,
+    descHit,
+    aliasHit,
+  };
 }
 
 function buildRationale(opts: {
@@ -509,10 +546,14 @@ export function mapOfferBoqLineCore(
     .filter((s) => areOfferBoqUnitFamiliesCompatible(line.unit, s.work.unit))
     // P2: object-consistency admission gate — reject only clear object contradiction
     // (does not auto-pick / change F5 ≥2 / suppress legacy generically).
-    .filter((s) => areOfferBoqObjectsCompatible(line.description, s.work))
-    .sort((a, b) => b.score - a.score || a.work.id.localeCompare(b.work.id, "pl"));
+    .filter((s) => areOfferBoqObjectsCompatible(line.description, s.work));
 
-  const top = scored.slice(0, CANDIDATE_LIMIT);
+  // L+T+U structural-only peer suppression (Owner FREEZE) — after P1+P2, before sort/TOP-4.
+  const admitted = filterOfferBoqLtuAdmission(scored).sort(
+    (a, b) => b.score - a.score || a.work.id.localeCompare(b.work.id, "pl"),
+  );
+
+  const top = admitted.slice(0, CANDIDATE_LIMIT);
   // Primary wymaga sygnału semantycznego (KNR / frazy / kategoria+jm) — samo jm nie wystarczy.
   // CM-1: alias specialty + score≥28 wystarczy (bez obniżania progu tip gdy OFF).
   const primary =
