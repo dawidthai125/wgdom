@@ -54,7 +54,12 @@ export {
 } from "@/lib/tender-ingest/readiness";
 export { processIngestParseBatch, recordIngestArtifact } from "@/lib/tender-ingest/queue";
 export type { IngestParseFn } from "@/lib/tender-ingest/queue";
-export { applyIngestArtifactsToPipelineItem } from "@/lib/tender-ingest/artifact-bridge";
+export {
+  applyIngestArtifactsToPipelineItem,
+  hydratePipelineItemsFromIngestRegistry,
+  isUsableCostArtifactSnapshot,
+  preferCostBranchArtifact,
+} from "@/lib/tender-ingest/artifact-bridge";
 export {
   persistIngestArtifactPatchToCloud,
   buildIngestArtifactCloudCandidate,

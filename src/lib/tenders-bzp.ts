@@ -39,6 +39,7 @@ import {
   stripTenderPipelineForLocalStorage,
 } from "@/lib/storage/tenders-pipeline-cold";
 import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
+import { hydratePipelineItemsFromIngestRegistry } from "@/lib/tender-ingest/artifact-bridge";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -702,18 +703,31 @@ export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
   }
 }
 
+/** DESIGN-C — registry FULL → bridge → cold. No cloud write / no re-ingest. */
+function finalizePipelineLoadWithIngestHydrate(
+  items: TenderPipelineItem[],
+  opts?: { persistAlways?: boolean },
+): TenderPipelineItem[] {
+  const { items: hydrated, hydratedCount } = hydratePipelineItemsFromIngestRegistry(items);
+  if (opts?.persistAlways || hydratedCount > 0) {
+    saveTendersPipelineLocal(hydrated);
+  }
+  return hydrated;
+}
+
 export async function loadTendersPipeline(): Promise<TenderPipelineItem[]> {
   try {
     await hydratePipelineColdFromIdb();
     const local = loadTendersPipelineLocal();
     const [cloud] = await fetchKeysFromCloud([TENDERS_PIPELINE_KEY]);
-    if (cloud == null || !Array.isArray(cloud)) return local;
+    if (cloud == null || !Array.isArray(cloud)) {
+      return finalizePipelineLoadWithIngestHydrate(local);
+    }
     const merged = mergeTenderPipelineForCloud(local, cloud);
-    saveTendersPipelineLocal(merged);
-    return merged;
+    return finalizePipelineLoadWithIngestHydrate(merged, { persistAlways: true });
   } catch {
     await hydratePipelineColdFromIdb();
-    return loadTendersPipelineLocal();
+    return finalizePipelineLoadWithIngestHydrate(loadTendersPipelineLocal());
   }
 }
 
