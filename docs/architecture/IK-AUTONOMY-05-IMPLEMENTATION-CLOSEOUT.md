@@ -20,6 +20,8 @@
 | **Composite** | **CLOSED** (unchanged consumer) |
 | **EPIC CLOSE** | **NOT CLOSED** (docs commit / EPIC close = osobna tura) |
 
+> **★★ CURRENT RUNTIME AMENDMENT (2026-09-05):** Expert Chain gate = **`expertChainMayProceed`** · Document readiness = **`readyForExperts`** · Master §2A.9 · line-tolerant **CLOSED/PV** @ **`a5d19047`**. Historical closeout eligibility text citing sole `readyForExperts` = era HISTORY.
+
 ```text
 IMPLEMENTATION         = PASS
 OWNER VERIFY           = PASS WITH FINDINGS

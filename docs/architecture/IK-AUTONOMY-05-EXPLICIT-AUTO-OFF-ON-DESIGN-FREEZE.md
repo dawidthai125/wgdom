@@ -9,6 +9,8 @@
 | **Source of truth** | [`IK-AUTONOMY-05-OD2-OWNER-DECISION.md`](./IK-AUTONOMY-05-OD2-OWNER-DECISION.md) |
 | **Production** | **2.66.89** / **`d62eb2a`** |
 
+> **★★ CURRENT RUNTIME AMENDMENT (2026-09-05):** Document readiness = **`readyForExperts`** · Expert admission = **`expertChainMayProceed`** · Master SSOT **§2A.9** · line-tolerant **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`**. Frozen historical eligibility lines that list sole `masterBoq.readyForExperts` remain **HISTORY of this DF** — **CURRENT** Orchestra uses admission mayProceed for Expert Chain (pending/gap/hold still global STOP). **Unchanged:** AUTO/OFF/ON semantics · Research CONDITIONAL · Accept/Final Bid OWNER.
+
 ```text
 OD-2   = APPROVED
 OD-2b  = ACCEPTED

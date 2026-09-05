@@ -3,11 +3,11 @@
 > **ID:** MASTER-AI-HANDOFF
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)
 > **MODE:** DOCUMENTATION ONLY
-> **Data:** 2026-09-04 (Master SSOT continuity · OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-25 (IK-KNR KL-6)
+> **Data:** 2026-09-05 (Master SSOT continuity · LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-25 (IK-KNR KL-6)
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)
 > **★★ IK Master (NO REBUILD · PRIMARY):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)
 > **★★ CURRENT NODE:** **ŚRODA A0.2** — Master §10.0 · KV **rev 57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
-> **★★ CURRENT PRODUCTION:** **2.66.147 / `2f3d1847`** · **OD-OCR-47 PASS** · **GLOBAL IK PRODUCTION VERIFIED = NO**
+> **★★ CURRENT PRODUCTION:** **2.66.165 / `a5d19047`** · **LINE-TOLERANT CLOSED/PV** · OD-OCR-47 **HISTORY** · **GLOBAL IK PRODUCTION VERIFIED = NO**
 > **★★ CHROBREGO:** **CLOSED CASE** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)
 > **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED**
@@ -23,15 +23,15 @@
 Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
 START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT (§10.0 CURRENT NODE) → TEN plik → 09 + version.json
 Tip = wyłącznie 09 + version.json
-CURRENT = ŚRODA A0.2 · CHROBREGO CLOSED · OD-OCR-47 PASS (capability) · AUTONOMY-08 OPEN · Phase 5 NOT AUTHORIZED · W3–W6 NOT auto-authorized
-ACTIVE IMPLEMENT = NONE bez Owner GO · production tip 2.66.147 / 2f3d1847 · GLOBAL IK PV = NO
+CURRENT = ŚRODA A0.2 · LINE-TOLERANT CLOSED/PV · CHROBREGO CLOSED · OD-OCR-47 HISTORY capability · AUTONOMY-08 OPEN · Phase 5 NOT AUTHORIZED · W3–W6 NOT auto-authorized
+ACTIVE IMPLEMENT = NONE bez Owner GO · production tip 2.66.165 / a5d19047 · GLOBAL IK PV = NO
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + live `version.json` — **CURRENT 2.66.147 / `2f3d1847`**. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **OD-OCR-47 PASS** (capability · nie nowy Decision Tree). **CHROBREGO CLOSED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
+W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + live `version.json` — **CURRENT 2.66.165 / `a5d19047`**. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **LINE-TOLERANT CLOSED/PV** (Master §2A.9 · ≠ Global IK PV). **OD-OCR-47 PASS** = HISTORY capability tip. **CHROBREGO CLOSED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
 
 **NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. Środa follow-up · TPI IK E2E · Phase 5 · epic closeout) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** start G1/G2/G3 na TPI bez GO.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
@@ -47,7 +47,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
 | **Branch** | `main` |
 | **UI version** | **czytaj [`09`](09_PRODUCTION_BASELINE.md)** + live `version.json` (**nie** hardcoduj tutaj) |
-| **CURRENT LIVE / REPOSITORY TIP** | **`f457cb17`** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · UI **2.66.116** |
+| **CURRENT LIVE / REPOSITORY TIP** | **`a5d19047`** / **2.66.165** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · LINE-TOLERANT CLOSED/PV · OD-OCR-47 HISTORY |
 | **A08-P3 FEATURE TIP** | **`3822acb`** · **IMPLEMENTED · OPEN** · harness **27/0** · G2 PV **WAIT** |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · see [`09`](09_PRODUCTION_BASELINE.md) |
 | **Feature tip** | A08-P3 @ **`3822acb`** · S6/P4 @ **`2fce3caf`** · Phase 2E targeted @ **`1a9c5484`** (FULL 2E OPEN) · APF **FROZEN** · validation = harness GREEN · interactive UI = Owner residual · **≠** global IK FINAL |

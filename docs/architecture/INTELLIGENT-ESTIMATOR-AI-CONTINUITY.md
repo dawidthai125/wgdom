@@ -2,10 +2,10 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-AI-CONTINUITY`
 > **STATUS:** ACTIVE · DOCUMENTATION ONLY
-> **Data:** 2026-09-04 (Master SSOT continuity · OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-24 (Observability Phases 1–4)
-> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · **§10.0 · §10.0.2 · §22** — **JEDYNY Master SSOT IK**
+> **Data:** 2026-09-05 (Master SSOT continuity · LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-24 (Observability Phases 1–4)
+> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · **§10.0 · §2A.9 · §10.0.3 · §22** — **JEDYNY Master SSOT IK**
 > **CURRENT NODE:** **ŚRODA A0.2** — 8 CatalogWork · KV rev **57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
-> **CURRENT PRODUCTION:** **2.66.147 / `2f3d1847`** · **OD-OCR-47 PASS** · **GLOBAL IK PRODUCTION VERIFIED = NO**
+> **CURRENT PRODUCTION:** **2.66.165 / `a5d19047`** · **LINE-TOLERANT CLOSED/PV** · OD-OCR-47 HISTORY · **GLOBAL IK PRODUCTION VERIFIED = NO**
 > **CLOSED CASE:** **CHROBREGO** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **Sesja hist.:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior Autonomy [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)
 > **Tip:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` (rozdziel REPO vs LIVE)
@@ -16,6 +16,7 @@ Nie buduj Przetargów / IK / Catalog / Pricing od zera.
 Decision Tree > report > artifact > chat memory
 SEARCH → REUSE → CONNECT → VERIFY → NEW only if proven GAP
 Orchestra = single sequencer · IkEntryHost = adapter
+DOCUMENT TRUTH ≠ EXPERT ADMISSION (§2A.9)
 AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-authorized
 ```
 
@@ -23,13 +24,14 @@ AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-
 
 | | |
 |--|--|
-| **CURRENT REPOSITORY / LIVE TIP** | **`2f3d1847`** / **2.66.147** |
-| **LIVE `/version.json` (last check)** | **2.66.147 / `2f3d184`** · READY / verified |
+| **CURRENT REPOSITORY / LIVE TIP** | **`a5d19047`** / **2.66.165** |
+| **LIVE `/version.json` (last check)** | **2.66.165 / `a5d1904`** · READY / verified |
+| **LINE-TOLERANT** | **CLOSED / PRODUCTION VERIFIED** · Master §2A.9 · §10.0.3 |
 | **A0.2 KV** | **rev 57 LIVE** · 8/8 × 2 regions · frontend PV **VERIFIED (OD-OCR-37)** |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** |
 | **Phase 2E** | targeted discovery **LANDED** **`1a9c5484`** · **FULL PHASE 2E OPEN** · **OUT OF SCOPE A08** |
-| **Status** | A0.2 CURRENT CASE · OD-OCR-47 PASS · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED** |
-| **Reference** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · Master §10.0 · §10.0.2 |
+| **Status** | A0.2 CURRENT CASE · LINE-TOLERANT CLOSED/PV · OD-OCR-47 HISTORY · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED** |
+| **Reference** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · Master §10.0 · §2A.9 · §10.0.3 |
 | **NOT CLAIMED** | **GLOBAL IK PRODUCTION VERIFIED** · AUTONOMY-08 CLOSED · Phase 2E CLOSED · S10 · entire IK FINAL |
 
 ---

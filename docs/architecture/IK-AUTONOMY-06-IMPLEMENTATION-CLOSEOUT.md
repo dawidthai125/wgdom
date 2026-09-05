@@ -20,6 +20,8 @@
 | **Composite** | **CLOSED** · `feedsP7Bid=false` |
 | **EPIC CLOSE** | **NOT CLOSED** (docs commit / EPIC close = osobna tura · Owner GO) |
 
+> **★★ CURRENT RUNTIME AMENDMENT (2026-09-05):** Expert Chain / P7 host eligibility interprets Document **`readyForExperts`** vs admission **`expertChainMayProceed`** per Master §2A.9 · line-tolerant **CLOSED/PV** @ **`a5d19047`**. Historical closeout lines with sole `readyForExperts` = era HISTORY. **Unchanged:** P7 read-only · Final Bid OWNER.
+
 ```text
 PLAN                   = PASS
 OD-P7b                 = B-POLICY

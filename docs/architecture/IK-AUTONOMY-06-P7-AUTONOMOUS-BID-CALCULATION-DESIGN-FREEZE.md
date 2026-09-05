@@ -13,6 +13,8 @@
 | **Audit** | [`IK-AUTONOMY-06-NEXT-AUTONOMY-BREAK-AUDIT.md`](./IK-AUTONOMY-06-NEXT-AUTONOMY-BREAK-AUDIT.md) |
 | **P5/P6 helpers** | `IkE2eMode` · `parseIkE2eMode` · `normalizeIkE2eMode` · `mergeIkE2eMode` · `isIkE2eModeActive` |
 
+> **★★ CURRENT RUNTIME AMENDMENT (2026-09-05):** Host/Expert eligibility for Expert Chain uses **`expertChainMayProceed`** (Master §2A.9) · `readyForExperts` = Document READY lock only · line-tolerant **CLOSED/PV** @ **`a5d19047`**. Historical DF lines `readyForExperts ∨ OfferBoq lines` = drafting-era host guard wording — interpret with §2A.9. **Unchanged:** P7 read-only · Final Bid OWNER · Research CONDITIONAL.
+
 ```text
 DESIGN FREEZE              = READY FOR ARCH REVIEW
 Architecture blockers      = UNKNOWN UNTIL ARCH REVIEW

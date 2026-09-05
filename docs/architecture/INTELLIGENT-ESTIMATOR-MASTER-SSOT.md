@@ -2,13 +2,14 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ JEDYNY MASTER SSOT Inteligentnego Kosztorysanta** · **★★ JEDYNY cold-start IK dla nowego GPT/Cursor**
-> **Data:** 2026-09-04 (**MASTER SSOT CONTINUITY CLOSEOUT** · prod **2.66.147 / `2f3d1847`** · **OD-OCR-47 PASS**) · prior 2026-09-03 (A0.2 ŚRODA) · prior 2026-08-31 (G3 Final Bid CHROBREGO)
+> **Data:** 2026-09-05 (**LINE-TOLERANT EXPERT ADMISSION CLOSEOUT** · prod **2.66.165 / `a5d19047`** · **PRODUCTION VERIFIED**) · prior 2026-09-04 (OD-OCR-47 / tip `2f3d1847`) · prior 2026-09-03 (A0.2 ŚRODA) · prior 2026-08-31 (G3 Final Bid CHROBREGO)
 > **Doc hash:** see git after this closeout
-> **★★ CURRENT PRODUCTION:** **2.66.147** / **`2f3d1847`** · https://www.wgdom.fun · READY / verified · tip [`09`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json`
-> **★★ LATEST VERIFIED CAPABILITY:** **OD-OCR-47 PASS** — Owner Ingest → OCR → C2 → artifact bridge → authoritative cloud persist · **≠** nowy Decision Tree · **≠** GLOBAL IK PRODUCTION VERIFIED
-> **★★ CURRENT CASE BRANCH / CURRENT NODE:** **ŚRODA A0.2** — §10.0 · tender `08deff6c-bc34-619e-b346-0300010ce2e5` · **8 CatalogWork** · KV **rev 57 LIVE** · **A0.2 frontend PV = VERIFIED (OD-OCR-37)** · residual **L+T+U admission noise** (outside A0.2)
-> **★★ CHROBREGO (CLOSED CASE):** §10.0 · tender `08df0363-7b22-e462-ab56-940001283cba` · **56/0 PASS** · **G3 159000 net / 36570 VAT / 195570 gross** · **NIE reopen** · **NIE** flow Środy / TPI przez CHROBREGO
-> **★★ GLOBAL IK PRODUCTION VERIFIED = NO** — OD-OCR-47 = capability path only · nie pełny E2E Document→…→Final Bid na nowym TPI
+> **★★ CURRENT PRODUCTION:** **2.66.165** / **`a5d19047`** (`a5d190473fb8acbea9e41a1c70a5406a0577c4db`) · live `version.json` commit **`a5d1904`** · https://www.wgdom.fun · HTTP **200** · tip [`09`](../AI/09_PRODUCTION_BASELINE.md)
+> **★★ LATEST VERIFIED CAPABILITY:** **IK-LINE-TOLERANT-EXPERT-ADMISSION-01** — **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · DOCUMENT TRUTH ≠ EXPERT ADMISSION · Paczka XI PV · **≠** nowy Decision Tree · **≠** GLOBAL IK PRODUCTION VERIFIED
+> **★★ PRIOR CAPABILITY TIP (HISTORY):** **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147** — Owner Ingest → OCR → C2 → authoritative persist · **ancestor** · **≠** current production tip
+> **★★ CURRENT CASE BRANCH / CURRENT NODE:** **ŚRODA A0.2** — §10.0 · tender `08deff6c-bc34-619e-b346-0300010ce2e5` · **8 CatalogWork** · KV **rev 57 LIVE** · **A0.2 frontend PV = VERIFIED (OD-OCR-37)** · residual **L+T+U admission noise** (outside A0.2) · **line-tolerant NIE przesuwa CURRENT NODE**
+> **★★ CHROBREGO (CLOSED CASE):** §10.0 · tender `08df0363-7b22-e462-ab56-940001283cba` · **56/0 PASS** · **G3 159000 net / 36570 VAT / 195570 gross** · **NIE reopen** · line-tolerant regression **56/56 admitted · readyForExperts=true · mayProceed=true**
+> **★★ GLOBAL IK PRODUCTION VERIFIED = NO** — line-tolerant + OD-OCR-47 = capability paths only · nie pełny E2E Document→…→Final Bid na każdym tenderze
 > **★★ G3 UPDATE (2026-08-31 · Owner GO):** CHROBREGO **56/0** · G1/G2 **CLOSED** · **G3 Final Bid PERSISTED** · DF [`IK-AUTONOMY-08-P4-G3-FINAL-BID-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P4-G3-FINAL-BID-DESIGN-FREEZE.md) · **≠** submittedBidPln · **≠** Experience Phase 5
 > **Mode:** docs continuity closeout · **NO REBUILD** · Experience Phases **1–4 PRODUCTION VERIFIED** · Phase **5 NOT AUTHORIZED** · **FULL IK E2E harness = GREEN** (CODE/TEST) · **AUTONOMY-08 epic NOT CLOSED**
 > **★★ DECISION TREE = PRIMARY CONTINUITY CONTRACT** — §10.0 · §17 · §22 · **Decision Tree > report > artifact > chat memory** · **jeden** tree · OCR/C2/Track B/ingest = **równoległe capability tracks** (nie drugi tree)
@@ -272,6 +273,62 @@ Decision Tree DF: [`IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md`](./IK-MASTER-DECIS
 
 **Jeżeli punkt 8 = NEW:** udokumentuj GAP + insertion seam + Decision Tree node + Orchestra + Owner + persist/recompute + Observation + SSOT + tests — **STOP** i czekaj na Owner GO.
 
+### 2A.9 DOCUMENT TRUTH ≠ EXPERT ADMISSION (LOCKED · PRODUCTION VERIFIED 2026-09-05)
+
+> **Capability ID:** `IK-LINE-TOLERANT-EXPERT-ADMISSION-01` · commit **`a5d19047`** · UI tip **2.66.165** (bez bumpu CHANGELOG w feature commit) · **CLOSED / PRODUCTION VERIFIED**.
+> **≠** Global IK Production Verified · **≠** nowy Orchestra · **≠** nowy Expert · **≠** auto Owner decisions.
+> Cold-start: przeczytaj ten § **przed** interpretacją Autonomy docs, które historycznie mówią `readyForExperts` jako sole Expert Chain gate.
+
+```text
+DOCUMENT TRUTH          ≠  EXPERT ADMISSION
+readyForExperts         ≠  expertChainMayProceed
+status === "ready"      ≠  admittedCount > 0
+partial stays partial   —  NEVER mask partial → ready
+```
+
+| Pojęcie | Semantyka (FROZEN) |
+|---------|-------------------|
+| **`readyForExperts`** | Globalny wskaźnik **pełnej** strukturalnej gotowości Document/Master BOQ · **`readyForExperts === true ⇔ status === "ready"`** · **`partial → ready = IMPOSSIBLE`** |
+| **`expertChainMayProceed`** | Gate Expert Chain na **ADMITTED subset** · derived each run · **nie** KV · **nie** drugi BOQ |
+| **Formula** | `expertChainMayProceed = admittedCount > 0 ∧ ¬globalIntegrityBlocker` |
+| **Global integrity blocker** | Document status **`pending` \| `gap` \| `hold`** → cały Expert Chain **STOP** |
+| **`partial`** | Local/document-level extraction gaps (np. 1× qty=0) · **nie** musi zatrzymywać ADMITTED subset |
+| **ZERO ADMITTED** | `mayProceed=false` → Expert Chain **STOP** |
+
+**Admission (derived · ONE OfferBoq · ONE lineId):**
+
+| State | Meaning |
+|-------|---------|
+| **ADMITTED** | lineId · description non-empty ≠ `(bez opisu)` · unit non-empty · quantity finite **> 0** · `isNoise !== true` |
+| **UNRESOLVED** | structural predicate failure · reasons min. `MISSING_QUANTITY` / `MISSING_UNIT` / `MISSING_DESCRIPTION` (+ runtime `MISSING_LINE_ID` gdy brak lineId) |
+| **SKIPPED** | `isNoise === true` · **nie** BLOCKED lifecycle |
+
+**Handoffs:**
+
+```text
+ADMITTED:   Document → Identity → Classification → Catalog → KNR → Labor/Material → Composite → F5 → P7 → P8
+UNRESOLVED: Document → Evidence → Blocker → Owner Review (contract/surface · NIE claim completed Owner UI)
+```
+
+**Canonical identity:** `OfferBoqLine.lineId` only · **zakaz** index-only / description re-key / new handoff IDs.
+Document admission snapshot = źródło initial ADMITTED set — mapper/`isNoise` później **nie** kasuje Document-ADMITTED; true Document `isNoise` **nie** wraca jako ADMITTED.
+
+**F5 / P7 / P8 / G3 (verified):**
+
+| Warstwa | Kontrakt |
+|---------|----------|
+| F5 structural qty ≤0 / missing | GAP **`NIEPRAWIDLOWA_ILOSC`** · LP nie jest complete priced · `BOQ_QUANTITY_HOLD` zostaje dla HOLD path |
+| P7 | complete + gap semantics · **nie** gwarantuj stałej liczby complete (downstream MISS/GAP jawne) |
+| P8 | NOT READY gdy unresolved/gaps (często `needs_review`) · inne blocking conditions mogą dać **`blocked`** (silniejszy STOP) |
+| G3 | IF `unresolvedCount>0` OR `gapLineCount>0` OR `packageGatePass===false` → Final Bid **NOT READY** · persist **FORBIDDEN** · reason `FINAL_BID_NOT_READY_PACKAGE_PARTIAL` |
+
+**Owner boundary UNCHANGED:** G1 · G2 · G3 · Accept · OUR RATE · quantity resolution · ambiguous mapping · margin · Final Bid = **Owner only**.
+
+**Pliki (REUSE):** `ik-expert-admission.ts` · Document `expertAdmission` · Orchestra/Experts gates · `boq-shadow-adapter.ts` · test `scripts/test-ik-line-tolerant-expert-admission-01.mjs`.
+
+**Production evidence (Paczka XI · 2026-09-05 · READ-ONLY):** tender `08dee8b8-8e1d-e41d-ebd1-650001da8677` · **167** lines · Document `partial` / `readyForExperts=false` · **166 ADMITTED / 1 UNRESOLVED** · LP43 `obl_6008ebc1` qty **0** unit **szt** · `mayProceed=true` · Identity **166** · F5 `NIEPRAWIDLOWA_ILOSC` · P7 gaps · P8 NOT READY · G3 NOT READY · **DATA MUTATION: NONE**.
+**CHROBREGO regression:** **56/56 admitted** · `readyForExperts=true` · `mayProceed=true` · unresolved=0 · closed path preserved.
+
 ---
 
 ## 3. Mapa dokumentów SSOT (ten zestaw)
@@ -400,8 +457,9 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **AUTONOMY-08 P3 Owner Gates** | **IMPLEMENTED** @ **`3822acb`** · harness **27 PASS / 0 FAIL** · **P3 OPEN** (epic) · **≠** cały G2 globalnie CLOSED |
 | **AUTONOMY-08 epic** | **NOT CLOSED** (**≠** A0.2 closeout) |
 | **G1 durable persist PV** | **PASS** (Paczka VII · LS OfferBoq · reload) |
-| **★★ CURRENT PRODUCTION** | **2.66.147 / `2f3d1847`** · READY / verified · **OD-OCR-47 PASS** |
+| **★★ CURRENT PRODUCTION** | **2.66.165 / `a5d19047`** · live `version.json` **`a5d1904`** · HTTP 200 · **LINE-TOLERANT PRODUCTION VERIFIED** |
 | **★★ GLOBAL IK PRODUCTION VERIFIED** | **NO** |
+| **★★ LINE-TOLERANT ADMISSION** | **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · §2A.9 · DOCUMENT TRUTH ≠ EXPERT ADMISSION |
 | **★★ ŚRODA A0.2** | **CURRENT CASE BRANCH** — §10.0 · §22 · tender `08deff6c-…` · Work Catalog coverage |
 | **A0.2 code / release** | **committed + pushed** · **`590f95e9`** · changelog **2.66.137** (HISTORY tip) |
 | **A0.2 KV** | **LIVE** · revision **56→57** · work **862→878** · **8/8** wrocław + **8/8** dolnyslask · 2nd execute **SKIPPED_NO_CHANGE** |
@@ -429,13 +487,13 @@ Patrz [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-P
 | **A01-LP5 identity (LP5/LP10)** | **`f012d39a`** · **FROZEN GREEN** |
 | **A01-LP5 catalog OPS** | **`cf802cbd`** · **PRODUCTION VERIFIED** |
 | **A09-PACKAGE-S1 (G177)** | **`8ccb3e9b`** · **PRODUCTION VERIFIED GREEN** · **NOT identity** |
-| **OD-OCR-47** | **PASS** · Owner Ingest → OCR → C2 → authoritative persist · TPI **4 shells** · cloud **470** · local prune **70** dozwolone |
+| **OD-OCR-47** | **PASS** · Owner Ingest → OCR → C2 → authoritative persist · TPI **4 shells** · cloud **470** · local prune **70** dozwolone · tip HISTORY **`2f3d1847` / 2.66.147** (**≠** current production tip) |
 | **OD-OCR-45** | **CLOSED** · `persistIngestArtifactPatchToCloud` · **`2f3d1847`** |
 | **Track B** | **CLOSED / PRODUCTION VERIFIED** · lean+guard · raw-bypass RCA CLOSED · stale-client gate **2.66.146** · **nie reopen** |
 | **C2 Intra-PDF Multi-BOQ** | **PRODUCTION VERIFIED** through OD-OCR-47 · reuse existing Multi-BOQ · **≠** nowy Multi-BOQ |
 | **OCR B1 / JBig2 / PSM11** | **CLOSED / VERIFIED** · `e46595e7` · `ea7cfdc3` |
 | **TPI/729 canonical** | `ocds-148610-15299a87-45b5-465d-872c-6aa6f11f076c` · stub `bzp:TPI/729/2026` **osobny** · **≠** CURRENT NODE |
-| Tip produkcji | **czytaj 09** + live `version.json` · CURRENT **2.66.147 / `2f3d1847`** |
+| Tip produkcji | **czytaj 09** + live `version.json` · CURRENT **2.66.165 / `a5d19047`** |
 
 ### 8.1 Owner Map — identity + PACKAGE (latest production)
 
@@ -479,7 +537,7 @@ Handoff: [`IK-OWNER-A09-PACKAGE-S1-IMPLEMENTATION.md`](./IK-OWNER-A09-PACKAGE-S1
 |-----------|---------|
 | Decision Tree | **ACTIVE / PRIMARY** (§10.0) · **jeden** systemowy tree · OCR/C2/Track B **nie** tworzą drugiego tree |
 | CURRENT case branch | **ŚRODA A0.2** |
-| CURRENT production | **2.66.147 / `2f3d1847`** · READY / verified |
+| CURRENT production | **2.66.165 / `a5d19047`** · live `version.json` **`a5d1904`** · HTTP 200 |
 | Latest capability | **OD-OCR-47 PASS** |
 | Orchestra | **CONNECTED** · **single sequencer** |
 | Host | **IkEntryHost = adapter/consumer** · **≠** sequencer |
@@ -550,7 +608,8 @@ Tylko **Owner GO** → **AUDIT** → DF → IMPLEMENT (gdy Decision Tree wymaga 
 **★★ CURRENT NODE (2026-09-04):**
 **`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV VERIFIED (OD-OCR-37)`**
 (SSOT: **§10.0** — szczegóły LP/coverage tylko tam; nie duplikuj tu).
-**Capability checkpoint (NIE nowy CURRENT NODE):** **OD-OCR-47 PASS** · prod **2.66.147 / `2f3d1847`**.
+**Capability checkpoint (NIE nowy CURRENT NODE):** **LINE-TOLERANT ADMISSION CLOSED/PV** @ **`a5d19047` / 2.66.165** · §2A.9 · §10.0.3.
+**Prior capability tip (HISTORY):** **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147**.
 
 **CLOSED CASE (NIE CURRENT):**
 **`CHROBREGO G1+G2+G3 CLOSED — 56/0 — FINAL BID 159000 NET / 195570 GROSS`** — benchmark / history · **NIE reopen** · **NIE** przepinaj Środy.
@@ -630,14 +689,15 @@ Latest continuity handoff (A01/A09 era): [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-
 > OCR / C2 / Track B / authoritative ingest persist = **równoległe capability tracks** (§10.0.2) — **nie** przesuwają CURRENT NODE.
 > Architecture/module tree poniżej (§10 body) = **SYSTEM / ARCHITECTURE MODULE MAP** — **nie** mylić z **CASE DECISION TREE**.
 
-| Pole | Wartość (source-verified 2026-09-04) |
+| Pole | Wartość (source-verified 2026-09-05) |
 |------|--------------------------------------|
 | **PRIMARY CONTRACT** | **Decision Tree (§10.0) = PRIMARY CONTINUITY CONTRACT** · HISTORY/LEGACY ≠ CURRENT · chat memory ≠ SSOT |
 | **CURRENT NODE** | **`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV VERIFIED (OD-OCR-37)`** |
-| **CURRENT production** | **2.66.147 / `2f3d1847`** |
+| **CURRENT production** | **2.66.165 / `a5d19047`** · live `version.json` **`a5d1904`** |
+| **LATEST capability (≠ NODE)** | **LINE-TOLERANT ADMISSION CLOSED / PV** @ **`a5d19047`** · §2A.9 · §10.0.3 |
 | **CURRENT tender** | `08deff6c-bc34-619e-b346-0300010ce2e5` · Gmina Środa Śląska |
 | **A0.2 commit** | **`590f95e9`** (`fix(ik): seed sroda A0.2 catalog safely`) |
-| **A0.2 code/release** | **committed + pushed** · UI changelog **2.66.137** (HISTORY tip vs live **2.66.147**) |
+| **A0.2 code/release** | **committed + pushed** · UI changelog **2.66.137** (HISTORY tip vs live **2.66.165**) |
 | **A0.2 KV** | **LIVE** · revision **56→57** · workCount **862→878** · regions **wrocław 8/8** · **dolnyslask 8/8** · 2nd execute **SKIPPED_NO_CHANGE** |
 | **A0.2 frontend PV** | **VERIFIED (OD-OCR-37)** · HISTORY 2026-09-03 „WAITING / 2.66.136” = **PRIOR** |
 | **F5 baseline** | **84** · **F5 delta = not acceptance criterion** · **≠** F5 fixed/reduced/solved |
@@ -858,8 +918,9 @@ Default child suites **skipped** unless `IK_E2E_CHILD_SUITES=1`.
 | Track B lean/guard | **CLOSED / VERIFIED** | `50c78e90` · **2.66.144** |
 | Track B raw-bypass RCA | **CLOSED / PASS** | `437e5797` · **2.66.145** |
 | Stale-client gate | **CLOSED / VERIFIED** | `a13a431d` · **2.66.146** · `APP_VERSION >= 2.66.145` |
-| Authoritative ingest persist | **CLOSED** | OD-OCR-45 · `2f3d1847` · **2.66.147** |
-| OD-OCR-47 production path | **PASS** | Owner Ingest → OCR → C2 → cloud 470 / 4 shells |
+| Authoritative ingest persist | **CLOSED** | OD-OCR-45 · `2f3d1847` · **2.66.147** (HISTORY tip) |
+| OD-OCR-47 production path | **PASS** | Owner Ingest → OCR → C2 → cloud 470 / 4 shells · **≠** current tip |
+| **Line-tolerant Expert Admission** | **CLOSED / PRODUCTION VERIFIED** | **`a5d19047`** · **2.66.165** · §2A.9 · §10.0.3 · Paczka XI |
 
 #### OD-OCR TIMELINE (ta sesja)
 
@@ -936,6 +997,38 @@ Track B unchanged · no prune write of 70 · no 471
 ```
 
 **OD-OCR-45 CLOSED. OD-OCR-47 PASS. GLOBAL IK PRODUCTION VERIFIED = NO.**
+**HARD:** OD-OCR-47 tip **`2f3d1847` / 2.66.147** = **HISTORY capability checkpoint** · **≠** CURRENT production tip (**2.66.165 / `a5d19047`**).
+
+### 10.0.3 CAPABILITY — LINE-TOLERANT EXPERT ADMISSION (CLOSED / PRODUCTION VERIFIED)
+
+> **NIE** nowy Decision Tree · **NIE** przesuwa CURRENT NODE (ŚRODA A0.2) · **NIE** Global IK PV · pełny kontrakt = **§2A.9**.
+
+| Pole | Wartość |
+|------|---------|
+| **ID** | `IK-LINE-TOLERANT-EXPERT-ADMISSION-01` |
+| **Status** | **CLOSED / PRODUCTION VERIFIED** |
+| **Commit** | **`a5d19047`** (`a5d190473fb8acbea9e41a1c70a5406a0577c4db`) |
+| **UI / version.json** | **2.66.165** / commit **`a5d1904`** (bez CHANGELOG bump w feature commit) |
+| **Date** | **2026-09-05** |
+
+**Paczka XI production evidence (READ-ONLY · zero mutation):**
+
+```text
+Tender: 08dee8b8-8e1d-e41d-ebd1-650001da8677
+canonical OfferBoq: 167 lines
+Document: partial · readyForExperts=false
+Admission: 166 ADMITTED · 1 UNRESOLVED
+LP43: obl_6008ebc1 · qty 0 · unit szt · demontaż … stolarki drzwiowej
+Orchestra: expertChainMayProceed=true
+Identity: 166 admitted processed · 167 canonical retained · lineId preservation 100%
+F5: LP43 GAP NIEPRAWIDLOWA_ILOSC · not complete priced
+P7: gap present (live gapLineCount=167 · complete=0 OK — downstream MISS/GAP) · LP43 not complete
+P8: NOT READY (live blocked — termin minął · silniejszy STOP)
+G3: NOT READY · FINAL_BID_NOT_READY_PACKAGE_PARTIAL path
+DATA MUTATION: NONE
+```
+
+**CHROBREGO regression (READ-ONLY):** 56/56 admitted · readyForExperts=true · mayProceed=true · unresolved=0 · closed path preserved · **NIE reopen**.
 
 ### Architecture / module map (system — **nie** Decision Tree case'a)
 
@@ -1107,11 +1200,12 @@ Shell defaults w `IkEntryHost`: `IK_ENTRY_SHELL_* = false` (AUTO_INGEST / EXECUT
 
 | | |
 |--|--|
-| **Pliki** | `src/lib/intelligent-estimator/ik-document-expert.ts` · `ik-ng02-ingest-bridge.ts` · `src/lib/tender-ingest/*` · `src/lib/multi-boq/*` · `src/lib/tender-offer-boq.ts` · ATH/PDF: `ath-parser` / dossier / `pdf-przedmiar-heuristic` |
+| **Pliki** | `src/lib/intelligent-estimator/ik-document-expert.ts` · `ik-expert-admission.ts` · `ik-ng02-ingest-bridge.ts` · `src/lib/tender-ingest/*` · `src/lib/multi-boq/*` · `src/lib/tender-offer-boq.ts` · ATH/PDF: `ath-parser` / dossier / `pdf-przedmiar-heuristic` |
 | **Wejście** | Tender item · dokumenty · ingest |
-| **Wyjście** | Master BOQ / OfferBoq lines · identity · qty · unit · `catalogBasis` (Slice A) |
-| **NIE** | Nowy parser KV · research · Accept · F5 persist |
-| **Status** | **PRODUCTION EXISTING** |
+| **Wyjście** | Master BOQ / OfferBoq lines · identity · qty · unit · `catalogBasis` (Slice A) · **`expertAdmission` (derived)** · **`readyForExperts = (status === "ready")`** |
+| **HARD** | DOCUMENT TRUTH ≠ EXPERT ADMISSION · **§2A.9** · nigdy `partial → ready` |
+| **NIE** | Nowy parser KV · research · Accept · F5 persist · maskowanie partial jako ready |
+| **Status** | **PRODUCTION EXISTING** · line-tolerant admission **PRODUCTION VERIFIED** @ **`a5d19047`** |
 
 ### 11.4 Owner Map / Multi-Dwelling
 
@@ -1259,14 +1353,15 @@ POSITION COST ≈ LABOR (OUR RATE) + MATERIAL (SELL) + dopuszczone składniki (B
 
 | | |
 |--|--|
-| **Pliki** | `src/lib/intelligent-estimator/orchestra/*` · hook `use-ik-orchestra.ts` · engine `ik-orchestra-engine.ts` · runtime `ik-orchestra-runtime.ts` · bridge `IkOrchestraPageBridge.tsx` |
+| **Pliki** | `src/lib/intelligent-estimator/orchestra/*` · hook `use-ik-orchestra.ts` · engine `ik-orchestra-engine.ts` · runtime `ik-orchestra-runtime.ts` · bridge `IkOrchestraPageBridge.tsx` · admission `ik-expert-admission.ts` |
 | **Rola** | **SSOT runtime sequencer** (jedyny IK execution path) — sync core + async P5/P6 settle · snapshot dla Observation/Host · **`ownerGate` API** · refresh via `bumpOrchestraAfterPricingAccept` + epochs (**nie** drugi refresh system) |
-| **Wywołuje** | `runIkDocumentExpert` → KNR → `runIkIdentityPhase` → classification → P5/P6 async → composite → P7 → P8 |
+| **Expert Chain gate (CURRENT)** | **`expertChainMayProceed`** (ADMITTED subset) · **≠** sole `readyForExperts` · §2A.9 |
+| **Wywołuje** | `runIkDocumentExpert` → KNR → `runIkIdentityPhase` (ADMITTED-only resolve) → classification → P5/P6 async → composite → P7 → P8 |
 | **Wywoływany przez** | `IkOrchestraPageBridge` (page mount) · `IkOwnerGateActionsPanel` (via `ownerGate`) · `IkEntryHost` = **consumer** snapshotu (adapter) |
 | **Stan** | `manualOverrides[]` (G1) · reject keys G1/G2 · labor/material recalc epochs · `chiefMaterialAvailable` |
-| **Persistence** | G1 → `runGatedIdentityPersist` (LS OfferBoq) · G2 labor → Work Catalog via Accept · G2 material → Price Memory via Accept |
+| **Persistence** | G1 → `runGatedIdentityPersist` (LS OfferBoq) · G2 labor → Work Catalog via Accept · G2 material → Price Memory via Accept · **G3 refuse** gdy unresolved/gaps/`packageGatePass===false` |
 | **Flagi** | P5/P6 executeResearch · identity coverage · P7/P8 E2E — z `ik-entry-flag.ts` |
-| **Status** | **IMPLEMENTED** @ orchestra extract commits · **PRODUCTION EXISTING** @ **`3822acb`** (P3 gates) |
+| **Status** | **IMPLEMENTED** @ orchestra extract commits · **PRODUCTION EXISTING** @ **`3822acb`** (P3 gates) · line-tolerant gates **PRODUCTION VERIFIED** @ **`a5d19047`** |
 
 **Chief ≠ Orchestra.** Chief = dossier/session/advisory. Orchestra = IK expert pipeline + Owner Gate execution surface.
 
@@ -1764,7 +1859,8 @@ PRIMARY CONTRACT:
 DECISION TREE
 
 CURRENT PRODUCTION:
-2.66.147 / 2f3d1847
+2.66.165 / a5d19047
+(live version.json commit a5d1904)
 
 CURRENT CASE:
 ŚRODA A0.2
@@ -1808,7 +1904,8 @@ CHECKPOINT (2026-09-04 · ŚRODA A0.2 CURRENT · CHROBREGO CLOSED · OD-OCR-47 P
   A08-P3 IMPLEMENTED · P3 OPEN (epic) · G1 PV PASS · CHROBREGO G1+G2+G3 CLOSED 56/0 · FINAL BID 159000
   FULL IK E2E harness GREEN (§10.0.1) · **≠** global prod PV · **≠** Phase 5
   Experience Phase 5 NOT AUTHORIZED · AUTONOMY-08 OPEN · W3–W6 NOT auto-authorized
-  Tip = docs/AI/09_PRODUCTION_BASELINE.md + live version.json · CURRENT 2.66.147 / 2f3d1847
+  Tip = docs/AI/09_PRODUCTION_BASELINE.md + live version.json · CURRENT 2.66.165 / a5d19047
+  LINE-TOLERANT CLOSED/PV (§2A.9) · OD-OCR-47 tip = HISTORY · GLOBAL IK PV = NO
   Protected invariants = §8.4 · regression harness test-ik-full-pipeline-e2e.mjs
   REUSE: SEARCH → TRACE → REUSE → CONNECT → VERIFY → NEW only if proven GAP
   git add -A / git add . FORBIDDEN · never reset/clean WIP · vercel deploy FORBIDDEN
@@ -1913,21 +2010,23 @@ Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phas
 
 ---
 
-## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-09-04 · OD-OCR-47 CHECKPOINT)
+## 22. NEW CHAT / NEW CURSOR AGENT HANDOFF (2026-09-05 · LINE-TOLERANT PV CHECKPOINT)
 
 ### CURRENT HEAD
 
 | Pole | Wartość |
 |------|---------|
 | **CURRENT CASE / NODE** | **ŚRODA A0.2** · §10.0 · Work Catalog coverage · frontend PV **VERIFIED (OD-OCR-37)** |
-| **LATEST VERIFIED CAPABILITY** | **OD-OCR-47 PASS** · §10.0.2 · **≠** nowy CURRENT NODE |
-| **CURRENT PRODUCTION** | **2.66.147 / `2f3d1847`** · READY / verified |
+| **LATEST VERIFIED CAPABILITY** | **LINE-TOLERANT EXPERT ADMISSION** · **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · §2A.9 · §10.0.3 · **≠** nowy CURRENT NODE |
+| **PRIOR CAPABILITY TIP (HISTORY)** | **OD-OCR-47 PASS** @ **`2f3d1847` / 2.66.147** · §10.0.2 · **≠** current production tip |
+| **CURRENT PRODUCTION** | **2.66.165 / `a5d19047`** · live `version.json` **`a5d1904`** · HTTP 200 |
 | **Pipeline tenderId (CURRENT CASE)** | `08deff6c-bc34-619e-b346-0300010ce2e5` |
 | **A0.2 commit** | **`590f95e9`** |
 | **A0.2 KV** | **LIVE** · rev **57** · **8/8×2** · idempotency **PASS** |
 | **A0.2 frontend PV** | **VERIFIED (OD-OCR-37)** |
+| **Line-tolerant evidence tender** | Paczka XI `08dee8b8-8e1d-e41d-ebd1-650001da8677` · 166/1 · **≠** CURRENT NODE |
 | **TPI canonical (capability)** | `ocds-148610-15299a87-45b5-465d-872c-6aa6f11f076c` · **4 shells** · cloud **470** |
-| **CLOSED CASE** | **CHROBREGO** · `08df0363-7b22-e462-ab56-940001283cba` · **56/0** · Final Bid **159000/195570** |
+| **CLOSED CASE** | **CHROBREGO** · `08df0363-7b22-e462-ab56-940001283cba` · **56/0** · Final Bid **159000/195570** · line-tolerant regression **56/56** |
 | **P3 deploy commit (gates)** | **`3822acb3724493b349c08a33bc584c7afe5dde31`** |
 | **UI version / tip SSOT** | [`09`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` |
 | **Production** | https://www.wgdom.fun |
@@ -1938,13 +2037,14 @@ Observability Projection: Phases **1–4 CLOSED GREEN** @ **`c1b3ad7d`** · Phas
 
 **`ŚRODA A0.2 — 8 CatalogWork IMPLEMENTED — KV rev 57 LIVE — 8/8 + 8/8 PRESENT — FRONTEND PV VERIFIED (OD-OCR-37)`**
 (pełne drzewo + LP coverage = **§10.0** — nie odtwarzaj z historii czatu).
-Capability: **OD-OCR-47 PASS** — **nie** nowy Decision Tree.
+Capability: **LINE-TOLERANT CLOSED/PV** · prior **OD-OCR-47 PASS** — **nie** nowy Decision Tree.
 A08-P3 epic: **IMPLEMENTED · nadal OPEN**.
-**Nie** zamykaj całego AUTONOMY-08 tylko dlatego, że A0.2, CHROBREGO lub OD-OCR PASS.
+**Nie** zamykaj całego AUTONOMY-08 / Global IK tylko dlatego, że line-tolerant, A0.2, CHROBREGO lub OD-OCR PASS.
 **Nie** claimuj GLOBAL IK PRODUCTION VERIFIED.
 
 ### CLOSED (do not reopen without Owner GO)
 
+- **IK-LINE-TOLERANT-EXPERT-ADMISSION-01** — **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · §2A.9 · §10.0.3
 - IK-MIGRATION-01 P0–P9 · AUTONOMY-05…08-P2 · F5 MARGIN · Observability Phases 1–4 · KNR Slice A · A01/A09 Owner Map slices · G1 durable persist PV
 - **CHROBREGO G1** — AUTO_SAFE 22/22 · OWNER_REVIEW · NO_SAFE — wszystko dla **56/0**
 - **CHROBREGO G2 Labor** — m² paint (22.90 · 20%) · **LP48** (31.25 mb) · **LP20** (80 mb) · **LP30** (200 kpl)
@@ -1961,7 +2061,7 @@ A08-P3 epic: **IMPLEMENTED · nadal OPEN**.
 
 - **Experience Phase 5** — **NOT AUTHORIZED**
 - **Global IK Production signoff** — **NOT CLAIMED** · **GLOBAL IK PRODUCTION VERIFIED = NO**
-- **A08-P3 epic slice / AUTONOMY-08 epic** — **OPEN** (**≠** closed by A0.2 / OD-OCR)
+- **A08-P3 epic slice / AUTONOMY-08 epic** — **OPEN** (**≠** closed by line-tolerant / A0.2 / OD-OCR)
 - **W3–W6 connectivity waves** — **NOT auto-authorized**
 - Phase 2E full catalog · TM-01 residuals · A09 Owner-priced rate · unit-proof gaps — per audit · Owner GO
 - TPI Full IK E2E (Identity→…→Final Bid) — **NOT STARTED** / wymaga Owner GO
@@ -1974,24 +2074,26 @@ A08-P3 epic: **IMPLEMENTED · nadal OPEN**.
 - **Owner GO** na następną **jedną** gałąź z §9 — AI **nie** inventuje
 - **HISTORY note:** CHROBREGO jako CURRENT NODE (2026-08-31) = **PRIOR**
 - **HISTORY note:** A0.2 frontend PV WAITING / 2.66.136 (2026-09-03) = **PRIOR**
+- **HISTORY note:** production tip **2.66.147 / `2f3d1847`** (2026-09-04) = **PRIOR** (OD-OCR-47 capability still valid)
 
 ### DO NOT TOUCH / DO NOT REPEAT
 
 - Mock/seed candidate · fabricated identity · reopen closed CHROBREGO branches (G1/G2/G3 · LP20/22/30/48 · m² · quantity · final bid)
 - Claim F5 fixed/reduced/solved from A0.2 · invent A0.2 Expert · second Orchestra/Host/Decision Tree
+- Mask `partial` as `readyForExperts=true` · invent qty to admit UNRESOLVED · auto Final Bid on partial package
 - Apply m² OUR RATE / catalog-name override to **LP48 mb**
 - Experience Phase 5 / commit/push/deploy bez Owner GO
 - S6/P4 closed code · payroll/cloud-sync without PAYROLL_SAFETY_GATE · `git add -A` · `vercel deploy`
-- Treat harness GREEN or KV LIVE as global / frontend prod PV
+- Treat harness GREEN / KV LIVE / line-tolerant PV as global IK prod PV
 
 ### NEXT LEGAL ACTION
 
 Owner GO na **jedną** gałąź z §9 (np. **Środa follow-up** · **TPI IK E2E** · **Experience Phase 5** · **epic closeout**) — AI **nie** inventuje wyboru.
-**NIE** startuj G1/G2/G3 / Final Bid na TPI bez GO. **NIE** reopen Track B / OCR / C2 / prune.
+**NIE** startuj G1/G2/G3 / Final Bid na TPI bez GO. **NIE** reopen Track B / OCR / C2 / prune / line-tolerant DF.
 
 ### OWNER DECISIONS REQUIRED
 
-| Decision | Status (2026-09-03) |
+| Decision | Status (2026-09-05) |
 |----------|---------------------|
 | **OD-P3-1** G1 contract | **APPROVE** |
 | **OD-P3-2** G2 contract | **APPROVE** |
@@ -1999,36 +2101,57 @@ Owner GO na **jedną** gałąź z §9 (np. **Środa follow-up** · **TPI IK E2E*
 | **CHROBREGO LP20/22/30/48** | **EXECUTED CLOSED** |
 | **FULL IK E2E harness** | **GREEN** (CODE/TEST) |
 | **A0.2 Środa CatalogWork** | **EXECUTED** · code+KV LIVE · frontend PV **VERIFIED (OD-OCR-37)** |
-| **OD-OCR-47** | **PASS** · authoritative ingest persist · **≠** global IK PV |
+| **OD-OCR-47** | **PASS** · authoritative ingest persist · **≠** global IK PV · tip HISTORY |
+| **LINE-TOLERANT ADMISSION** | **CLOSED / PRODUCTION VERIFIED** @ **`a5d19047`** · Paczka XI · CHROBREGO regression |
 | **OD-P3-3** G2 material PV (global) | **CHROBREGO LP22 CLOSED** · inne tendery case-by-case |
 | **OD-P3-4** Material Chief | **hard dependency** (material Accept path global) |
 | **OD-P3-5** Prod use | **REQUIRE EVIDENCE BEFORE PROD** (global) |
 | **OD-P3-7** APF boundary | **KEEP SEPARATE** |
 | Experience Phase 5 | **NOT AUTHORIZED** — osobny GO |
-| Close A08-P3 / epic | Only after remaining OPEN gates + Owner · **≠** A0.2 alone |
+| Close A08-P3 / epic | Only after remaining OPEN gates + Owner · **≠** line-tolerant alone |
 
 ### SAFETY COUNTERS (E2E verified · read-only run)
 
 | Counter | Value |
 |---------|-------|
-| batchSet / accept / ourRateWrite / g2 / p7 / g3 | **0** (E2E harness) |
-| researchHttp | **0** |
-| catalogMutation / priceMemoryWrite / workQuotesWrite | **0** (E2E) |
+| batchSet / accept / ourRateWrite / g2 / p7 / g3 | **0** (E2E harness · Paczka XI PV) |
+| researchHttp | **0** (PV path) |
+| catalogMutation / priceMemoryWrite / workQuotesWrite | **0** (PV path) |
 | A0.2 KV seed (authorized OPS) | **rev 56→57** · LIVE |
 | Experience (process) | **0** |
-| Commit (this docs closeout session) | **0** (pending Owner GO) |
+| Line-tolerant feature commit | **`a5d19047`** · pushed · prod verified |
+| Docs closeout commit (this step) | **0** (pending Owner GO) |
 | Push (this docs closeout) | **0** |
 | Deploy (this docs closeout) | **0** |
 
 ### READ FIRST (ordered)
 
-1. **TEN Master SSOT** — header Decision Tree primacy + **§10.0** + **§22**
+1. **TEN Master SSOT** — header Decision Tree primacy + **§2A.9** + **§10.0** + **§10.0.3** + **§22**
 2. [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json`
 3. [`IK-AUTONOMY-08-P3-DESIGN-FREEZE.md`](./IK-AUTONOMY-08-P3-DESIGN-FREEZE.md)
 4. [`docs/AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md)
 5. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
 
-### SESSION CLOSEOUT ENTRY — 2026-09-04 · MASTER SSOT CONTINUITY + OD-OCR-47
+### SESSION CLOSEOUT ENTRY — 2026-09-05 · LINE-TOLERANT PRODUCTION VERIFIED
+
+```text
+2026-09-05
+LINE-TOLERANT EXPERT ADMISSION — DOCUMENTATION CLOSEOUT
+
+CURRENT NODE: ŚRODA A0.2 (unchanged case branch)
+CURRENT PRODUCTION: 2.66.165 / a5d19047 (version.json a5d1904)
+LINE-TOLERANT: CLOSED / PRODUCTION VERIFIED
+PACZKA XI: 167 · 166/1 · LP43 qty0 · mayProceed · G3 NOT READY · mutation NONE
+CHROBREGO regression: 56/56 · ready=true · mayProceed=true
+DOCUMENT TRUTH ≠ EXPERT ADMISSION: FROZEN §2A.9
+OD-OCR-47 tip 2f3d1847/2.66.147: HISTORY capability (still valid)
+GLOBAL IK PRODUCTION VERIFIED: NO
+CODE / DATA this docs closeout: 0
+WIP: PRESERVED
+COMMIT/PUSH docs: WAIT FOR OWNER
+```
+
+### SESSION CLOSEOUT ENTRY — 2026-09-04 · MASTER SSOT CONTINUITY + OD-OCR-47 (**HISTORY**)
 
 ```text
 2026-09-04
@@ -2036,7 +2159,7 @@ MASTER SSOT CONTINUITY CLOSEOUT
 
 CURRENT NODE: ŚRODA A0.2 (unchanged case branch)
 A0.2 frontend PV: VERIFIED (OD-OCR-37)  — HISTORY WAITING = PRIOR
-CURRENT PRODUCTION: 2.66.147 / 2f3d1847
+CURRENT PRODUCTION (then): 2.66.147 / 2f3d1847   ← NOW HISTORY tip vs live 2.66.165 / a5d19047
 OD-OCR-47: PASS
 OD-OCR-45: CLOSED
 Track B: CLOSED / VERIFIED
@@ -2195,11 +2318,17 @@ NO invented prices
 NO silent margin
 NO automatic Final Bid
 NO automatic G3
+NO mask partial → readyForExperts
+NO Expert Chain on zero ADMITTED (mayProceed=false)
+NO Final Bid persist when unresolvedCount>0 OR gapLineCount>0 OR packageGatePass===false
+NO invent quantity to admit UNRESOLVED lines
 ```
 
 **Authority chain (HARD):**
 
 ```text
+DOCUMENT TRUTH ≠ EXPERT ADMISSION
+readyForExperts ≠ expertChainMayProceed
 Research ≠ Candidate
 Candidate ≠ Accept
 Accept ≠ OUR RATE invention
@@ -2209,10 +2338,11 @@ SELL ≠ OUR RATE
 P7 ≠ G3
 P8 ≠ G3
 Harness GREEN ≠ Production Verified
+Line-tolerant PV ≠ Global IK Production Verified
 ```
 
-**OWNER = DECISION MAKER.** Owner kontroluje: workId · identity overrides · classification · unit decisions · margin · Candidate acceptance · OUR RATE acceptance · Material acceptance · KNR mapping boundaries · Final Bid.
-IK może: analyze · research · compare · propose · calculate · explain · detect risk · prepare decision · prepare bid (P7/P8 read-only).
+**OWNER = DECISION MAKER.** Owner kontroluje: workId · identity overrides · classification · unit decisions · quantity resolution · margin · Candidate acceptance · OUR RATE acceptance · Material acceptance · KNR mapping boundaries · Final Bid.
+IK może: analyze · research · compare · propose · calculate · explain · detect risk · prepare decision · prepare bid (P7/P8 read-only) · admit ADMITTED subset under §2A.9.
 IK **nie** może samodzielnie przejąć Owner authority.
 
 ### 25.2 Enforcement table
@@ -2325,6 +2455,7 @@ IK **nie** może samodzielnie przejąć Owner authority.
 | 2026-09-03 | **OCR B1 / JBig2 / PSM11** | `41a7cdbb` · `e46595e7` · `ea7cfdc3` | **2.66.139–140** · **CLOSED / VERIFIED** |
 | 2026-09-03 | **C2 intra-PDF Multi-BOQ reuse** | `dde109f1` · `96b7c7c7` · `0e3e0531` | **2.66.141–143** · PV via OD-OCR-47 |
 | 2026-09-03 | **Track B lean+guard** | `50c78e90` · `437e5797` · `a13a431d` | **2.66.144–146** · **CLOSED / VERIFIED** · nie reopen |
+| 2026-09-05 | **Line-tolerant Expert Admission** | **`a5d19047`** | **2.66.165** · Paczka XI PV · CHROBREGO 56/56 · **CLOSED / PRODUCTION VERIFIED** · **≠** Global IK PV |
 | 2026-09-04 | **OD-OCR-45 authoritative ingest persist** | **`2f3d1847`** | **2.66.147** · tests **29/29** · **CLOSED** |
 | 2026-09-04 | **OD-OCR-47 production ingest** | session · prod **`2f3d1847`** | **PASS** · TPI 4 shells · cloud 470 · **≠** global IK PV |
 
@@ -2347,7 +2478,9 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 | A0.2 8 CatalogWork | ✅ catalog.ts | ✅ §10.0 | **8/8** |
 | KV rev 57 | ✅ ops evidence | ✅ §8 · §10.0 · §22 | **recorded LIVE** |
 | A0.2 frontend PV | OD-OCR-37 | ✅ **VERIFIED** | **CURRENT** |
-| Production tip | **2.66.147 / `2f3d1847`** | ✅ header · §22 | **CURRENT** |
+| Production tip | **2.66.165 / `a5d19047`** | ✅ header · §22 · §10.0 | **CURRENT** |
+| Line-tolerant | **`a5d19047`** | ✅ §2A.9 · §10.0.3 | **CLOSED / PV** |
+| OD-OCR-47 tip | **2.66.147 / `2f3d1847`** | ✅ §10.0.2 | **HISTORY capability** |
 | OD-OCR-47 | prod ingest | ✅ §10.0.2 | **PASS** |
 | Track B | lean+guard | ✅ §10.0.2 | **CLOSED / VERIFIED** |
 | C2 | derived docs | ✅ §10.0.2 | **PRODUCTION VERIFIED** |
@@ -2371,7 +2504,7 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 
 | ID | Source A | Source B | Resolution |
 |----|----------|----------|------------|
-| **C-FE-TIP** | HISTORY: Repo **2.66.137 / 590f95e9** vs live **2.66.136** (2026-09-03) | Live now **2.66.147 / 2f3d184** | **RESOLVED** · A0.2 frontend PV **VERIFIED** · tip CURRENT = **2.66.147** |
+| **C-FE-TIP** | HISTORY: Repo **2.66.137 / 590f95e9** vs live **2.66.136** (2026-09-03) | Later OD-OCR-47 tip **2.66.147 / 2f3d184** = HISTORY | **RESOLVED** · A0.2 frontend PV **VERIFIED** · tip CURRENT now **2.66.165 / a5d19047** |
 | **C-CAP-vs-NODE** | OD-OCR-47 capability PASS | CURRENT NODE = ŚRODA A0.2 | **INTENDED** · capability ≠ nowy Decision Tree |
 
 *(Prior C-09-P3 / C-P3-DF = RESOLVED 2026-08-28 — retained in git history.)*
@@ -2382,7 +2515,8 @@ Full tip table: [`docs/AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELI
 
 | SHA | Scope |
 |-----|-------|
-| `2f3d1847` | **OD-OCR-45** — authoritative ingest persist · **2.66.147** · OD-OCR-47 PV |
+| `a5d19047` | **LINE-TOLERANT** — Expert Admission · **2.66.165** · Paczka XI / CHROBREGO PV |
+| `2f3d1847` | **OD-OCR-45** — authoritative ingest persist · **2.66.147** · OD-OCR-47 PV (HISTORY tip) |
 | `a13a431d` | **OD-OCR-34** — stale-client gate by APP_VERSION · **2.66.146** |
 | `437e5797` | **OD-OCR-29** — pipeline writers through lean+guard · **2.66.145** |
 | `50c78e90` | **Track B** — cloud lean+guard · **2.66.144** |
@@ -2417,7 +2551,7 @@ SYSTEM:      Intelligent Estimator (IK)
 HISTORY STATE (do not use as CURRENT NODE):
   A08-P3 @ 3822acb IMPLEMENTED · P3 OPEN · G2 WAIT = PRIOR (pre-CHROBREGO m²)
   Pointer only → CURRENT = ŚRODA A0.2 §10.0 / §22 · CHROBREGO = CLOSED CASE (56/0)
-  Production tip CURRENT = 2.66.147 / 2f3d1847 · OD-OCR-47 = capability PASS · GLOBAL IK PV = NO
+  Production tip CURRENT = 2.66.165 / a5d19047 · LINE-TOLERANT CLOSED/PV · OD-OCR-47 = HISTORY capability PASS · GLOBAL IK PV = NO
 
 BASELINE (frozen at time of legacy block — may drift):
   A08-P3 deploy = 3822acb3724493b349c08a33bc584c7afe5dde31
