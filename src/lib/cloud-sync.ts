@@ -12,6 +12,11 @@ import {
   type PayrollScopedHoursIntent,
 } from "./payroll-hours-intent.ts";
 import {
+  ackPayrollHoursIntentsAgainstCloud,
+  mergePayrollHoursIntentsWithLedger,
+  registerPayrollHoursIntents,
+} from "./payroll-hours-intent-ledger.ts";
+import {
   collectLegalAddMergeKeys,
   outgoingHasLegalMembershipAdd,
   sanitizeStaleRosterMembership,
@@ -3950,6 +3955,16 @@ async function pushWeekEmployeesToCloudUnchecked(
   /** null = Cloud tombs not fetched (offline / error); [] = hydrated empty. */
   let cloudTombsHydrated: string[] | null = null;
 
+  // Unacked fresh hours intents survive settlement-only / CAS / freshness rebuild.
+  if (Array.isArray(options?.hoursIntents) && options.hoursIntents.length > 0) {
+    registerPayrollHoursIntents(options.hoursIntents);
+  }
+  const hoursIntentsForPush = mergePayrollHoursIntentsWithLedger(options?.hoursIntents);
+  const pushOptionsWithHours: PushWeekEmployeesOptions = {
+    ...(options ?? {}),
+    hoursIntents: hoursIntentsForPush.length > 0 ? hoursIntentsForPush : undefined,
+  };
+
   // After freshness: rebuild outgoing = canonical Cloud ⊕ verified intents (not blind A).
   try {
     const [cloudEmps, cloudTombsRaw] = await fetchKeysFromCloud([
@@ -3969,8 +3984,8 @@ async function pushWeekEmployeesToCloudUnchecked(
       cloudEmps,
       intentAfter,
       intentBefore,
-      hoursIntents: options?.hoursIntents,
-      intentionalHoursClear: options?.intentionalHoursClear === true,
+      hoursIntents: hoursIntentsForPush,
+      intentionalHoursClear: pushOptionsWithHours.intentionalHoursClear === true,
       weekFrom,
       weekTo,
       tombstoned,
@@ -4097,19 +4112,21 @@ async function pushWeekEmployeesToCloudUnchecked(
         expectedRevision,
         skipCloudFreshnessGate: true,
         clientAppVersion: APP_VERSION,
-        intentionalHoursClear: options?.intentionalHoursClear === true,
+        intentionalHoursClear: pushOptionsWithHours.intentionalHoursClear === true,
         skipPayrollGuard: resolvedSkip,
         /** P0 — scoped intents only authorize hours-down (not payrollDomainUserWrite). */
-        hoursIntents: Array.isArray(options?.hoursIntents) ? options.hoursIntents : undefined,
+        hoursIntents: hoursIntentsForPush.length > 0 ? hoursIntentsForPush : undefined,
         /** @deprecated telemetry — does not authorize hours-down */
         payrollDomainUserWrite: true,
         /** P1 — membership intent baseline */
-        rosterBefore: Array.isArray(options?.rosterBefore) ? options.rosterBefore : undefined,
+        rosterBefore: Array.isArray(pushOptionsWithHours.rosterBefore)
+          ? pushOptionsWithHours.rosterBefore
+          : undefined,
         /** P2.8 — coupled PWRB: Edge uses batch tombs (not UNION with stale stored). */
         replaceWeekEmployeesKeys: ["kw-week-employees"],
-        settlementIntent: options?.settlementIntent === true,
-        settlementIdempotencyKey: options?.settlementIdempotencyKey,
-        settlementTargetEmpIds: options?.settlementTargetEmpIds,
+        settlementIntent: pushOptionsWithHours.settlementIntent === true,
+        settlementIdempotencyKey: pushOptionsWithHours.settlementIdempotencyKey,
+        settlementTargetEmpIds: pushOptionsWithHours.settlementTargetEmpIds,
       },
     );
     if (pendingKeysToConfirm.size > 0) {
@@ -4123,6 +4140,12 @@ async function pushWeekEmployeesToCloudUnchecked(
         }
       }
       assertPayrollPendingAddsPersistedOrThrow(persisted, pendingKeysToConfirm);
+    }
+    // ACK fresh hours intents once Cloud (or persisted) matches requested toHours.
+    {
+      let ackCloud: unknown = resJson.persistedWeekEmployees;
+      if (!Array.isArray(ackCloud)) ackCloud = normalized;
+      ackPayrollHoursIntentsAgainstCloud(ackCloud, weekFrom, weekTo);
     }
     ackPayrollPendingAddsInRoster(normalized);
     payrollTraceEmit("payroll.roster.push.complete", "PUSH", "info", { pushTraceId });

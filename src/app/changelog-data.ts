@@ -12,6 +12,28 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-05",
+    version: "2.66.165",
+    label: "Lista płac — ledger godzin: reload, łańcuch edycji, TTL",
+    items: [
+      {
+        type: "fix",
+        text: "Hardening 2.66.164: ledger hours-intent w localStorage (przeżywa reload), coalescing łańcucha przed ACK (10→9→8 = 10→8), net-zero 10→9→10 usuwa intent, TTL 7 dni. Guard nadal weryfikuje baseline Cloud. Test: test-payroll-fresh-hours-down-intent.mjs T1–T20.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-05",
+    version: "2.66.164",
+    label: "Lista płac — świeża zmiana godzin nie ginie przy rozliczeniu",
+    items: [
+      {
+        type: "fix",
+        text: "Świadoma zmiana godzin (np. 10→9) zostaje jako scoped intent do zapisu w chmurze i nie jest traktowana jako „stary” hours-down przy późniejszym rozliczeniu / freshness / CAS. Ledger intencji + flush przed settlement precheck. Test: test-payroll-fresh-hours-down-intent.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-05",
     version: "2.66.163",
     label: "Lista płac — świeżość przy wejściu (P1 A′)",
     items: [

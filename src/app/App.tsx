@@ -2847,6 +2847,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     payload: { paymentMethod: PayrollPayoutMethod; amount: number },
   ) => {
     if (!adminSession?.id || !adminSession.displayName) return;
+    // Flush pending hours/domain write BEFORE force freshness so a fresh 10→9
+    // intent is not stranded while settlement precheck pulls Cloud 10h.
+    cancelPayrollDomainPushPreservingSettlement();
     // P0 — stale UI gate: freshness + Cloud check before local settle
     try {
       await ensureCloudFreshBeforeWrite({ reason: "settlement_precheck", force: true });

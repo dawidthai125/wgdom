@@ -9,6 +9,10 @@ import type { WeekEmployee } from "@/app/app-domain";
 import type { PushWeekEmployeesOptions } from "@/lib/cloud-sync";
 import { emitPayrollWritePathTelemetry } from "@/lib/payroll-write-path-telemetry";
 import { mergeHoursIntents } from "@/lib/payroll-hours-intent";
+import {
+  mergePayrollHoursIntentsWithLedger,
+  registerPayrollHoursIntents,
+} from "@/lib/payroll-hours-intent-ledger";
 import { unionRosterWithPendingAdds } from "@/lib/payroll-pending-add-intent";
 
 /** Debounce edycji pól — scala szybkie zmiany przed jednym batch-set. */
@@ -59,7 +63,13 @@ export function schedulePayrollDomainPush(
   if (rosterBefore !== undefined && pendingRosterBefore === undefined) {
     pendingRosterBefore = rosterBefore;
   }
-  const mergedIntents = mergeHoursIntents(pendingOptions?.hoursIntents, options?.hoursIntents);
+  // Fresh hours intents must survive later settlement / debounce / flush boundaries.
+  if (options?.hoursIntents && options.hoursIntents.length > 0) {
+    registerPayrollHoursIntents(options.hoursIntents);
+  }
+  const mergedIntents = mergePayrollHoursIntentsWithLedger(
+    mergeHoursIntents(pendingOptions?.hoursIntents, options?.hoursIntents),
+  );
   const settlementCloudAck = stickySettlementCloudAck(options, pendingOptions);
   const settlementIntent =
     options?.settlementIntent === true || pendingOptions?.settlementIntent === true;
@@ -137,8 +147,14 @@ export function cancelPayrollDomainPushPreservingSettlement(): void {
 export function flushPayrollDomainPush(): void {
   if (!pushHandler || pendingRoster == null) return;
   const roster = unionRosterWithPendingAdds(pendingRoster) as WeekEmployee[];
-  const options = pendingOptions;
   const rosterBefore = pendingRosterBefore;
+  // Re-merge ledger at flush so settlement-only schedules still carry unacked hours intents.
+  const options: PushWeekEmployeesOptions | undefined = pendingOptions
+    ? {
+        ...pendingOptions,
+        hoursIntents: mergePayrollHoursIntentsWithLedger(pendingOptions.hoursIntents),
+      }
+    : pendingOptions;
   pendingRoster = null;
   pendingOptions = undefined;
   pendingRosterBefore = undefined;

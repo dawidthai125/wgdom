@@ -1,5 +1,18 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.165 — Hours-intent ledger hardening (persist · coalesce · TTL) (2026-09-05)
+
+- **Fix:** persistent `kw-payroll-hours-intent-ledger` (localStorage), chain coalesce preserves Cloud `fromHours`, net-zero reverse removes intent, TTL 7 days.
+- **Guard:** unchanged — persisted intent ≠ auto-trust local hours.
+- **Test:** `test-payroll-fresh-hours-down-intent.mjs` T1–T20.
+
+## 2.66.164 — Fresh hours-down intent survives settlement (2026-09-05)
+
+- **fix:** świadoma zmiana godzin (10→9) trzyma scoped intent do Cloud ACK; settlement/freshness/CAS nie gubią intencji
+- ledger `payroll-hours-intent-ledger.ts` + merge na schedule/flush/PWRB; flush przed settlement precheck
+- stale hours-down bez intentu nadal BLOCK; Guard / CAS / P0 / P2.8 bez osłabienia
+- Test: `test-payroll-fresh-hours-down-intent.mjs`
+
 ## 2.66.163 — Lista płac P1 A′ freshness (2026-09-05)
 
 - **improve:** natychmiastowe odświeżenie przy wejściu w Listę płac; probe `rosterRevision`; UX GREEN/YELLOW/RED + „Sprawdzono: HH:MM”
