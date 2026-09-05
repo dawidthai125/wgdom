@@ -47,6 +47,7 @@ const admissionSrc = readSrc("src/lib/intelligent-estimator/ik-expert-admission.
 ok("panel uses resolveG1IdentityPrefill", panelSrc.includes("resolveG1IdentityPrefill"));
 ok("panel SUGGESTION label", panelSrc.includes("SUGGESTION / PREFILL"));
 ok("panel competing candidates UI", panelSrc.includes("data-ik-g1-competing-candidates"));
+ok("panel no hard slice(0, 8)", !panelSrc.includes("slice(0, 8)"));
 ok("panel no bulk grouping", !panelSrc.includes("apply to similar") && !panelSrc.includes("equivalence"));
 ok("actions has resolveG1IdentityPrefill", actionsSrc.includes("export function resolveG1IdentityPrefill"));
 ok("actions qty blocked helper", actionsSrc.includes("isG1QuantityBlocked"));

@@ -18,7 +18,9 @@ import type {
 } from "@/lib/intelligent-estimator/ik-identity-coverage";
 import type { IkLaborExpertReport } from "@/lib/intelligent-estimator/ik-labor-expert";
 import type { IkMaterialExpertReport } from "@/lib/intelligent-estimator/ik-material-expert";
+import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { OwnerManualIdentityOverride } from "./ik-identity-phase";
+import type { IkIdentityPersistOutcome } from "./ik-identity-persist-glue";
 
 export type IkOwnerGateG1RejectKey = `${string}|${string}`;
 
@@ -103,7 +105,15 @@ export type G1IdentityPrefill = {
 
 export type G1MappedLineForPrefill = Pick<
   OfferBoqLine,
-  "catalogWorkId" | "candidateMatches" | "matchMethod" | "matchConfidence"
+  | "lineId"
+  | "lp"
+  | "description"
+  | "unit"
+  | "quantity"
+  | "catalogWorkId"
+  | "candidateMatches"
+  | "matchMethod"
+  | "matchConfidence"
 >;
 
 /** Distinct catalogWorkId list from mapper candidateMatches (evidence only). */
@@ -120,6 +130,147 @@ export function listDistinctCandidateWorkIds(
     out.push(id);
   }
   return out;
+}
+
+/** Existing candidate evidence rows (display-only · no ranking authority). */
+export function listCandidateEvidence(
+  mappedLine: G1MappedLineForPrefill | null | undefined,
+): OfferBoqMatchCandidate[] {
+  if (!mappedLine?.candidateMatches?.length) return [];
+  const out: OfferBoqMatchCandidate[] = [];
+  const seen = new Set<string>();
+  for (const c of mappedLine.candidateMatches) {
+    const id = String(c.catalogWorkId ?? "").trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(c);
+  }
+  return out;
+}
+
+/**
+ * P0.1 — stale guard (pure · no mutation).
+ * When current candidate/evidence set is non-empty, selected id MUST be in that set.
+ * Empty candidate set (NONE / manual) → any non-empty typed id is allowed (not stale).
+ */
+export function isSelectedCatalogWorkIdFresh(
+  selectedCatalogWorkId: string,
+  mappedLine: G1MappedLineForPrefill | null | undefined,
+): boolean {
+  const selected = String(selectedCatalogWorkId ?? "").trim();
+  if (!selected) return false;
+  const currentIds = listDistinctCandidateWorkIds(mappedLine);
+  if (currentIds.length === 0) return true;
+  return currentIds.includes(selected);
+}
+
+/** Durable package OfferBoq catalogWorkId for lineId (existing pkg · no duplicate model). */
+export function findPackageLineCatalogWorkId(
+  pkg: TenderPackage | null | undefined,
+  dwellingId: string,
+  lineId: string,
+): string | null {
+  if (!pkg?.dwellings?.length) return null;
+  const did = String(dwellingId ?? "").trim();
+  const lid = String(lineId ?? "").trim();
+  if (!did || !lid) return null;
+  const unit = pkg.dwellings.find((d) => String(d.dwellingId ?? "").trim() === did);
+  const line = unit?.offerBoq?.lines?.find((l) => l.lineId === lid);
+  const id = String(line?.catalogWorkId ?? "").trim();
+  return id || null;
+}
+
+/** Skip reasons that mean durable identity already matches / already written — not failure. */
+const G1_PERSIST_NON_FAILURE_REASONS = new Set([
+  "IDENTICAL_PAYLOAD",
+  "ALREADY_WRITTEN_SESSION",
+]);
+
+export type G1DurableIdentityState =
+  | { kind: "no_session_override" }
+  | { kind: "durable_match"; catalogWorkId: string }
+  | { kind: "persist_pending"; catalogWorkId: string }
+  | { kind: "persist_failed"; catalogWorkId: string; reason: string };
+
+/**
+ * P0.1 — distinguish session override vs durable package identity (no heuristic invent).
+ * Compare: manualOverrides (session) × package OfferBoq line × identityPersistOutcome skips/writes.
+ */
+export function resolveG1DurableIdentityState(input: {
+  dwellingId: string;
+  lineId: string;
+  manualOverrides: readonly Pick<
+    OwnerManualIdentityOverride,
+    "dwellingId" | "lineId" | "catalogWorkId"
+  >[];
+  packageLineCatalogWorkId: string | null | undefined;
+  identityPersistOutcome: IkIdentityPersistOutcome | null | undefined;
+}): G1DurableIdentityState {
+  const dwellingId = String(input.dwellingId ?? "").trim();
+  const lineId = String(input.lineId ?? "").trim();
+  const override = input.manualOverrides.find(
+    (o) =>
+      String(o.dwellingId ?? "").trim() === dwellingId
+      && String(o.lineId ?? "").trim() === lineId,
+  );
+  if (!override) return { kind: "no_session_override" };
+
+  const catalogWorkId = String(override.catalogWorkId ?? "").trim();
+  if (!catalogWorkId) return { kind: "no_session_override" };
+
+  const pkgId = String(input.packageLineCatalogWorkId ?? "").trim();
+  if (pkgId && pkgId === catalogWorkId) {
+    return { kind: "durable_match", catalogWorkId };
+  }
+
+  const outcome = input.identityPersistOutcome;
+  const skip = outcome?.skips?.find(
+    (s) => String(s.dwellingId ?? "").trim() === dwellingId,
+  );
+  const wrote = outcome?.writes?.some(
+    (w) => String(w.dwellingId ?? "").trim() === dwellingId,
+  );
+
+  if (skip && !G1_PERSIST_NON_FAILURE_REASONS.has(String(skip.reason ?? ""))) {
+    return {
+      kind: "persist_failed",
+      catalogWorkId,
+      reason: String(skip.reason ?? "PERSIST_SKIP"),
+    };
+  }
+
+  if (wrote && pkgId !== catalogWorkId) {
+    // Write reported but package line still mismatched — Owner must retry / re-check.
+    return {
+      kind: "persist_failed",
+      catalogWorkId,
+      reason: "WRITE_WITHOUT_PACKAGE_MATCH",
+    };
+  }
+
+  if (!outcome) {
+    return { kind: "persist_pending", catalogWorkId };
+  }
+
+  // Outcome observed, no durable package match, no non-failure skip → fail closed.
+  if (pkgId !== catalogWorkId) {
+    return {
+      kind: "persist_failed",
+      catalogWorkId,
+      reason: skip?.reason ?? "PERSISTENCE_NOT_DURABLE",
+    };
+  }
+
+  return { kind: "durable_match", catalogWorkId };
+}
+
+/**
+ * Session override without durable package match → keep Owner-actionable (fail closed).
+ */
+export function isG1PersistRetryRequired(
+  state: G1DurableIdentityState,
+): boolean {
+  return state.kind === "persist_failed" || state.kind === "persist_pending";
 }
 
 function findCoverageRow(
