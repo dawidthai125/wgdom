@@ -172,8 +172,62 @@ function resolveExistingDwellingOfferBoq(
   return unit?.offerBoq ?? null;
 }
 
+/** Deep copy of a durable package OfferBoq line (Owner-scoped immutability). */
+function cloneDurableOfferBoqLine(line: OfferBoqLine): OfferBoqLine {
+  if (typeof structuredClone === "function") {
+    return structuredClone(line);
+  }
+  return JSON.parse(JSON.stringify(line)) as OfferBoqLine;
+}
+
+/**
+ * Look up a durable package OfferBoq line by dwellingId + lineId.
+ * Returns null when package / dwelling / line is absent — never invents state.
+ */
+function findDurablePackageOfferBoqLine(
+  pkg: TenderPackage | null | undefined,
+  dwellingId: string,
+  lineId: string,
+): OfferBoqLine | null {
+  const doc = resolveExistingDwellingOfferBoq(pkg, dwellingId);
+  if (!doc?.lines?.length) return null;
+  const lid = String(lineId ?? "").trim();
+  if (!lid) return null;
+  return doc.lines.find((l) => String(l.lineId ?? "").trim() === lid) ?? null;
+}
+
+function buildOwnerOverrideKeySet(
+  overrides: readonly OwnerManualIdentityOverride[] | null | undefined,
+): Set<string> {
+  const keys = new Set<string>();
+  for (const ov of overrides ?? []) {
+    const did = String(ov.dwellingId ?? "").trim();
+    const lid = String(ov.lineId ?? "").trim();
+    if (!did || !lid) continue;
+    keys.add(`${did}|${lid}`);
+  }
+  return keys;
+}
+
+function tallyIdentityStatus(
+  identity: ReturnType<typeof resolveWorkIdentityFromOfferBoqLine>,
+  hadProvisionalPatch: boolean,
+): "trusted" | "ambiguous" | "no_identity" | "other" {
+  if (identity.status === "OK" && identity.workId && !hadProvisionalPatch) return "trusted";
+  if (identity.status === "AMBIGUOUS") return "ambiguous";
+  if (identity.status === "NO_IDENTITY" || !identity.workId) return "no_identity";
+  return "other";
+}
+
 /**
  * Pure PHASE 3 — builds postIdentityExpert and persist plans (no attach / no LS write).
+ *
+ * Owner-scoped G1 (when `manualOverrides` non-empty):
+ * - override set → mapOfferBoqLine → applyManualOverride → F5 (+ W2-5)
+ * - non-override + durable package line → deep-copy immutable (no remap / no W2-5 clear)
+ * - non-override + no durable → existing auto-map
+ *
+ * When `manualOverrides` empty/null → full Identity remap (legacy non-G1 workflows).
  */
 export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhaseResult {
   const structural = input.structuralReport;
@@ -220,6 +274,9 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
   let noIdentityCount = 0;
   let admittedProcessed = 0;
 
+  const ownerOverrideKeys = buildOwnerOverrideKeySet(input.manualOverrides);
+  const ownerScopedG1 = ownerOverrideKeys.size > 0;
+
   for (const ref of sliceRefs) {
     const lineId = String(ref.line.lineId ?? "").trim();
     // UNRESOLVED / SKIPPED: keep in canonical BOQ · do not Identity-resolve · no invent.
@@ -228,6 +285,42 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
       continue;
     }
     admittedProcessed += 1;
+
+    const overrideKey = `${ref.dwellingId}|${lineId}`;
+    const isOwnerAuthorized = ownerScopedG1 && ownerOverrideKeys.has(overrideKey);
+
+    // Owner-scoped: durable non-selected lines stay immutable (no remap / no W2-5 clear).
+    if (ownerScopedG1 && !isOwnerAuthorized) {
+      const durable = findDurablePackageOfferBoqLine(
+        input.package ?? null,
+        ref.dwellingId,
+        lineId,
+      );
+      if (durable) {
+        const outLine = cloneDurableOfferBoqLine(durable);
+        const identity = resolveWorkIdentityFromOfferBoqLine(outLine);
+        const bucket = tallyIdentityStatus(identity, false);
+        if (bucket === "trusted") trustedOkCount += 1;
+        else if (bucket === "ambiguous") ambiguousCount += 1;
+        else if (bucket === "no_identity") noIdentityCount += 1;
+
+        resolvedRefs.push({
+          dwellingId: ref.dwellingId,
+          line: outLine,
+          provenance: ref.provenance,
+        });
+        lineResults.push({
+          dwellingId: ref.dwellingId,
+          lineId: ref.line.lineId,
+          mappedLine: outLine,
+          f5Status: identity.status,
+          workId: identity.workId,
+          matchMethod: outLine.matchMethod ?? null,
+        });
+        continue;
+      }
+      // No durable package line → fall through to legal auto-map below.
+    }
 
     const mapped = mapOfferBoqLine(ref.line, mapCtx);
     const withManual = applyManualOverride(mapped, ref, input.manualOverrides);
@@ -249,17 +342,15 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
       provisionalBindingCount += 1;
     }
 
-    if (identity.status === "OK" && identity.workId && !hadProvisionalPatch) {
-      trustedOkCount += 1;
-    } else if (identity.status === "AMBIGUOUS") {
-      ambiguousCount += 1;
-    } else if (identity.status === "NO_IDENTITY" || !identity.workId) {
-      noIdentityCount += 1;
-    }
+    const bucket = tallyIdentityStatus(identity, hadProvisionalPatch);
+    if (bucket === "trusted") trustedOkCount += 1;
+    else if (bucket === "ambiguous") ambiguousCount += 1;
+    else if (bucket === "no_identity") noIdentityCount += 1;
 
     // W2-5: AMBIGUOUS ⇒ clear OfferBoq catalogWorkId (F5 workId=null). Do not
     // preserve prior bind — that would look like HAS_WORK_ID downstream.
     // TRUSTED / OK paths keep prior coalesce unchanged.
+    // Owner-scoped durable copies never reach this branch.
     const catalogWorkId =
       identity.status === "AMBIGUOUS"
         ? null

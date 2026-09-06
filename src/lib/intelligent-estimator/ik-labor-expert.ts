@@ -230,7 +230,9 @@ function emptyCounts(input: number): IkLaborExpertCounts {
 
 /**
  * APF fallback eligibility — no CatalogWork identity + pomiar/prob only.
- * `pomiar` resolves to INVALID_UNIT (not in WgdomCostUnit enum) — included explicitly.
+ * `pomiar` is a first-class WgdomCostUnit (Sępa capability) — distinct from `prob`.
+ * Eligibility still allows NO_IDENTITY | INVALID_UNIT when unbound (APF pricing-only).
+ * Does NOT alias pomiar↔prob for F5 / CatalogWork.
  * Does NOT bypass normal work-rate identity policy.
  */
 export function isIkLaborLineApfEligible(row: {

@@ -62,6 +62,7 @@ export function normalizeWorkRateUnitToken(raw: string): string {
   if (s === "kg") return "kg";
   if (s === "m3" || s === "m³") return "m3";
   if (s === "prob" || s === "prób" || s === "prób.") return "prob";
+  if (s === "pomiar") return "pomiar";
   return s;
 }
 

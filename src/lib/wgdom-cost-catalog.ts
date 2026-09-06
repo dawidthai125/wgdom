@@ -22,7 +22,18 @@ export type WgdomCostCategoryId =
   | "UNKNOWN";
 
 /** S2-C: +kg / +l — product CatalogWork (klej, fuga, farba, grunt, gładź). */
-export type WgdomCostUnit = "m2" | "mb" | "szt" | "rbh" | "m3" | "kpl" | "kg" | "l" | "prob";
+/** OD-01 `prob` · Sępa capability `pomiar` — first-class; NEVER alias pomiar↔prob. */
+export type WgdomCostUnit =
+  | "m2"
+  | "mb"
+  | "szt"
+  | "rbh"
+  | "m3"
+  | "kpl"
+  | "kg"
+  | "l"
+  | "prob"
+  | "pomiar";
 
 export type WgdomCostRegion = "wroclaw" | "dolnyslask";
 
@@ -317,6 +328,8 @@ export function normalizeWgdomCostUnit(raw: string | undefined | null): WgdomCos
   if (/^(kg|kgs|kilogram|kilogramy)$/.test(u)) return "kg";
   if (/^(l|ltr|litr|litry|liters?)$/.test(u)) return "l";
   if (/^(prob|prób|prób\.)$/.test(u)) return "prob";
+  // Canonical measurement unit (KNNR 1301) — distinct from `prob` (KNNR 1305).
+  if (/^pomiar$/.test(u)) return "pomiar";
   return null;
 }
 

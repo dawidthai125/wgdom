@@ -35,7 +35,18 @@ export const WORK_CATALOG_STORAGE_KEY = "kw-wgdom-work-catalog";
 /** Stała domyślna `updatedAt` (determinizm normalize — bez Date.now()). */
 export const WORK_CATALOG_DEFAULT_UPDATED_AT = "2026-06-13T00:00:00.000Z";
 
-const VALID_UNITS: WgdomCostUnit[] = ["m2", "mb", "szt", "rbh", "m3", "kpl", "kg", "l", "prob"];
+const VALID_UNITS: WgdomCostUnit[] = [
+  "m2",
+  "mb",
+  "szt",
+  "rbh",
+  "m3",
+  "kpl",
+  "kg",
+  "l",
+  "prob",
+  "pomiar",
+];
 const VALID_FRESHNESS: WorkFreshnessStatus[] = ["ok", "stale", "missing"];
 const VALID_SOURCES: WorkCatalogSource[] = ["seed", "custom", "copied"];
 const LEGACY_CATEGORY_SET = new Set<WgdomCostCategoryId>([

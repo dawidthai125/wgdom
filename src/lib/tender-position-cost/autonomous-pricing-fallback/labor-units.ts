@@ -26,7 +26,9 @@ export function isApfLaborOnlyUnit(unitRaw: string): boolean {
 
 /**
  * Map APF labor units onto WgdomCostUnit used by Position Cost engine.
- * "pomiar" is not in the catalog enum — engine path uses "prob".
+ * APF pricing-only bridge (unchanged): pomiar still routes to engine `prob`.
+ * Catalog / F5 identity: `pomiar` is a first-class WgdomCostUnit — NEVER alias
+ * pomiar↔prob in normalizeWgdomCostUnit / CatalogWork / G1.
  */
 export function mapApfLaborUnitToEngineUnit(unitRaw: string): string {
   const u = normalizeApfUnitToken(unitRaw);

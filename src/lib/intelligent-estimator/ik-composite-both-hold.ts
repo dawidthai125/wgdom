@@ -63,7 +63,18 @@ export const IK_COMPOSITE_P2_KEEP_GAP_WORK_IDS = [
   "cc-p0c-w1-zawor-odpowietrzajacy",
 ] as const;
 
-const WGDOM_UNITS = new Set<string>(["m2", "mb", "szt", "rbh", "m3", "kpl", "kg", "l", "prob"]);
+const WGDOM_UNITS = new Set<string>([
+  "m2",
+  "mb",
+  "szt",
+  "rbh",
+  "m3",
+  "kpl",
+  "kg",
+  "l",
+  "prob",
+  "pomiar",
+]);
 
 function isWgdomCostUnit(unit: string): unit is WgdomCostUnit {
   return WGDOM_UNITS.has(unit);
