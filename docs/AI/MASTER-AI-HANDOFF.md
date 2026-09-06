@@ -34,7 +34,7 @@ ACTIVE IMPLEMENT = NONE bez Owner GO · APP 2.66.165 · LIVE=fetch /version.json
 
 W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + **FETCH** live `version.json` — **APP 2.66.165 · LAST VERIFIED SOURCE `32a90fef` · HYDRATION VERIFY `75d0f09`** · LIVE commit = tylko z `/version.json` · **brak** exact-equality SSOT↔live. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** (Master §10.0.2 · ≠ TPI Full IK E2E · ≠ Global IK PV). **LINE-TOLERANT** = HISTORY feature tip **`a5d19047`**. **OD-OCR-47 PASS** = HISTORY capability tip. **TPI Full IK E2E = OPEN / NOT VERIFIED**. **CHROBREGO CLOSED**. **Track B CLOSED / VERIFIED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
 
-**NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. Środa follow-up · TPI IK E2E · Phase 5 · epic closeout) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** start G1/G2/G3 na TPI bez GO.
+**NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. TPI IK E2E · Phase 5 · AUTONOMY-08 epic closeout · inny REAL SOURCE) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** reopen Środa L+T+U (**CLOSED / VERIFY PASS @ `bce0ba23`**) · **NIE** start G1/G2/G3 na TPI bez GO.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.
