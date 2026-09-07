@@ -1015,6 +1015,7 @@ D3 = pages 19–22 electrical    KOBRA/ORGBUD
 
 Każdy derived: osobny `documentId` · `parentDocumentId = P` · page range · branch · deterministic content hash · derived source.
 Owner Map: D1/D2/D3 → same dwelling.
+**C2 parent admission (dwelling cost-compose):** Physical parent **P** remains **lineage/registry-only** for dwelling cost-compose when a complete C2 derived set exists for that parent (`parentDocumentId=P`, at least **2** derived documents with **explicit distinct branches**) and all required derived documents are present in the dwelling map. **P** may remain present in Owner Map / `documentToDwelling`, but **P is not admitted** to the dwelling cost-compose set. The integrity `sourceLineCount` **MUST** use the same admitted compose set. **No** branch is inferred or fabricated for **P**. Domain integrity evidence when counts match: reason `LINE_COUNT_MATCH` (runtime · **≠** UI host attribute).
 Existing Multi-BOQ **UNCHANGED**. **No** `LogicalBoq`. **No** second parser.
 
 Canonical pipeline ID: `ocds-148610-15299a87-45b5-465d-872c-6aa6f11f076c`
@@ -1287,6 +1288,8 @@ Shell defaults w `IkEntryHost`: `IK_ENTRY_SHELL_* = false` (AUTO_INGEST / EXECUT
 | **Współpraca** | Czyta `historicalIndex` (EXACT/FAMILY/CONFLICT/MISS) · **nie** przejmuje Labor/Material authority · discovery **nie** jest auto-autoryzacją danych |
 | **NIE** | Work Catalog · Price Memory · auto OUR RATE · auto material price · drugi orchestrator · auto VERIFIED · invent BOM/workId · MOPS-only routing · KL-6 mutate z Historical · anonymous→super_admin · paywall/licensed scrape |
 | **Status** | Slice A **PRODUCTION VERIFIED** · B/C/D **IMPLEMENTED / PRODUCTION EXISTING** · Global KNR discovery+reanalysis **LANDED** (`0d9880fb`) · VERIFIED **only** KL-6 Owner · KL corpus / full Phase 2E catalog product **PARTIAL/OPEN** |
+
+**KL-3 HOST lifecycle (factual · NIE nowy node):** Earlier production/local failure mode = **permanent `knowledgeBusy`** from cancellation cleanup + same-key attempt latch / self-cancel via unstable effect dependencies. **Fix checkpoint:** `ece4f8be084f782665192da8481400aef8df22ca`. **Production:** application version **2.66.166** · **PRODUCTION VERIFIED** at **`ece4f8be`**. **Verification:** KL-3 `busy → ready` · Identity Coverage starts after KL-3 settle. **MISS / RESEARCH_UNAVAILABLE** remain fail-closed · **no** fake HIT. Pipeline semantics **UNCHANGED**. LIVE authority = fetch `/version.json` · documentary checkpoint **≠** required exact SSOT SHA mirror.
 
 ### 11.6 Historical Executed
 

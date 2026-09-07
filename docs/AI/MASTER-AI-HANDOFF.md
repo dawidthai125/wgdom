@@ -11,6 +11,7 @@
 > **★★ Track B:** **CLOSED / VERIFIED / UNCHANGED**
 > **★★ CHROBREGO:** **CLOSED CASE** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)
+> **★★ C2 parent admission + KL-3 lifecycle:** C2 parent admission **IMPLEMENTED / VERIFIED** (Master §10.0.2 · MULTI-BOQ closeout §6 pointer) · KL-3 knowledgeBusy lifecycle **PRODUCTION VERIFIED** @ **`ece4f8be`** (app **2.66.166**) · LIVE = **FETCH** `/version.json` · **brak** wymogu exact documentary tip ≡ live SHA · TPI LP2 Identity GAP (**NIEPRAWIDŁOWA_JEDNOSTKA**) **pozostaje OPEN** · **NIE** closed / **NIE** G1 bez Owner GO
 > **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED**
 > **Tip numeryczny:** wyłącznie [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
 > **Tender Bid / Position Cost continuity:** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) · [`../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md`](../architecture/TENDER-BOQ-PRICING-REBUILD-01-AI-CONTINUITY-HANDOFF.md)

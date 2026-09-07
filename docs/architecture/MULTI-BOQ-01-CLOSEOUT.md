@@ -130,6 +130,8 @@ Legacy lineId (`buildOfferBoqLineId` w `tender-offer-boq.ts`) — **bez zmian**.
 
 **Zakaz:** silent drop · silent double count · missing → 0 PLN.
 
+**C2 parent admission** is documented in Master SSOT §10.0.2; it scopes the physical parent as lineage/registry-only when a complete derived C2 set is admitted to dwelling cost-compose, without changing the existing UNION / KEEP BOTH / KEEP ONE / CONFLICT HOLD merge contract.
+
 ---
 
 ## 7. Provenance + schema
