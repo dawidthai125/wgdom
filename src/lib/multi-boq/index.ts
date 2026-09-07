@@ -34,6 +34,19 @@ export {
 export { buildDwellingDocumentSet } from "@/lib/multi-boq/document-set";
 
 export {
+  isCompleteC2DerivedSet,
+  loadC2LineageFromIngest,
+  listC2DerivedChildrenForParent,
+  excludeC2ParentsFromComposeDocumentIds,
+  admitC2ComposeArtifacts,
+} from "@/lib/multi-boq/c2-parent-admission";
+export type {
+  C2LineageDocument,
+  C2LineageArtifact,
+  C2LineageSnapshot,
+} from "@/lib/multi-boq/c2-parent-admission";
+
+export {
   mergeDwellingArtifactLines,
   countExtractableLinesFromArtifacts,
   snapshotHasUsableLines,

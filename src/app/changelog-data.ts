@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-09-07",
+    version: "2.66.166",
+    label: "C2 — parent PDF lineage-only przy kompletnym derived Multi-BOQ",
+    items: [
+      {
+        type: "fix",
+        text: "Gdy C2 ma physical parent P + komplet derived (parentDocumentId=P, jawne distinct branches, ≥2), P zostaje w registry/Owner Map, ale nie wchodzi do compose/admission ani do sourceLineCount integrity. Merge lp::branchHint i CONFLICT_HOLD bez zmian. Test: test-multi-boq-c2-parent-admission.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-09-05",
     version: "2.66.165",
     label: "Lista płac — ledger godzin: reload, łańcuch edycji, TTL",

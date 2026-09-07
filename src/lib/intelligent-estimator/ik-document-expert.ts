@@ -35,8 +35,10 @@ import {
 } from "@/lib/intelligent-estimator/boq-dependency-graph";
 import { synchronizeOfferBoqFromMasterLines } from "@/lib/intelligent-estimator/boq-offer-master-sync";
 import {
+  admitC2ComposeArtifacts,
   buildArtifactPoolFromItem,
   composeDwellingOfferBoq,
+  loadC2LineageFromIngest,
   mergeDwellingArtifactLines,
   resolveDwellingCostSnapshotForPricing,
   type DwellingCostArtifactRef,
@@ -727,7 +729,23 @@ export function runIkDocumentExpert(opts: {
     }
   }
 
-  const sourceLineCount = countSourceLinesInArtifacts(pool);
+  // Integrity source must match compose admission (C2: exclude physical parent when
+  // complete derived set is mapped). Same universe as resolveDwellingCostSnapshotForPricing.
+  let integritySourceArts: DwellingCostArtifactRef[] = pool;
+  if (mode === "multi" && dwellingMapping.allMapped && pkg?.mode === "multi") {
+    const mappedIds = Object.keys(pkg.documentToDwelling ?? {}).filter(Boolean);
+    const lineage = loadC2LineageFromIngest(tenderId);
+    const admitted = admitC2ComposeArtifacts({
+      artifacts: pool,
+      mappedDocumentIds: mappedIds,
+      lineage,
+    });
+    integritySourceArts = admitted.admitted;
+    for (const w of admitted.warnings) {
+      if (!reasons.includes(w)) reasons.push(w);
+    }
+  }
+  const sourceLineCount = countSourceLinesInArtifacts(integritySourceArts);
   const lineIntegrity = computeCompositionLineIntegrity({
     sourceLineCount,
     composedLineCount: mode === "multi" && dwellingMapping.allMapped

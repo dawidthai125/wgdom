@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.166 — C2 parent lineage-only admission (2026-09-07)
+
+- **fix:** physical parent P excluded from Multi-BOQ compose + integrity `sourceLineCount` when complete C2 derived set (`parentDocumentId=P`, ≥2, explicit distinct branches) is mapped to the same dwelling
+- Owner Map / registry unchanged; merge `lp::branchHint` + CONFLICT_HOLD unchanged
+- Files: `multi-boq/c2-parent-admission.ts`, `resolve.ts`, `ik-document-expert.ts`
+- Test: `test-multi-boq-c2-parent-admission.mjs`
+
 ## 2.66.165 — Hours-intent ledger hardening (persist · coalesce · TTL) (2026-09-05)
 
 - **Fix:** persistent `kw-payroll-hours-intent-ledger` (localStorage), chain coalesce preserves Cloud `fromHours`, net-zero reverse removes intent, TTL 7 days.

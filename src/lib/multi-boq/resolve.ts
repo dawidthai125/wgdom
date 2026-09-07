@@ -11,6 +11,11 @@ import {
   buildArtifactPoolFromItem,
   findArtifactForDocumentId,
 } from "@/lib/multi-boq/artifact-pool";
+import {
+  excludeC2ParentsFromComposeDocumentIds,
+  loadC2LineageFromIngest,
+  type C2LineageSnapshot,
+} from "@/lib/multi-boq/c2-parent-admission";
 import { buildDwellingDocumentSet } from "@/lib/multi-boq/document-set";
 import {
   isCostEligibleFilename,
@@ -50,6 +55,8 @@ export function resolveDwellingCostSnapshotForPricing(opts: {
   item?: TenderPipelineItem | null;
   artifacts?: DwellingCostArtifactRef[];
   package?: TenderPackage | null;
+  /** DI / tests — default = ingest registry for tenderId. */
+  c2Lineage?: C2LineageSnapshot | null;
 }): DwellingCostSnapshot {
   const tid = String(opts.tenderId ?? "").trim();
   const dwellingId = normalizeDwellingId(opts.dwellingId);
@@ -79,11 +86,18 @@ export function resolveDwellingCostSnapshotForPricing(opts: {
       ? opts.artifacts
       : buildArtifactPoolFromItem(opts.item);
 
+  const lineage = opts.c2Lineage ?? loadC2LineageFromIngest(tid);
+  const c2Admission = excludeC2ParentsFromComposeDocumentIds({
+    documentIds: docSet.documentIds,
+    lineage,
+  });
+  const composeDocumentIds = c2Admission.admittedIds;
+
   const selected: DwellingCostArtifactRef[] = [];
-  const warnings: string[] = [];
+  const warnings: string[] = [...c2Admission.warnings];
   const documentToArtifact: Record<string, string> = {};
 
-  for (const documentId of docSet.documentIds) {
+  for (const documentId of composeDocumentIds) {
     const art = findArtifactForDocumentId(documentId, pool);
     if (!art) {
       warnings.push(`MISSING_ARTIFACT:${documentId}`);
