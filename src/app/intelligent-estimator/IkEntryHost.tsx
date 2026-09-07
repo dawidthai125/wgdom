@@ -188,12 +188,18 @@ export function IkEntryHost({
       }
       data-ik-labor-resolved={String(labor?.counts.workIdentityResolved ?? 0)}
       data-ik-labor-research={String(labor?.counts.researchCalls ?? 0)}
+      data-ik-labor-held-compound={String(
+        labor?.lines.filter((l) => l.rateStatus === "RESEARCH_HELD_COMPOUND").length ?? 0,
+      )}
       data-ik-material-status={
         p6MaterialOn ? (material?.status ?? "pending") : "shell_skipped"
       }
       data-ik-material-resolved={String(material?.counts.materialIdentityResolved ?? 0)}
       data-ik-material-research={String(material?.counts.researchCalls ?? 0)}
       data-ik-material-pm-hit={String(material?.counts.priceMemoryHit ?? 0)}
+      data-ik-material-held-compound={String(
+        material?.lines.filter((l) => l.priceStatus === "RESEARCH_HELD_COMPOUND").length ?? 0,
+      )}
       data-ik-p7-status={
         p7F5On ? (positionCostBid?.status ?? "pending") : "shell_skipped"
       }

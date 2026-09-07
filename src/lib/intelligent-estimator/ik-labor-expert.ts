@@ -39,7 +39,10 @@ import {
 } from "@/lib/ik-pricing-orchestrator/labor-research-bridge";
 import { buildIkLaborDedupeKey } from "@/lib/ik-pricing-orchestrator/types";
 import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
-import { classifyEstimatorPricingPlane } from "./classification-gate";
+import {
+  classifyEstimatorPricingPlane,
+  IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL,
+} from "./classification-gate";
 import type {
   EstimatorClassifyResult,
   EstimatorPricingPlane,
@@ -87,6 +90,11 @@ export type IkLaborRateStatus =
   | "RESEARCH_BLOCKED"
   | "RESEARCH_COOLDOWN"
   | "RESEARCH_SKIPPED"
+  /**
+   * Parent COMPOUND / BOTH — autonomous Labor Research intentionally not run.
+   * ≠ RESEARCH_GAP (research executed, evidence insufficient).
+   */
+  | "RESEARCH_HELD_COMPOUND"
   /** APF ephemeral candidate — NOT OUR RATE / NOT Accept. */
   | "APF_EPHEMERAL_CANDIDATE";
 
@@ -113,6 +121,8 @@ export type IkLaborExpertLineResult = {
   rateStatus: IkLaborRateStatus;
   ourRatePln: number | null;
   researchKey: string | null;
+  /** PL message when rateStatus carries an explicit HOLD/GAP note (e.g. RESEARCH_HELD_COMPOUND). */
+  researchMessagePl?: string | null;
   candidate: WorkRateResearchCandidate | null;
   /** P5 internal-first outcome (when run). */
   internalFirstOutcome?: string | null;
@@ -370,6 +380,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
     let rateStatus: IkLaborRateStatus = "NONE";
     let ourRatePln: number | null = null;
     let researchKey: string | null = null;
+    let researchMessagePl: string | null = null;
     let internalFirstOutcome: string | null = null;
     let internalFirstConfidence: string | null = null;
     let internalFirstMatchId: string | null = null;
@@ -445,6 +456,16 @@ export async function runIkMasterBoqLaborExpert(opts: {
               : rateStatus;
         }
       }
+    } else if (
+      bucket === "BOTH"
+      && classify.plane === "COMPOUND"
+      && identity.status === "OK"
+      && workId
+      && !classify.allowLaborResearch
+    ) {
+      // Parent COMPOUND — autonomous Labor Research intentionally withheld.
+      rateStatus = "RESEARCH_HELD_COMPOUND";
+      researchMessagePl = IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL;
     }
 
     lines.push({
@@ -469,6 +490,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
       rateStatus,
       ourRatePln,
       researchKey,
+      researchMessagePl,
       candidate: null,
       internalFirstOutcome,
       internalFirstConfidence,
@@ -620,6 +642,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
       row.bucket !== "LABOR"
       && row.rateStatus !== "NONE"
       && row.rateStatus !== "CURRENT_HIT"
+      && row.rateStatus !== "RESEARCH_HELD_COMPOUND"
     ) {
       // Unexpected research path on non-labor
       if (row.researchKey && researchByKey.has(row.researchKey)) {

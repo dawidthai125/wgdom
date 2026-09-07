@@ -14,6 +14,13 @@ import type {
 import { getOwnerClassificationPlane } from "./owner-classification-map";
 import { isInvoicePurchaseMaterialKey } from "@/lib/price-intelligence/invoice-purchase-host";
 
+/** Expert line status: parent COMPOUND — research intentionally not executed. */
+export const IK_RESEARCH_HELD_COMPOUND_STATUS = "RESEARCH_HELD_COMPOUND" as const;
+
+/** PL copy for RESEARCH_HELD_COMPOUND (Labor/Material Expert lines). */
+export const IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL =
+  "Research celowo wstrzymany — parent COMPOUND.";
+
 function trimOrNull(v: unknown): string | null {
   const s = String(v ?? "").trim();
   return s ? s : null;

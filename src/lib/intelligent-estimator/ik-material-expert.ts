@@ -54,7 +54,7 @@ import {
 import { acceptMaterialResearchCandidate } from "@/lib/price-intelligence/market-material-research-orchestrate";
 import type { CommitMarketQuotesDeps } from "@/lib/work-catalog/commit-market-quotes";
 import { isInvoicePurchaseMaterialKey } from "@/lib/price-intelligence/invoice-purchase-host";
-import { classifyEstimatorPricingPlane } from "./classification-gate";
+import { classifyEstimatorPricingPlane, IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL } from "./classification-gate";
 import type {
   EstimatorClassifyResult,
   EstimatorPricingPlane,
@@ -89,7 +89,12 @@ export type IkMaterialPriceStatus =
   | "RESEARCH_BLOCKED"
   | "RESEARCH_COOLDOWN"
   | "RESEARCH_SKIPPED"
-  | "RESEARCH_HELD";
+  | "RESEARCH_HELD"
+  /**
+   * Parent COMPOUND / BOTH — autonomous Material Research intentionally not run.
+   * ≠ RESEARCH_GAP · ≠ NO_PACK · does not block mat.* MATERIAL plane research.
+   */
+  | "RESEARCH_HELD_COMPOUND";
 
 export type IkMaterialIdentity = {
   materialKey: string;
@@ -506,6 +511,19 @@ export async function runIkMasterBoqMaterialExpert(opts: {
       }
     }
 
+    if (
+      priceStatus === "NONE"
+      && classify.plane === "COMPOUND"
+      && bucket === "BOTH"
+      && workIdentity.status === "OK"
+      && workId
+      && !classify.allowMaterialResearch
+    ) {
+      // Parent COMPOUND — autonomous Material Research intentionally withheld.
+      // Does not affect mat.* MATERIAL-plane research eligibility.
+      priceStatus = "RESEARCH_HELD_COMPOUND";
+    }
+
     lines.push({
       tenderId,
       dwellingId: ref.dwellingId,
@@ -530,7 +548,10 @@ export async function runIkMasterBoqMaterialExpert(opts: {
       priceMemoryHitPln,
       researchKey,
       candidate: null,
-      researchError: null,
+      researchError:
+        priceStatus === "RESEARCH_HELD_COMPOUND"
+          ? IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL
+          : null,
     });
   }
 

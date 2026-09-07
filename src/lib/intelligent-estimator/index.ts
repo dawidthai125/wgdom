@@ -14,6 +14,8 @@ export {
   assertLaborResearchAllowed,
   assertMaterialResearchAllowed,
   isLaborGapJobAllowed,
+  IK_RESEARCH_HELD_COMPOUND_STATUS,
+  IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL,
 } from "./classification-gate";
 
 export {
