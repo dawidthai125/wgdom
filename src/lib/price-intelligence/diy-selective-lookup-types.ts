@@ -39,6 +39,11 @@ export interface DiySelectiveLookupPort {
   lookup(req: DiySelectiveLookupRequest): Promise<DiySelectiveLookupResult>;
 }
 
+export type DiyPackageMassEvidenceKind =
+  | "label_explicit"
+  | "structured_attr"
+  | "title_explicit_confirmed";
+
 export interface DiyParsedOffer {
   provider: DiyShopProviderId;
   productName: string;
@@ -52,4 +57,10 @@ export interface DiyParsedOffer {
   sourceUrl: string;
   /** Identity confidence — false ⇒ treat as PRICE_GAP (wrong product > missing). */
   identityMatched: boolean;
+  /** Phase C — explicit package mass on same PDP (null when missing / ambiguous). */
+  packageMassKg?: number | null;
+  massEvidence?: DiyPackageMassEvidenceKind | null;
+  multipackAmbiguous?: boolean;
+  /** Retail looks like package (szt/opak) rather than already PLN/kg. */
+  isPackagePrice?: boolean;
 }

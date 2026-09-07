@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.167 — IK Phase C package→kg conversion (2026-09-07)
+
+- **new:** Legal PACKAGE → PLN/kg in Material Research DIY path — full evidence tuple only; Candidate kg · autoAccept=false · Owner Gate required
+- Fail-closed `PACKAGE_PRICE_NO_CONVERSION_SSOT` (inferred mass / cross-URL / multipack / promo / missing mass)
+- Reuse `mmr-selective-diy-provider` + existing market quote persistence — no parallel conversion / no PM·OUR RATE·ACTIVE write
+- Files: `diy-package-kg-conversion.ts`, `diy-shop-html-parse.ts`, `mmr-selective-diy-provider.ts`
+- Test: `test-ik-package-to-kg-phase-c.mjs` (C1–C12)
+
 ## 2.66.166 — C2 parent lineage-only admission (2026-09-07)
 
 - **fix:** physical parent P excluded from Multi-BOQ compose + integrity `sourceLineCount` when complete C2 derived set (`parentDocumentId=P`, ≥2, explicit distinct branches) is mapped to the same dwelling

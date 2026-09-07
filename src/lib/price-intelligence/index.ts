@@ -185,6 +185,19 @@ export {
   type ResolveMmr02Phase2ProviderResult,
 } from "./market-material-research-02-provider";
 
+/** Phase C — legal PACKAGE → kg conversion SSOT. */
+export {
+  IK_PHASE_C_PACKAGE_TO_KG,
+  PACKAGE_PRICE_NO_CONVERSION_SSOT,
+  extractExplicitPackageMassKg,
+  looksLikePackageRetailUnit,
+  roundPricePerKg,
+  tryConvertPackagePriceToKg,
+  type PackageMassEvidenceKind,
+  type PackageToKgConversionResult,
+  type PackageToKgEvidenceInput,
+} from "./diy-package-kg-conversion";
+
 export {
   buildDiySelectiveRequestUrl,
   identityMatchesQuery,
@@ -447,10 +460,12 @@ export {
   paginateOurPriceCatalogRows,
   patchWorkCommercialPricing,
   resolveMarginPct,
+  type LaborCommercialMarginPolicy,
   type OurPriceCatalogFreshnessFilter,
   type OurPriceCatalogRow,
   type OurPriceChange,
   type OurSourceCoverage,
+  type ResolveMarginPctOptions,
 } from "./our-price-catalog";
 
 export {

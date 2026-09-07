@@ -4,6 +4,7 @@
  */
 
 import type { DiyParsedOffer, DiyShopProviderId } from "./diy-selective-lookup-types";
+import { extractExplicitPackageMassKg } from "./diy-package-kg-conversion";
 
 function fold(s: string): string {
   return String(s || "")
@@ -209,6 +210,41 @@ function parseObi(html: string, query: string, sourceUrl: string): DiyParsedOffe
   };
 }
 
+function attachPackageMassEvidence(
+  offer: DiyParsedOffer,
+  html: string,
+): DiyParsedOffer {
+  const mass = extractExplicitPackageMassKg({
+    productName: offer.productName,
+    html,
+  });
+  if (!mass) {
+    return {
+      ...offer,
+      packageMassKg: null,
+      massEvidence: null,
+      multipackAmbiguous: false,
+      isPackagePrice: true,
+    };
+  }
+  if (mass.multipackAmbiguous) {
+    return {
+      ...offer,
+      packageMassKg: null,
+      massEvidence: null,
+      multipackAmbiguous: true,
+      isPackagePrice: true,
+    };
+  }
+  return {
+    ...offer,
+    packageMassKg: mass.packageMassKg,
+    massEvidence: mass.massEvidence,
+    multipackAmbiguous: false,
+    isPackagePrice: true,
+  };
+}
+
 export function parseDiyShopHtml(opts: {
   provider: DiyShopProviderId;
   html: string;
@@ -217,16 +253,21 @@ export function parseDiyShopHtml(opts: {
 }): DiyParsedOffer | null {
   const html = String(opts.html || "");
   if (html.length < 40) return null;
+  let offer: DiyParsedOffer | null = null;
   switch (opts.provider) {
     case "leroy":
-      return parseLeroy(html, opts.query, opts.sourceUrl);
+      offer = parseLeroy(html, opts.query, opts.sourceUrl);
+      break;
     case "castorama":
-      return parseCastorama(html, opts.query, opts.sourceUrl);
+      offer = parseCastorama(html, opts.query, opts.sourceUrl);
+      break;
     case "obi":
-      return parseObi(html, opts.query, opts.sourceUrl);
+      offer = parseObi(html, opts.query, opts.sourceUrl);
+      break;
     default:
       return null;
   }
+  return offer ? attachPackageMassEvidence(offer, html) : null;
 }
 
 /** Allowlisted selective search/PDP URL builders — never client-supplied arbitrary hosts. */

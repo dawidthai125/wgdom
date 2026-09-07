@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-07",
+    version: "2.66.167",
+    label: "IK Phase C — legalna konwersja PACKAGE → kg (Material Research)",
+    items: [
+      {
+        type: "new",
+        text: "Material Research: przeliczenie ceny opakowania na PLN/kg tylko przy kompletnym evidence tuple (identity + packagePrice + packageMassKg + massEvidence explicit + sameObservation/URL). Candidate w kg, autoAccept=false, Owner Gate wymagany. Bez mass/identity/cross-URL/multipack/promo → PACKAGE_PRICE_NO_CONVERSION_SSOT. Marker PHASE_C_PACKAGE_TO_KG. Test: test-ik-package-to-kg-phase-c.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-07",
     version: "2.66.166",
     label: "C2 — parent PDF lineage-only przy kompletnym derived Multi-BOQ",
     items: [

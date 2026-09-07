@@ -20,7 +20,11 @@ import type {
   MaterialResearchProviderInput,
   MaterialResearchProviderResult,
 } from "./market-material-research-types";
-import { unitsCompatible } from "./market-material-research-provider";
+import { normalizeResearchUnit, unitsCompatible } from "./market-material-research-provider";
+import {
+  PACKAGE_PRICE_NO_CONVERSION_SSOT,
+  tryConvertPackagePriceToKg,
+} from "./diy-package-kg-conversion";
 
 export const MMR_DIY_SELECTIVE_PROVIDER_ID = "mmr02_diy_selective" as const;
 
@@ -62,8 +66,11 @@ export function createSelectiveDiyTrioResearchProvider(
         return { ok: false, error: "PRICE_GAP", autoAccepted: false };
       }
 
+      const requestUnit = normalizeResearchUnit(input.unit);
       const rawObs: QualifyingMarketObservationInput[] = [];
       let lastUrl: string | undefined;
+      let conversionEvidenceNotes: string[] = [];
+      let sawPackageWithoutConversion = false;
 
       for (const provider of SHOPS) {
         const looked = await opts.lookup.lookup({
@@ -88,11 +95,41 @@ export function createSelectiveDiyTrioResearchProvider(
         });
         if (!parsed?.identityMatched) continue;
 
+        let priceNet = parsed.priceGrossPln;
+        let unitForObs = requestUnit;
+
+        // Phase C — when request is kg, convert package → kg only with full evidence tuple.
+        if (requestUnit === "kg") {
+          const converted = tryConvertPackagePriceToKg({
+            productIdentityMatched: parsed.identityMatched === true,
+            packagePricePln: parsed.priceGrossPln,
+            packageMassKg: parsed.packageMassKg ?? null,
+            massEvidence: parsed.massEvidence ?? null,
+            sourceUrl: parsed.sourceUrl,
+            sku: parsed.sku ?? null,
+            sameObservation: true,
+            priceType: parsed.priceType,
+            priceAmbiguous: false,
+            multipackAmbiguous: parsed.multipackAmbiguous === true,
+            requestUnit: "kg",
+            observedUnit: parsed.isPackagePrice ? "opak" : null,
+          });
+          if (!converted.ok) {
+            sawPackageWithoutConversion = true;
+            continue;
+          }
+          priceNet = converted.pricePerKg;
+          unitForObs = "kg";
+          conversionEvidenceNotes.push(
+            `pkg→kg:${converted.packagePricePln}/${converted.packageMassKg}${converted.massEvidence}@${provider}`,
+          );
+        }
+
         lastUrl = parsed.sourceUrl;
         rawObs.push({
           materialKey: input.materialKey,
           provider,
-          priceNet: parsed.priceGrossPln,
+          priceNet,
           currency: "PLN",
           priceType: parsed.priceType,
           sellerKind: parsed.sellerKind,
@@ -101,11 +138,18 @@ export function createSelectiveDiyTrioResearchProvider(
           sourceUrl: parsed.sourceUrl,
           sku: parsed.sku,
         });
+        void unitForObs;
       }
 
       const avg = averageQualifyingRegularMarketPrices(rawObs);
       if (avg.status !== "ok" || avg.averagePln == null || avg.qualifyingCount < 1) {
-        return { ok: false, error: "PRICE_GAP", autoAccepted: false };
+        return {
+          ok: false,
+          error: sawPackageWithoutConversion
+            ? PACKAGE_PRICE_NO_CONVERSION_SSOT
+            : "PRICE_GAP",
+          autoAccepted: false,
+        };
       }
 
       const qOnly: QualifyingMarketObservationInput[] = [];
@@ -114,7 +158,13 @@ export function createSelectiveDiyTrioResearchProvider(
         if (r.ok) qOnly.push(r.observation);
       }
       if (qOnly.length === 0) {
-        return { ok: false, error: "PRICE_GAP", autoAccepted: false };
+        return {
+          ok: false,
+          error: sawPackageWithoutConversion
+            ? PACKAGE_PRICE_NO_CONVERSION_SSOT
+            : "PRICE_GAP",
+          autoAccepted: false,
+        };
       }
 
       const priceNet = roundMarketPricePln(avg.averagePln);
@@ -125,7 +175,7 @@ export function createSelectiveDiyTrioResearchProvider(
         provider,
         sourceType: "market_reference",
         name: input.namePl,
-        unit: input.unit,
+        unit: requestUnit,
         priceNet,
         currency: "PLN",
         priceDate: input.nowIso.slice(0, 10),
@@ -138,6 +188,7 @@ export function createSelectiveDiyTrioResearchProvider(
           avg.isMultiSourceAverage ? "multi_source_average" : "single_source",
           `shops=${qOnly.map((q) => q.provider).join("+")}`,
           "pending_owner_accept",
+          ...conversionEvidenceNotes,
         ].join(" · "),
         materialKey: input.materialKey,
         catalogWorkId: input.catalogWorkId,
