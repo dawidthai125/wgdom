@@ -13,9 +13,17 @@ export {
   classifyEstimatorPricingPlane,
   assertLaborResearchAllowed,
   assertMaterialResearchAllowed,
+  assertLeafLaborResearchAllowed,
+  assertLeafMaterialResearchAllowed,
   isLaborGapJobAllowed,
   IK_RESEARCH_HELD_COMPOUND_STATUS,
   IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL,
+  IK_LEAF_RESEARCH_CALL_SITE,
+} from "./classification-gate";
+export type {
+  IkLeafLaborResearchAuth,
+  IkLeafLaborResearchBlockReason,
+  IkLeafResearchCallSite,
 } from "./classification-gate";
 
 export {
@@ -416,6 +424,24 @@ export type {
   IkCompositeGapCode,
   IkCompositeLineStatus,
 } from "./ik-composite-both-hold";
+
+/** Phase A — Leaf Research under COMPOUND (pack-bound; zero parent autonomous research). */
+export {
+  buildIkLeafResearchDedupeKey,
+  clearIkLeafResearchSessionDedupeForTests,
+  isIkLeafResearchSessionDone,
+  resolveLeafResearchPacksForParent,
+  runIkLeafLaborResearch,
+  runIkLeafMaterialResearch,
+} from "./ik-leaf-research-orchestrator";
+export type {
+  IkLeafResearchDomain,
+  IkLeafResearchDedupeInput,
+  RunIkLeafLaborResearchInput,
+  RunIkLeafLaborResearchResult,
+  RunIkLeafMaterialResearchInput,
+  RunIkLeafMaterialResearchResult,
+} from "./ik-leaf-research-orchestrator";
 
 export {
   runIkBomGapResearch,

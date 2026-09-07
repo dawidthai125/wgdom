@@ -56,6 +56,8 @@ export type {
 export {
   computePositionCostWithBomTechnology,
   findActiveTechnologyPacksForWorkId,
+  findTechnologyPacksForWorkId,
+  LEAF_RESEARCH_PACK_LIFECYCLES,
   validateRecipeLine,
   resolveLaborOnlyBomForWork,
   resolveTechnologyBomForWork,

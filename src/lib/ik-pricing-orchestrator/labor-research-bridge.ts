@@ -47,6 +47,15 @@ export type RunIkLaborGapResearchInput = {
   /** Owner force — even CURRENT (not default W2 path). */
   forceRefresh?: boolean;
   bypassCooldown?: boolean;
+  /**
+   * Phase A — Leaf Research under COMPOUND (pack-bound).
+   * Forwarded to runSelectiveWorkRateResearch; re-validated at engine gate.
+   */
+  leafResearchAuth?: {
+    parentWorkId: string;
+    pack: import("@/lib/technology-foundation").TechnologyPack;
+    callSite: "LEAF_RESEARCH_ORCHESTRATOR";
+  } | null;
 };
 
 export type RunIkLaborGapResearchResult =
@@ -83,6 +92,7 @@ export async function runIkLaborGapResearch(
       bypassCooldown: input.bypassCooldown,
       nowMs: input.nowMs,
       lookupPort: input.lookupPort,
+      leafResearchAuth: input.leafResearchAuth ?? null,
     });
   } finally {
     clearIkLaborResearchSessionBusy(key);

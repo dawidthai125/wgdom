@@ -57,9 +57,12 @@ import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
 import {
   assertLaborResearchAllowed,
+  assertLeafLaborResearchAllowed,
+  IK_LEAF_RESEARCH_CALL_SITE,
   type EstimatorClassifyResult,
   type EstimatorPricingPlane,
-} from "@/lib/intelligent-estimator";
+} from "@/lib/intelligent-estimator/classification-gate";
+import type { TechnologyPack } from "@/lib/technology-foundation";
 
 export const WORK_RATE_RESEARCH_SOURCE_ORDER: readonly WorkRateAuthorizedSourceId[] = [
   "kb_pl",
@@ -146,6 +149,16 @@ export type RunSelectiveWorkRateResearchInput = {
   bypassCooldown?: boolean;
   nowMs?: number;
   lookupPort?: WorkRateSelectiveLookupPort;
+  /**
+   * Phase A — Leaf Research under COMPOUND (self-bind / pack leaf).
+   * Direct COMPOUND research without this remains CLASSIFICATION_GATE BLOCKED.
+   * Must be minted only after assertLeafLaborResearchAllowed (orchestrator).
+   */
+  leafResearchAuth?: {
+    parentWorkId: string;
+    pack: TechnologyPack;
+    callSite: typeof IK_LEAF_RESEARCH_CALL_SITE;
+  } | null;
 };
 
 export type RunSelectiveWorkRateResearchResult =
@@ -227,25 +240,52 @@ async function researchOneWorkInner(
   const telemetry: WorkRateResearchTelemetryRow[] = [];
 
   // A2 — Classification Gate BEFORE legal gate / lookup / HTTP (covers useWorkCatalog bypass).
-  const laborGate = assertLaborResearchAllowed({
-    workId: input.workId,
-    namePl: input.namePl,
-    unit: input.unit,
-  });
-  if (!laborGate.ok) {
-    telemetry.push({
-      code: "NO_SOURCE",
-      messagePl: `Classification Gate blocks labor research (plane=${laborGate.classify.plane}).`,
+  // Phase A: optional Leaf Research auth re-validated here (fail-closed; never trust caller alone).
+  if (input.leafResearchAuth) {
+    const leafGate = assertLeafLaborResearchAllowed({
+      leafWorkId: input.workId,
+      parentWorkId: input.leafResearchAuth.parentWorkId,
+      pack: input.leafResearchAuth.pack,
+      callSite: input.leafResearchAuth.callSite,
+      namePl: input.namePl,
+      unit: input.unit,
     });
-    return {
-      status: "BLOCKED",
-      reason: "CLASSIFICATION_GATE",
-      plane: laborGate.classify.plane,
-      classify: laborGate.classify,
-      httpFetchCount: 0,
-      messagePl: `Labor research zablokowany — plane=${laborGate.classify.plane} (wymagane LABOR).`,
-      telemetry,
-    };
+    if (!leafGate.ok) {
+      telemetry.push({
+        code: "NO_SOURCE",
+        messagePl: `Leaf Research auth rejected (${leafGate.blockReason}).`,
+      });
+      return {
+        status: "BLOCKED",
+        reason: "CLASSIFICATION_GATE",
+        plane: leafGate.classify.plane,
+        classify: leafGate.classify,
+        httpFetchCount: 0,
+        messagePl: `Leaf Labor research zablokowany — ${leafGate.blockReason}.`,
+        telemetry,
+      };
+    }
+  } else {
+    const laborGate = assertLaborResearchAllowed({
+      workId: input.workId,
+      namePl: input.namePl,
+      unit: input.unit,
+    });
+    if (!laborGate.ok) {
+      telemetry.push({
+        code: "NO_SOURCE",
+        messagePl: `Classification Gate blocks labor research (plane=${laborGate.classify.plane}).`,
+      });
+      return {
+        status: "BLOCKED",
+        reason: "CLASSIFICATION_GATE",
+        plane: laborGate.classify.plane,
+        classify: laborGate.classify,
+        httpFetchCount: 0,
+        messagePl: `Labor research zablokowany — plane=${laborGate.classify.plane} (wymagane LABOR).`,
+        telemetry,
+      };
+    }
   }
 
   if (!isWorkRateResearchAllowed()) {

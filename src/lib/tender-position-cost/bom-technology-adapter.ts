@@ -16,6 +16,7 @@ import {
   type GeneratedBom,
   type PackMaterialRecipeLine,
   type TechnologyPack,
+  type TechnologyPackLifecycle,
 } from "@/lib/technology-foundation";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
@@ -122,20 +123,38 @@ function unitsCompatible(a: string, b: string): boolean {
   return fa === fb;
 }
 
-/** Exact workId ↔ TechnologyPack.steps.catalogWorkId (C-BOM-1 · bez heurystyki tekstowej). */
-export function findActiveTechnologyPacksForWorkId(
+/** Lifecycle set for Leaf Research identity lookup (NOT production BOM feed). */
+export const LEAF_RESEARCH_PACK_LIFECYCLES: ReadonlySet<TechnologyPackLifecycle> =
+  new Set(["DRAFT", "REVIEW", "APPROVED", "ACTIVE"]);
+
+/**
+ * Exact workId ↔ TechnologyPack.steps.catalogWorkId (C-BOM-1 · bez heurystyki tekstowej).
+ * Lifecycle filter optional — default ACTIVE only (production Composite / BOM).
+ * Leaf Research may pass LEAF_RESEARCH_PACK_LIFECYCLES for DRAFT…ACTIVE identity.
+ * DRAFT/REVIEW/APPROVED MUST NOT feed production BOM (canPackFeedProductionBom).
+ */
+export function findTechnologyPacksForWorkId(
   workId: string,
   packs?: readonly TechnologyPack[],
+  lifecycles: ReadonlySet<TechnologyPackLifecycle> = new Set(["ACTIVE"]),
 ): TechnologyPack[] {
   const id = String(workId ?? "").trim();
   if (!id) return [];
   const all = packs ?? listAllPacks();
   return all
-    .filter((p) => p.lifecycle === "ACTIVE")
+    .filter((p) => lifecycles.has(p.lifecycle))
     .filter((p) => p.steps.some((s) => s.catalogWorkId === id))
     .sort((a, b) =>
       `${a.packId}@${a.packVersion}`.localeCompare(`${b.packId}@${b.packVersion}`),
     );
+}
+
+/** Exact workId ↔ ACTIVE TechnologyPack.steps.catalogWorkId — production Composite/BOM SSOT. */
+export function findActiveTechnologyPacksForWorkId(
+  workId: string,
+  packs?: readonly TechnologyPack[],
+): TechnologyPack[] {
+  return findTechnologyPacksForWorkId(workId, packs, new Set(["ACTIVE"]));
 }
 
 /** Exported for IK BOM gap research validation (ZERO invent). */
