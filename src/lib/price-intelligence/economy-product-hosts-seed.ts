@@ -47,6 +47,14 @@ export const ECONOMY_PRODUCT_HOST_SPECS: readonly EconomyProductHostSpec[] = [
     namePl: "Jastrych / posadzka cementowa",
     workNamePl: "Jastrych cementowy (product host)",
   },
+  {
+    materialKey: "mat.gladz_gipsowa",
+    catalogWorkId: "cw.product.gladz_gipsowa",
+    marketProductId: "mp.gladz_gipsowa",
+    unit: "kg",
+    namePl: "Gładź gipsowa",
+    workNamePl: "Gładź gipsowa (product host)",
+  },
 ] as const;
 
 export function economyProductHostByMaterialKey(
