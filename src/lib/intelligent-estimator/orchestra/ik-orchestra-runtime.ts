@@ -80,6 +80,29 @@ export async function executeP2IngestBridge(opts: {
 }
 
 
+/**
+ * KL-3 busy contract on settle (success / MISS / error):
+ * clear busy only when this attempt was not cancelled.
+ * Cancelled attempts must clear busy in effect cleanup instead —
+ * so a newer in-flight run is not clobbered by a stale finally.
+ */
+export function shouldClearKl3KnowledgeBusyOnFinally(cancelled: boolean): boolean {
+  return cancelled !== true;
+}
+
+/**
+ * Effect cleanup for an in-flight KL-3 attempt: release busy + same-key latch
+ * so a later effect with the same knowledgeKey can retry.
+ */
+export function resolveKl3InFlightCancelCleanup(input: {
+  inFlightKnowledgeKey: string;
+  attemptedKey: string | null;
+}): { nextAttemptedKey: string | null; clearBusy: true } {
+  const nextAttemptedKey =
+    input.attemptedKey === input.inFlightKnowledgeKey ? null : input.attemptedKey;
+  return { nextAttemptedKey, clearBusy: true };
+}
+
 export async function executeKl3KnowledgeLookup(opts: {
   tenderId: string;
   knr: IkKnrExpertReport;
@@ -119,7 +142,9 @@ export async function executeKl3KnowledgeLookup(opts: {
     if (!opts.isCancelled()) opts.setKnrKnowledge(null);
     return null;
   } finally {
-    if (!opts.isCancelled()) opts.setKnowledgeBusy(false);
+    if (shouldClearKl3KnowledgeBusyOnFinally(opts.isCancelled())) {
+      opts.setKnowledgeBusy(false);
+    }
   }
 }
 

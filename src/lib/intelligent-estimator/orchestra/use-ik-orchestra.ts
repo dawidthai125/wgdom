@@ -73,6 +73,7 @@ import {
   executeP5LaborExpert,
   executeP6MaterialExpert,
   needsIkNg02Ingest,
+  resolveKl3InFlightCancelCleanup,
 } from "./ik-orchestra-runtime";
 import {
   buildKnrReanalysisSignalFromHostResult,
@@ -576,38 +577,51 @@ export function useIkOrchestra({
   }, [identityPersistOutcome, identityPersistPlanKey, effectiveItem]);
 
   // KL-3 HOST — lookup + on-MISS discovery (async · Orchestra reanalysis seam on complete).
+  // Deps use stable knowledgeKey string (not knr/report object identity) so setKnowledgeBusy(true)
+  // → snapshot rebuild cannot self-cancel the in-flight attempt (RCA: permanent busy latch).
+  const tenderIdForKl3 = effectiveItem.id || effectiveItem.tenderId || "";
+  const mayProceedForKl3 = expertChainMayProceedFromReport(report);
+  const kl3KnowledgeKey = useMemo(() => {
+    if (!tenderIdForKl3 || knr.lines.length === 0) return "";
+    return `${buildKl3KnowledgeKey(tenderIdForKl3, knr)}|ir${identityResearchEpoch}`;
+  }, [tenderIdForKl3, knr, identityResearchEpoch]);
+  const knrForKl3Ref = useRef(knr);
+  const reportForKl3Ref = useRef(report);
+  knrForKl3Ref.current = knr;
+  reportForKl3Ref.current = report;
+
   useEffect(() => {
-    if (!expertChainMayProceedFromReport(report)) {
+    if (!mayProceedForKl3) {
       setKnrKnowledge(null);
       setKnowledgeBusy(false);
       setKnrReanalysisSignal(null);
       knowledgeAttemptedRef.current = null;
       return;
     }
-    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
-    if (!tenderId || knr.lines.length === 0) {
+    if (!tenderIdForKl3 || !kl3KnowledgeKey) {
       setKnrKnowledge(null);
       setKnowledgeBusy(false);
       setKnrReanalysisSignal(null);
       return;
     }
-    const knowledgeKey = `${buildKl3KnowledgeKey(tenderId, knr)}|ir${identityResearchEpoch}`;
-    if (knowledgeAttemptedRef.current === knowledgeKey) return;
+    if (knowledgeAttemptedRef.current === kl3KnowledgeKey) return;
 
-    knowledgeAttemptedRef.current = knowledgeKey;
+    knowledgeAttemptedRef.current = kl3KnowledgeKey;
     let cancelled = false;
     setKnowledgeBusy(true);
+    const knrSnap = knrForKl3Ref.current;
+    const reportSnap = reportForKl3Ref.current;
     void executeKl3KnowledgeLookup({
-      tenderId,
-      knr,
-      documentExpert: report,
+      tenderId: tenderIdForKl3,
+      knr: knrSnap,
+      documentExpert: reportSnap,
       isCancelled: () => cancelled,
       setKnrKnowledge,
       setKnowledgeBusy,
       onHostComplete: (hostResult) => {
         const signal = buildKnrReanalysisSignalFromHostResult(
           hostResult,
-          knr.lines.map((l) => ({ lineId: l.lineId, dwellingId: l.dwellingId })),
+          knrSnap.lines.map((l) => ({ lineId: l.lineId, dwellingId: l.dwellingId })),
         );
         setKnrReanalysisSignal(signal);
         const plan = planKnrReanalysisOrchestraInvalidation(signal, {
@@ -633,8 +647,14 @@ export function useIkOrchestra({
 
     return () => {
       cancelled = true;
+      const cleanup = resolveKl3InFlightCancelCleanup({
+        inFlightKnowledgeKey: kl3KnowledgeKey,
+        attemptedKey: knowledgeAttemptedRef.current,
+      });
+      knowledgeAttemptedRef.current = cleanup.nextAttemptedKey;
+      if (cleanup.clearBusy) setKnowledgeBusy(false);
     };
-  }, [effectiveItem, knr, report, identityResearchEpoch]);
+  }, [mayProceedForKl3, tenderIdForKl3, kl3KnowledgeKey]);
 
   // P5 Labor E2E — generation + sticky clear on cancel-before-settle (pending race fix).
   useEffect(() => {
