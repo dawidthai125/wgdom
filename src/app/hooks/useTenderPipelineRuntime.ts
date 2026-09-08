@@ -13,6 +13,7 @@ import {
   derivePartialDossierReady,
   derivePricingReadyFinal,
   derivePricingReadyPartial,
+  isCanonicalCostInputReady,
 } from "@/lib/tender-pipeline/derive-pipeline-readiness";
 import { deriveUnifiedAttachmentGate } from "@/lib/tender-pipeline/unified-attachment-gate";
 import {
@@ -182,6 +183,18 @@ export function useTenderPipelineRuntime(opts: {
     [item, item.tenderDossier?.kosztorys?.ok, item.tenderDossier?.builtAt, partialPersistPending],
   );
 
+  const canonicalCostInputReady = useMemo(
+    () => isCanonicalCostInputReady(item),
+    [
+      item,
+      item.tenderDossier,
+      item.tenderDossier?.kosztorys,
+      item.tenderDossier?.scanSummary?.costBranchArtifacts,
+      item.tenderDossier?.scanSummary?.branchWinnerArtifacts,
+      item.tenderDossier?.scanSummary?.costCandidateSources,
+    ],
+  );
+
   const { ownerFinanceProposal, bidProposal, priceOverrides } = useTenderPricingAuto({
     item,
     swz: swz ?? item.swzAnalysis ?? null,
@@ -197,8 +210,13 @@ export function useTenderPipelineRuntime(opts: {
   );
 
   const pricingReadyPartial = useMemo(
-    () => derivePricingReadyPartial({ partialDossierReady, ownerFinanceProposal }),
-    [partialDossierReady, ownerFinanceProposal],
+    () =>
+      derivePricingReadyPartial({
+        partialDossierReady,
+        ownerFinanceProposal,
+        canonicalCostInputReady,
+      }),
+    [partialDossierReady, ownerFinanceProposal, canonicalCostInputReady],
   );
 
   const pricingReadyFinal = useMemo(

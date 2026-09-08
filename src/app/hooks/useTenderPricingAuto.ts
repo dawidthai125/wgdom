@@ -143,6 +143,7 @@ export function useTenderPricingAuto(opts: {
     item.tenderDossier?.parserVersion,
     item.tenderDossier?.scanSummary?.parsedAt,
     item.tenderDossier?.scanSummary?.branchWinnerArtifacts,
+    item.tenderDossier?.scanSummary?.costBranchArtifacts,
     item.tenderDossier?.scanSummary?.costCandidateSources,
     item.tenderFit,
     swz,
