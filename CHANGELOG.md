@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.169 — CONNECT G1 package → Bid OfferBoq (2026-09-08)
+
+- **fix:** `buildOfferBoqDocumentForPipelineItem` overlays trusted `dwelling.offerBoq` identity by `lineId` (F5 `resolveWorkIdentityFromOfferBoqLine`)
+- Fail-closed: no package / heuristic / competing / conflict / no lineId overlap
+- Same-tab invalidation: `MULTI_DWELLING_PACKAGE_CHANGED_EVENT` → `useTenderPricingAuto`
+- Files: `tender-offer-boq-g1-package-identity-connect.ts`, `tender-offer-boq-explainability.ts`, `multi-dwelling/store.ts`, `useTenderPricingAuto.ts`
+- Test: `test-g1-package-identity-bid-connect.mjs`
+- **HOLD:** G1 Accept · Finance Accept · F5 B0 unchanged
+
 ## 2.66.168 — C2 ingest FULL → kosztorysForBid / OfferBoq (2026-09-08)
 
 - **fix:** `resolveCostBidInput` — gdy MULTI-02 zostawia pusty bid, a registry ma komplet C2 FULL: REUSE `admitC2ComposeArtifacts` + `mergeDwellingArtifactLines` → `kosztorysForBid` → OfferBoq

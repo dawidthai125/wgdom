@@ -6,7 +6,7 @@
  * COST-MULTI-02 — Bid/OfferBoq input via resolveKosztorysSnapshotForPricing.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderSwzAnalysis } from "@/lib/tenders-bzp-swz";
 import type { TenderBidProposal } from "@/lib/tenders-bid-calculator";
@@ -22,6 +22,7 @@ import {
 import { computeRuntimeBidFromOfferBoq } from "@/lib/tender-offer-boq-explainability";
 import { isCostPipeline01Enabled } from "@/lib/tenders-v4-config";
 import { resolveKosztorysSnapshotForPricing } from "@/lib/cost-multi-02";
+import { MULTI_DWELLING_PACKAGE_CHANGED_EVENT } from "@/lib/multi-dwelling/constants";
 
 /**
  * Legacy catalog Bid — KEEP TECHNICALLY (costPipeline OFF / regresje / P7).
@@ -116,9 +117,27 @@ export function useTenderPricingAuto(opts: {
     enabled = true,
   } = opts;
 
+  // CONNECT — same-tab package upsert (G1 persist) must recompute ownerFinanceProposal.
+  const [packageIdentityRevision, setPackageIdentityRevision] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onPackageChanged = (ev: Event) => {
+      const detail = (ev as CustomEvent<{ tenderId?: string }>).detail;
+      const tid = String(detail?.tenderId ?? "").trim();
+      if (tid && tid === String(item.id ?? "").trim()) {
+        setPackageIdentityRevision((n) => n + 1);
+      }
+    };
+    window.addEventListener(MULTI_DWELLING_PACKAGE_CHANGED_EVENT, onPackageChanged);
+    return () => {
+      window.removeEventListener(MULTI_DWELLING_PACKAGE_CHANGED_EVENT, onPackageChanged);
+    };
+  }, [item.id]);
+
   const { priceOverrides, proposal } = useMemo(() => {
     void priceOverridesRevision;
     void pricingCatalogRevision;
+    void packageIdentityRevision;
     const store = loadTenderPriceOverridesStoreLocal();
     const overrides = getTenderPriceOverrides(store, item.id).overrides;
 
@@ -155,6 +174,7 @@ export function useTenderPricingAuto(opts: {
     item.swzAnalysis?.parsedAt,
     priceOverridesRevision,
     pricingCatalogRevision,
+    packageIdentityRevision,
   ]);
 
   return {

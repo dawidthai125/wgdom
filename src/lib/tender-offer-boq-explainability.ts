@@ -36,6 +36,9 @@ import {
   integrateOfferBoqWithBidProposal,
   type OfferBoqBidAuditStep,
 } from "@/lib/tender-offer-boq-bid-adapter";
+import { getTenderPackage } from "@/lib/multi-dwelling/store";
+import type { TenderPackage } from "@/lib/multi-dwelling/types";
+import { overlayTrustedPackageIdentityOntoOfferBoq } from "@/lib/tender-offer-boq-g1-package-identity-connect";
 import {
   evaluateOfferBoqValidation,
   type OfferBoqValidationIssue,
@@ -783,6 +786,11 @@ export function presentOfferBoqExplainabilityView(
 export function buildOfferBoqDocumentForPipelineItem(opts: {
   item: TenderPipelineItem;
   builtAt?: string;
+  /**
+   * CONNECT — optional package inject (tests). Default: live getTenderPackage(item.id).
+   * Trusted G1 identity overlay only; C2 kosztorysForBid remains structural SSOT.
+   */
+  package?: TenderPackage | null;
 }): OfferBoqDocument | null {
   const builtAt = opts.builtAt ?? new Date().toISOString();
   // COST-MULTI-02 — OfferBoq z kosztorysForBid (to samo SSOT co Bid).
@@ -807,6 +815,12 @@ export function buildOfferBoqDocumentForPipelineItem(opts: {
     documentContext: snapshot.sourceFilename,
     cenyMaterialowUplift: cm01,
   });
+  // CONNECT G1 → Bid: overlay durable trusted package identity by lineId (fail-closed).
+  const pkg =
+    opts.package !== undefined
+      ? opts.package
+      : getTenderPackage(String(opts.item.id ?? "").trim());
+  doc = overlayTrustedPackageIdentityOntoOfferBoq(doc, pkg).document;
   doc = applyOfferBoqCostIntelligence(doc, {
     analyzedAt: builtAt,
     documentContext: snapshot.sourceFilename,

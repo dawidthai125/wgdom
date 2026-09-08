@@ -4,6 +4,7 @@
  */
 
 import {
+  MULTI_DWELLING_PACKAGE_CHANGED_EVENT,
   MULTI_DWELLING_PACKAGE_LS_KEY,
   MULTI_DWELLING_PACKAGE_SCHEMA_VERSION,
   normalizeDwellingId,
@@ -140,6 +141,19 @@ export function getTenderPackage(tenderId: string): TenderPackage | null {
   return loadMultiDwellingPackageStore().byTenderId[tid] ?? null;
 }
 
+function emitMultiDwellingPackageChanged(tenderId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(
+      new CustomEvent(MULTI_DWELLING_PACKAGE_CHANGED_EVENT, {
+        detail: { tenderId },
+      }),
+    );
+  } catch {
+    /* ignore — non-DOM / test */
+  }
+}
+
 export function upsertTenderPackage(pkg: TenderPackage): TenderPackage | null {
   const tid = String(pkg.tenderId ?? "").trim();
   if (!tid) return null;
@@ -148,6 +162,7 @@ export function upsertTenderPackage(pkg: TenderPackage): TenderPackage | null {
   const store = loadMultiDwellingPackageStore();
   store.byTenderId[tid] = normalized;
   if (!saveMultiDwellingPackageStore(store)) return null;
+  emitMultiDwellingPackageChanged(tid);
   return normalized;
 }
 

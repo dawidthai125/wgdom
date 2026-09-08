@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-08",
+    version: "2.66.169",
+    label: "CONNECT G1 package identity → Bid OfferBoq / F5",
+    items: [
+      {
+        type: "fix",
+        text: "Bid runtime (buildOfferBoqDocumentForPipelineItem → ownerFinanceProposal) nakłada trusted identity z kw-multi-dwelling-package-v1 dwelling.offerBoq po lineId (manual/exact_knr/alias/catalog_map wg F5 resolveWorkIdentity). Bez promocji heuristic/unmatched; konflikt multi-dwelling fail-closed; quantity/unit nietknięte. Invalidacja same-tab po upsert package. Test: test-g1-package-identity-bid-connect.mjs. G1 Accept / Finance nadal HOLD.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-08",
     version: "2.66.168",
     label: "C2 ingest FULL → kosztorysForBid / OfferBoq handoff",
     items: [
