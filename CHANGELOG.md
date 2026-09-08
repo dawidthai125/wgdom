@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.168 — C2 ingest FULL → kosztorysForBid / OfferBoq (2026-09-08)
+
+- **fix:** `resolveCostBidInput` — gdy MULTI-02 zostawia pusty bid, a registry ma komplet C2 FULL: REUSE `admitC2ComposeArtifacts` + `mergeDwellingArtifactLines` → `kosztorysForBid` → OfferBoq
+- P = lineage-only; D1/D2/D3 admitted; **nie** kopiuje P=90 do kosztorysu; dossier.kosztorys ONE bez mutacji
+- Files: `cost-c2-ingest-bid-handoff.ts`, `cost-multi-02.ts`
+- Test: `test-c2-ingest-bid-handoff.mjs`
+
 ## 2.66.167 — IK Phase C package→kg conversion (2026-09-07)
 
 - **new:** Legal PACKAGE → PLN/kg in Material Research DIY path — full evidence tuple only; Candidate kg · autoAccept=false · Owner Gate required

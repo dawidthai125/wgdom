@@ -11,6 +11,17 @@ export interface ChangelogRelease {
 
 export const CHANGELOG: ChangelogRelease[] = [
   {
+    date: "2026-09-08",
+    version: "2.66.168",
+    label: "C2 ingest FULL → kosztorysForBid / OfferBoq handoff",
+    items: [
+      {
+        type: "fix",
+        text: "Gdy Owner Ingest ma komplet C2 (P lineage-only + D1/D2/D3 FULL), a MULTI-01 nie klasyfikuje nazw #segment / legacy ONE ma 0 rows: resolveCostBidInput REUSE admitC2ComposeArtifacts + mergeDwellingArtifactLines → usable kosztorysForBid → OfferBoq. Bez kopiowania P=90, bez drugiego resolvera C2, bez mutacji dossier.kosztorys. Test: test-c2-ingest-bid-handoff.mjs.",
+      },
+    ],
+  },
+  {
     date: "2026-09-07",
     version: "2.66.167",
     label: "IK Phase C — legalna konwersja PACKAGE → kg (Material Research)",

@@ -22,6 +22,10 @@ import type {
   CostBidInputMode,
   CostBranchArtifact,
 } from "@/lib/cost-multi-02-types";
+import {
+  hasUsableKosztorysBidLines,
+  tryResolveC2AdmittedKosztorysForBid,
+} from "@/lib/cost-c2-ingest-bid-handoff";
 
 /** Rollback: `false` → Bid zawsze ONE (zachowanie 2.65.74). */
 export const COST_MULTI_02_AGGREGATE_BID = true;
@@ -83,8 +87,30 @@ function findArtifact(
 
 /**
  * SSOT: ONE | AGGREGATE | MANUAL_HOLD przed Bid / OfferBoq.
+ * When MULTI-01/02 leaves empty bid input but C2 FULL ingest is present,
+ * REUSE C2 admission compose → kosztorysForBid (OfferBoq SSOT).
  */
 export function resolveCostBidInput(item: TenderPipelineItem): CostBidInputDecision {
+  const decision = resolveCostBidInputMulti02(item);
+  if (hasUsableKosztorysBidLines(decision.kosztorysForBid)) return decision;
+
+  const arts = readCostBranchArtifacts(item);
+  const c2 = tryResolveC2AdmittedKosztorysForBid(item, arts);
+  if (!c2) return decision;
+
+  return {
+    mode: "ONE",
+    packageStatus: decision.packageStatus,
+    aggregatePolicy: decision.aggregatePolicy,
+    kosztorysForBid: c2.snapshot,
+    legacyKosztorys: item.tenderDossier?.kosztorys ?? null,
+    reasonCodes: [...decision.reasonCodes, "c2_admitted_compose"],
+    warnings: [...decision.warnings, ...c2.warnings],
+    sourceDocumentCount: c2.admittedDocumentIds.length,
+  };
+}
+
+function resolveCostBidInputMulti02(item: TenderPipelineItem): CostBidInputDecision {
   const legacy = item.tenderDossier?.kosztorys ?? null;
 
   if (!COST_MULTI_02_AGGREGATE_BID) {
