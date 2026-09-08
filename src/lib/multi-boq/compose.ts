@@ -1,8 +1,14 @@
 /**
  * MULTI-BOQ-01 — compose DwellingCostSnapshot → OfferBoqDocument (schema v5).
+ *
+ * OPTION B (line-id continuity): OfferBoq.lineId = buildOfferBoqLineId(tender, lp, desc, flattenIndex)
+ * where flattenIndex = index in snapshot.lines (canonical C2 admitted merge order when
+ * dwelling snapshot === full C2 set). Physical provenance remains on side-map.
+ * Legacy WithSource lineIds are NOT generated here (fail-closed vs old packages).
  */
 
 import {
+  buildOfferBoqLineId,
   computeOfferBoqRecomputeToken,
   emptyOfferBoqTotals,
   OFFER_BOQ_SCHEMA_VERSION,
@@ -12,7 +18,6 @@ import {
   type OfferBoqLine,
 } from "@/lib/tender-offer-boq";
 import { extractKatalogHintFromDescription } from "@/lib/tender-detail-v4-display";
-import { buildOfferBoqLineIdWithSource } from "@/lib/multi-boq/line-id";
 import type {
   ComposeDwellingOfferBoqResult,
   DwellingCostSnapshot,
@@ -33,16 +38,16 @@ function knrHintFromDescription(description: string): string | null {
 function structuralFromSnapshotLine(
   snap: DwellingCostSnapshot,
   line: DwellingCostSnapshot["lines"][number],
+  flattenIndex: number,
 ): { offerLine: OfferBoqLine; provenance: DwellingLineProvenance } {
-  const lineId = buildOfferBoqLineIdWithSource({
-    tenderId: snap.tenderId,
-    dwellingId: snap.dwellingId,
-    sourceDocumentId: line.sourceDocumentId,
-    sourceLineKey: line.sourceLineKey,
-    lp: line.lp,
-    description: line.description,
-    indexInSourceDoc: line.indexInSourceDoc,
-  });
+  // OPTION B — same formula as Bid buildOfferBoqFromSnapshot / linesFromCatalogQuantities.
+  // Pass raw lp/description (builder trims desc for hash); do NOT substitute indexInSourceDoc.
+  const lineId = buildOfferBoqLineId(
+    snap.tenderId,
+    line.lp ?? "",
+    line.description ?? "",
+    flattenIndex,
+  );
 
   const quantity = line.quantity > 0
     ? line.quantity
@@ -58,7 +63,8 @@ function structuralFromSnapshotLine(
 
   const offerLine: OfferBoqLine = {
     lineId,
-    lp: line.lp || String(line.indexInSourceDoc + 1),
+    // Display lp parity with Bid structuralLine (flatten index, not source-doc index).
+    lp: line.lp || String(flattenIndex + 1),
     description: line.description.trim() || "(bez opisu)",
     quantity,
     quantityRaw: line.quantityRaw || "",
@@ -131,6 +137,7 @@ function structuralFromSnapshotLine(
 /**
  * Pure compose: ready snapshot → OfferBoq v5 + provenance side-map.
  * HOLD/conflict/empty → ok:false (never invent 0 PLN complete BOQ).
+ * lineId = canonical Bid formula at snapshot.lines flatten index (OPTION B).
  */
 export function composeDwellingOfferBoq(opts: {
   snapshot: DwellingCostSnapshot;
@@ -155,11 +162,15 @@ export function composeDwellingOfferBoq(opts: {
   const lines: OfferBoqLine[] = [];
   const lineProvenance: Record<string, DwellingLineProvenance> = {};
 
-  for (const sl of snap.lines) {
-    const { offerLine, provenance } = structuralFromSnapshotLine(snap, sl);
+  snap.lines.forEach((sl, flattenIndex) => {
+    const { offerLine, provenance } = structuralFromSnapshotLine(
+      snap,
+      sl,
+      flattenIndex,
+    );
     lines.push(offerLine);
     lineProvenance[offerLine.lineId] = provenance;
-  }
+  });
 
   const doc: OfferBoqDocument = {
     schemaVersion: OFFER_BOQ_SCHEMA_VERSION,
@@ -186,6 +197,7 @@ export function composeDwellingOfferBoq(opts: {
     warnings: [
       ...snap.warnings.slice(0, 8),
       `MULTI_BOQ_COMPOSE sources=${snap.sourceDocumentIds.join(",")}`,
+      "OFFERBOQ_LINE_ID_CANONICAL_BID_FLATTEN",
     ],
   };
 

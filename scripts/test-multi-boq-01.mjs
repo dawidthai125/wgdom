@@ -175,7 +175,8 @@ reset();
   const pkg = getTenderPackage(TID);
   const ids = pkg.dwellings.map((d) => d.offerBoq?.lines?.[0]?.lineId);
   ok("T1 three BOQ", pkg.dwellings.every((d) => (d.offerBoq?.lines?.length ?? 0) === 1));
-  ok("T1 isolated lineIds", new Set(ids).size === 3, { ids });
+  // Distinct dwelling content (D01/D02/D03 descriptions) → distinct Bid-canonical lineIds.
+  ok("T1 distinct content → distinct lineIds", new Set(ids).size === 3, { ids });
   ok(
     "T1 D01 only own desc",
     pkg.dwellings.find((d) => d.dwellingId === "D01").offerBoq.lines[0].description.includes("D01"),
@@ -232,7 +233,7 @@ reset();
   ok("T3 provenance 3 docs", provDocs.size === 3, { provDocs: [...provDocs] });
 }
 
-// ─── T4: shared LP D01/D02 → different lineIds ──────────────────────
+// ─── T4: shared LP+desc D01/D02 → SAME canonical lineId (OPTION B) ──
 reset();
 {
   setupMulti([{ id: "D01" }, { id: "D02" }]);
@@ -250,7 +251,7 @@ reset();
   const r2 = attach("D02", [a1, a2]);
   const id1 = r1.package.dwellings.find((d) => d.dwellingId === "D01").offerBoq.lines[0].lineId;
   const id2 = r2.package.dwellings.find((d) => d.dwellingId === "D02").offerBoq.lines[0].lineId;
-  ok("T4 different lineIds", id1 !== id2, { id1, id2 });
+  ok("T4 same content+flatten → same canonical lineId", id1 === id2, { id1, id2 });
 }
 
 // ─── T5: same LP different branch → KEEP BOTH ───────────────────────
@@ -395,8 +396,9 @@ reset();
     "T8/T9 transport not D02",
     !isTransportBidCandidate(TID, id1, "D02"),
   );
-  ok("T8/T9 lineIds differ", id1 !== id2);
-  ok("T8 Equipment scope via distinct lineIds", id1 !== id2);
+  // OPTION B: identical content at flatten 0 → same lineId; dwelling scope is separate.
+  ok("T8/T9 same content → same canonical lineId", id1 === id2, { id1, id2 });
+  ok("T8 Equipment isolation via dwellingId not lineId", id1 === id2);
 }
 
 // ─── T10: unmapped document not in snapshot ─────────────────────────

@@ -12,12 +12,14 @@ import {
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import { composeDwellingOfferBoq } from "@/lib/multi-boq/compose";
 import { mapComposedDwellingOfferBoq } from "@/lib/multi-boq/map-composed-offer-boq";
+import { evaluateOfferBoqDocumentsLineIdContinuity } from "@/lib/multi-boq/offer-boq-line-id-continuity";
 import { resolveDwellingCostSnapshotForPricing } from "@/lib/multi-boq/resolve";
 import type {
   DwellingCostArtifactRef,
   DwellingCostSnapshot,
   DwellingLineProvenance,
 } from "@/lib/multi-boq/types";
+import type { OfferBoqDocument } from "@/lib/tender-offer-boq";
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { CatalogWork } from "@/lib/work-catalog/types";
 
@@ -63,6 +65,11 @@ export function attachComposedBoqToDwelling(opts: {
   /** Optional Work Catalog inject (tests) — default: local store active works. */
   works?: CatalogWork[];
   mappedAt?: string;
+  /**
+   * OPTION B — when provided, composed OfferBoq must match Bid lineIds (exact continuity).
+   * Fail-closed: no attach on mismatch. Omitted = no Bid gate (legacy callers).
+   */
+  bidOfferBoqForContinuity?: OfferBoqDocument | null;
 }): {
   ok: true;
   package: TenderPackage;
@@ -86,6 +93,20 @@ export function attachComposedBoqToDwelling(opts: {
   const composed = composeDwellingOfferBoq({ snapshot });
   if (!composed.ok) {
     return { ok: false, reason: composed.reason, snapshot };
+  }
+
+  if (opts.bidOfferBoqForContinuity) {
+    const continuity = evaluateOfferBoqDocumentsLineIdContinuity(
+      opts.bidOfferBoqForContinuity,
+      composed.document,
+    );
+    if (!continuity.ok) {
+      return {
+        ok: false,
+        reason: `OFFERBOQ_LINE_ID_CONTINUITY_FAIL:${continuity.reasonCodes.join("+")}`,
+        snapshot,
+      };
+    }
   }
 
   // MULTI-BOQ-WORK-IDENTITY-01 — structural → mapOfferBoqDocument (REUSE)

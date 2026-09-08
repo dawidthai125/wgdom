@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.170 — OfferBoq lineId continuity OPTION B (2026-09-08)
+
+- **fix:** `composeDwellingOfferBoq` stamps Bid-canonical `buildOfferBoqLineId(tenderId, lp, desc, flattenIndex)`
+- Guard: `evaluateCanonicalOfferBoqLineIdContinuity` — fail-closed (length / lp / description / lineId / duplicates)
+- Optional attach gate: `bidOfferBoqForContinuity` · legacy WithSource without silent migration
+- CONNECT / G1 / F5 / C2 admission unchanged
+- Test: `test-offer-boq-line-id-continuity-option-b.mjs`
+- **HOLD:** PACKAGE ENSURE · G1 Accept · Finance Accept
+
 ## 2.66.169 — CONNECT G1 package → Bid OfferBoq (2026-09-08)
 
 - **fix:** `buildOfferBoqDocumentForPipelineItem` overlays trusted `dwelling.offerBoq` identity by `lineId` (F5 `resolveWorkIdentityFromOfferBoqLine`)

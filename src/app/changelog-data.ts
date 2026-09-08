@@ -12,6 +12,17 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
   {
     date: "2026-09-08",
+    version: "2.66.170",
+    label: "OfferBoq lineId continuity OPTION B (Bid ↔ package compose)",
+    items: [
+      {
+        type: "fix",
+        text: "MULTI-BOQ compose: lineId = buildOfferBoqLineId(tenderId, lp, description, c2FlattenIndex) — ten sam canonical ID co Bid. Guard evaluateCanonicalOfferBoqLineIdContinuity (fail-closed: length/lp/desc/lineId). Legacy WithSource bez migracji. attach: opcjonalny bidOfferBoqForContinuity. CONNECT/G1/F5/C2 bez zmian. Test: test-offer-boq-line-id-continuity-option-b.mjs. PACKAGE ENSURE / G1 Accept / Finance nadal HOLD.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-08",
     version: "2.66.169",
     label: "CONNECT G1 package identity → Bid OfferBoq / F5",
     items: [

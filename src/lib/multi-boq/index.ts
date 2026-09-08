@@ -21,6 +21,17 @@ export {
 } from "@/lib/multi-boq/line-id";
 
 export {
+  buildCanonicalOfferBoqLineId,
+  evaluateCanonicalOfferBoqLineIdContinuity,
+  evaluateOfferBoqDocumentsLineIdContinuity,
+} from "@/lib/multi-boq/offer-boq-line-id-continuity";
+export type {
+  OfferBoqLineIdContinuityLine,
+  OfferBoqLineIdContinuityReason,
+  OfferBoqLineIdContinuityResult,
+} from "@/lib/multi-boq/offer-boq-line-id-continuity";
+
+export {
   isNonCostHelperFilename,
   isCostEligibleFilename,
   branchHintForFilename,
