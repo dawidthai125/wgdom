@@ -576,6 +576,29 @@ export function useIkOrchestra({
     setPkgEpoch((n) => n + 1);
   }, [identityPersistOutcome, identityPersistPlanKey, effectiveItem]);
 
+  // GO24 — durable OfferBoq attestation for AUTO_RATE/BOM (REUSE/pack · no catalog invent write).
+  const g2PersistAttemptKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    const phase = fullSnapshot.autoG2Phase;
+    if (!phase?.package) return;
+    if (phase.counts.autoRateAccept === 0 && phase.counts.autoBomAccept === 0) return;
+    const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!tenderId) return;
+    const key = [
+      "g2",
+      tenderId,
+      phase.counts.autoRateAccept,
+      phase.counts.autoBomAccept,
+      phase.counts.rateIdempotentNoop,
+      phase.counts.bomIdempotentNoop,
+      phase.counts.overwriteBlocked,
+    ].join("|");
+    if (g2PersistAttemptKeyRef.current === key) return;
+    g2PersistAttemptKeyRef.current = key;
+    upsertTenderPackage(phase.package);
+    setPkgEpoch((n) => n + 1);
+  }, [fullSnapshot.autoG2Phase, effectiveItem]);
+
   // KL-3 HOST — lookup + on-MISS discovery (async · Orchestra reanalysis seam on complete).
   // Deps use stable knowledgeKey string (not knr/report object identity) so setKnowledgeBusy(true)
   // → snapshot rebuild cannot self-cancel the in-flight attempt (RCA: permanent busy latch).

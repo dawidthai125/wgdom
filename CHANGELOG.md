@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.193 — GO63 B2 AUTO G2 RATE∥BOM w Orchestra (2026-09-09)
+
+- B2: `runIkAutoG2Phase` po Identity(G1) · przed Classification.
+- CURRENT OUR RATE REUSE · TechnologyPack / LABOR_ONLY · provisional/MISSING/STALE fail-closed.
+- Attestation `autoG2Rate`/`autoG2Bom` · bez OUR RATE write / Knowledge Loop / IC / Finance.
+- Test: `test-auto-g2-b2-orchestra-go63.mjs`.
+
 ## 2.66.192 — GO60 B1 AUTO G1 w IdentityPhase (2026-09-09)
 
 - B1: AUTO G1 po map+manual, przed provisional/W2-5 · demote soft primary przy F5 AMBIGUOUS.

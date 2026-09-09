@@ -1,6 +1,6 @@
 /**
  * W1/W2 Orchestra — sync pipeline.
- * W2 order: Document → KNR → KL-3 → Slice D → P4 trust seam → Identity → Classification → IdentityCoverage → Composite → P7 → P8.
+ * Order: Document → KNR → KL-3 → Slice D → P4 → Identity(G1) → AUTO G2 → Classification → IdentityCoverage → Composite → P7 → P8.
  */
 
 import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
@@ -12,6 +12,8 @@ import { runIkCompositeBothHold } from "@/lib/intelligent-estimator/ik-composite
 import { runIkP7PositionCostBid } from "@/lib/intelligent-estimator/ik-p7-position-cost-bid";
 import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-decision";
 import { runIkIdentityPhase } from "@/lib/intelligent-estimator/orchestra/ik-identity-phase";
+import { runIkAutoG2Phase } from "@/lib/intelligent-estimator/orchestra/ik-auto-g2-phase";
+import type { IkAutoG2PhaseResult } from "@/lib/intelligent-estimator/orchestra/ik-auto-g2-phase";
 import {
   buildDeferredIdentityBlockedContext,
   buildKnrReanalysisDiag,
@@ -250,10 +252,24 @@ export function computeIkOrchestraSyncSnapshot(
   const identityContext = identityPhase.context;
   const postMayProceed = expertChainMayProceedFromReport(postIdentityExpert);
 
+  // GO24 — G2 AUTO_RATE / AUTO_BOM after G1 identity · before Classification/P7
+  let autoG2Phase: IkAutoG2PhaseResult | null = null;
+  let expertForDownstream = postIdentityExpert;
+  let pkgForDownstream = pkg;
+  if (!knrDownstreamDeferred && postMayProceed) {
+    autoG2Phase = runIkAutoG2Phase({
+      expert: postIdentityExpert,
+      package: pkg,
+      store: loadWorkCatalogStoreLocal(),
+    });
+    expertForDownstream = autoG2Phase.postG2Expert;
+    pkgForDownstream = autoG2Phase.package;
+  }
+
   const classification = runIkMasterBoqClassification({
     item: effectiveItem,
-    package: pkg,
-    expert: postIdentityExpert,
+    package: pkgForDownstream,
+    expert: expertForDownstream,
   });
 
   let identityCoverage = null;
@@ -264,8 +280,8 @@ export function computeIkOrchestraSyncSnapshot(
   ) {
     identityCoverage = runIkMasterBoqIdentityCoverage({
       item: effectiveItem,
-      package: pkg,
-      expert: postIdentityExpert,
+      package: pkgForDownstream,
+      expert: expertForDownstream,
     });
   }
 
@@ -278,8 +294,8 @@ export function computeIkOrchestraSyncSnapshot(
   ) {
     composite = runIkCompositeBothHold({
       item: effectiveItem,
-      package: pkg,
-      expert: postIdentityExpert,
+      package: pkgForDownstream,
+      expert: expertForDownstream,
       p5LaborActive: true,
       p6MaterialActive: true,
       executeLaborResearch: p5ResearchOn === true,
@@ -292,12 +308,12 @@ export function computeIkOrchestraSyncSnapshot(
     !knrDownstreamDeferred
     && p7F5On
     && (postMayProceed
-      || (postIdentityExpert.offerBoq?.lines?.length ?? 0) > 0)
+      || (expertForDownstream.offerBoq?.lines?.length ?? 0) > 0)
   ) {
     positionCostBid = runIkP7PositionCostBid({
       item: effectiveItem,
-      expert: postIdentityExpert,
-      package: pkg,
+      expert: expertForDownstream,
+      package: pkgForDownstream,
     });
   }
 
@@ -307,7 +323,7 @@ export function computeIkOrchestraSyncSnapshot(
       item: effectiveItem,
       p7: positionCostBid,
       bidProposal: positionCostBid?.proposal ?? null,
-      expert: postIdentityExpert,
+      expert: expertForDownstream,
       chiefSession,
       knrHistorical: knr,
     });
@@ -321,8 +337,9 @@ export function computeIkOrchestraSyncSnapshot(
     knrAppDiag,
     knrMapped,
     identityContext,
-    postIdentityExpert,
+    postIdentityExpert: expertForDownstream,
     identityPersistOutcome: null,
+    autoG2Phase,
     classification,
     identityCoverage,
     composite,

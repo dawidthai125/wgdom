@@ -13,6 +13,17 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-09",
+    version: "2.66.193",
+    label: "GO63 B2 — AUTO G2 RATE∥BOM w Orchestra (po G1)",
+    items: [
+      {
+        type: "new",
+        text: "B2: runIkAutoG2Phase po Identity(G1) · przed Classification · CURRENT OUR RATE REUSE · TechnologyPack/LABOR_ONLY BOM · provisional/MISSING/STALE fail-closed · attestation autoG2Rate/autoG2Bom · bez OUR RATE write / KL / IC / Finance. Test: test-auto-g2-b2-orchestra-go63.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-09",
     version: "2.66.192",
     label: "GO60 B1 — AUTO G1 w IdentityPhase (main orchestra)",
     items: [

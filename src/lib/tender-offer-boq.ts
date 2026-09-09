@@ -397,6 +397,21 @@ export interface OfferBoqLine {
   userEdited: boolean;
   editedFields: OfferBoqEditableField[];
   warnings: string[];
+
+  /**
+   * GO24 — AUTO_RATE_ACCEPT / RATE_EXCEPTION attestation (≠ matchMethod).
+   * REUSE CURRENT only · never research auto-persist.
+   */
+  autoG2Rate?: import("@/lib/intelligent-estimator/orchestra/auto-g2-accept-contract").AutoRateAcceptProvenance
+    | import("@/lib/intelligent-estimator/orchestra/auto-g2-accept-contract").AutoG2ExceptionProvenance
+    | null;
+  /**
+   * GO24 — AUTO_BOM_ACCEPT / BOM_EXCEPTION attestation.
+   * TechnologyPack singleton | Owner LABOR_ONLY allowlist · never provisional invent.
+   */
+  autoG2Bom?: import("@/lib/intelligent-estimator/orchestra/auto-g2-accept-contract").AutoBomAcceptProvenance
+    | import("@/lib/intelligent-estimator/orchestra/auto-g2-accept-contract").AutoG2ExceptionProvenance
+    | null;
 }
 
 export interface OfferBoqParserSnapshotRef {

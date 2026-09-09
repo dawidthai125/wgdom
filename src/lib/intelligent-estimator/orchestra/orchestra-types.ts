@@ -23,6 +23,7 @@ import type {
 import type { HistoricalExecutedIndex } from "@/lib/intelligent-estimator/historical-executed";
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
+import type { IkAutoG2PhaseResult } from "./ik-auto-g2-phase";
 import type { IkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
 import type { IkOwnerActionQueueReport } from "./ik-owner-action-queue";
 import type { IkPackageBlockerReport } from "./ik-package-blocker-report";
@@ -112,6 +113,8 @@ export type IkOrchestraSyncSnapshot = {
   postIdentityExpert: IkDocumentExpertReport;
   /** Last gated persist outcome (updated from useEffect, not sync useMemo). */
   identityPersistOutcome: IkIdentityPersistOutcome | null;
+  /** GO24 — AUTO_RATE / AUTO_BOM phase (null when deferred / not proceeded). */
+  autoG2Phase: IkAutoG2PhaseResult | null;
   classification: IkClassificationReport;
   identityCoverage: IkIdentityCoverageReport | null;
   composite: IkCompositeBothHoldReport | null;

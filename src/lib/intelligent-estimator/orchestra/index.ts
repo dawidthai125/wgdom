@@ -43,6 +43,22 @@ export {
 } from "./auto-g1-accept-contract";
 export type { AutoG1ContractResult, AutoG1Decision } from "./auto-g1-accept-contract";
 
+export {
+  evaluateAutoRateContract,
+  evaluateAutoBomContract,
+  applyAutoRateAcceptToLine,
+  applyAutoBomAcceptToLine,
+  AUTO_RATE_DECISION_ID,
+  AUTO_BOM_DECISION_ID,
+  AUTO_G2_FORBIDDEN,
+} from "./auto-g2-accept-contract";
+export type {
+  AutoRateContractResult,
+  AutoBomContractResult,
+} from "./auto-g2-accept-contract";
+export { runIkAutoG2Phase } from "./ik-auto-g2-phase";
+export type { IkAutoG2PhaseResult } from "./ik-auto-g2-phase";
+
 export type {
   ChiefAdvisoryPort,
   IngestMergePort,
