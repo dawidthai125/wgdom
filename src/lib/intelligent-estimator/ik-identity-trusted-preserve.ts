@@ -14,6 +14,7 @@ export const TRUSTED_IDENTITY_MATCH_METHODS: ReadonlySet<OfferBoqMatchMethod> = 
   "catalog_map",
   "alias",
   "manual",
+  "auto_contract",
 ]);
 
 const UNTRUSTED_METHODS: ReadonlySet<OfferBoqMatchMethod> = new Set([

@@ -13,6 +13,17 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-09",
+    version: "2.66.192",
+    label: "GO60 B1 — AUTO G1 w IdentityPhase (main orchestra)",
+    items: [
+      {
+        type: "new",
+        text: "B1: AUTO G1 po map+manual, przed provisional/W2-5 · demote soft primary przy F5 AMBIGUOUS · locked GK rule · provenance auto_contract · bez G2/IC/Knowledge Loop. Test: test-auto-g1-b1-identity-phase-go60.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-09",
     version: "2.66.191",
     label: "GO53 — Evidence sufficiency + Research HTTP suppress",
     items: [

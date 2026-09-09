@@ -35,6 +35,12 @@ import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils"
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
 import type { CatalogWork } from "@/lib/work-catalog/types";
 import { computeOfferBoqIdentityPayloadHash } from "./ik-identity-persist-glue";
+import { hasCompleteTrustedIdentityTuple } from "@/lib/intelligent-estimator/ik-identity-trusted-preserve";
+import {
+  applyAutoG1AcceptToLine,
+  applyAutoG1ExceptionToLine,
+  evaluateAutoG1Contract,
+} from "./auto-g1-accept-contract";
 
 /** OD-05 minimal seam — no-op when caller omits or passes empty array. */
 export type OwnerManualIdentityOverride = {
@@ -327,6 +333,33 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
     let identity = resolveWorkIdentityFromOfferBoqLine(withManual);
     let lineForOut = withManual;
     let hadProvisionalPatch = false;
+
+    // GO21/GO60 B1 — AUTO_G1_ACCEPT after map+manual · before provisional · before W2-5 AMBIGUOUS clear.
+    // Pure contract · provenance auto_contract · NEVER manualOverrides / UI Accept simulation.
+    // F5 AMBIGUOUS may still carry a soft catalog_map primary + competing candidates; demote the
+    // tuple for contract eval only so locked family rules can fire before W2-5 clears the bind.
+    if (
+      identity.status !== "INVALID_UNIT"
+      && identity.status !== "NOISE_SKIP"
+      && (identity.status === "AMBIGUOUS" || identity.status === "NO_IDENTITY")
+    ) {
+      const lineForAutoEval =
+        identity.status === "AMBIGUOUS" && hasCompleteTrustedIdentityTuple(lineForOut)
+          ? {
+              ...lineForOut,
+              catalogWorkId: null,
+              matchMethod: "unmatched" as const,
+              matchConfidence: "low" as const,
+            }
+          : lineForOut;
+      const autoResult = evaluateAutoG1Contract(lineForAutoEval, { nowMs });
+      if (autoResult.decision === "AUTO_G1_ACCEPT") {
+        lineForOut = applyAutoG1AcceptToLine(lineForOut, autoResult);
+        identity = resolveWorkIdentityFromOfferBoqLine(lineForOut);
+      } else if (!autoResult.reasons.some((r) => r.includes("ALREADY_TRUSTED"))) {
+        lineForOut = applyAutoG1ExceptionToLine(lineForOut, autoResult);
+      }
+    }
 
     if (isIkProvisionalEstimationEnabled()) {
       for (let pass = 0; pass < 3; pass += 1) {

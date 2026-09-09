@@ -33,6 +33,16 @@ export {
   TRUSTED_IDENTITY_MATCH_METHODS,
 } from "../ik-identity-trusted-preserve";
 
+export {
+  evaluateAutoG1Contract,
+  applyAutoG1AcceptToLine,
+  applyAutoG1ExceptionToLine,
+  AUTO_G1_MATCH_METHOD,
+  AUTO_G1_GK_LOCKED_WINNER,
+  AUTO_G1_RULE_GK_CLADDING_SCIANKI,
+} from "./auto-g1-accept-contract";
+export type { AutoG1ContractResult, AutoG1Decision } from "./auto-g1-accept-contract";
+
 export type {
   ChiefAdvisoryPort,
   IngestMergePort,

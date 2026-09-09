@@ -24,7 +24,9 @@ export type OfferBoqMatchMethod =
   | "unmatched"
   | "snapshot"
   /** CATALOG-COVERAGE-01 P0c — Alias Resolver (direct Product ID bind). */
-  | "alias";
+  | "alias"
+  /** GO21 — AUTO_G1_ACCEPT durable provenance (routine autonomy · ≠ manual). */
+  | "auto_contract";
 
 /** Produktowy alias metody dopasowania (COST-S2+) — synonim semantyczny `matchMethod`. */
 export type OfferBoqMatchedBy =
@@ -35,7 +37,9 @@ export type OfferBoqMatchedBy =
   | "manual"
   | "unmatched"
   | "snapshot"
-  | "alias";
+  | "alias"
+  /** GO21 — AUTO_G1_ACCEPT */
+  | "auto_contract";
 
 export type OfferBoqConfidence = "high" | "medium" | "low";
 

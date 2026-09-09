@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.192 — GO60 B1 AUTO G1 w IdentityPhase (2026-09-09)
+
+- B1: AUTO G1 po map+manual, przed provisional/W2-5 · demote soft primary przy F5 AMBIGUOUS.
+- Locked GK rule · `auto_contract` · bez G2 / IdentityCandidate / Knowledge Loop.
+- Test: `test-auto-g1-b1-identity-phase-go60.mjs`.
+
 ## 2.66.191 — GO53 Evidence sufficiency + Research HTTP suppress (2026-09-09)
 
 - OD-52 **STATE_ONLY**: `evaluateLaborEvidenceReuseSufficiency` · Evidence HIT → SUFFICIENT → HTTP suppressed (≠ OUR RATE).

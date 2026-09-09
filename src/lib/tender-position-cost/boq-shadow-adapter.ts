@@ -140,6 +140,7 @@ const TRUSTED_MATCH: ReadonlySet<OfferBoqMatchMethod> = new Set([
   "catalog_map",
   "alias",
   "manual",
+  "auto_contract",
 ]);
 
 export type ShadowWorkIdentityResolve = {
@@ -345,6 +346,7 @@ export function resolveWorkIdentityFromOfferBoqLine(
     distinctCandidates.length >= 2 &&
     method !== "manual" &&
     method !== "exact_knr" &&
+    method !== "auto_contract" &&
     !(method === "alias" && line.matchConfidence === "high");
 
   if (competing) {
