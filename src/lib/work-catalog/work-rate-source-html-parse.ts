@@ -556,6 +556,32 @@ function parseOffersFromMarkers(input: {
  * Parse offers: markery fixture LUB tabele realnych cenników.
  * Zwraca tylko pozycje dopasowane do expectedNamePl / alternateNames / exact identity aliases.
  */
+/**
+ * Diagnostic: how many priced table rows exist in HTML (ignore name match).
+ * Used to distinguish PARSE_EMPTY (no rows) vs MATCH_EMPTY (rows exist, no name hit).
+ * ZERO invent — count only.
+ */
+export function countWorkRatePricedTableRows(html: string): number {
+  const raw = String(html || "");
+  if (raw.length < 40) return 0;
+  let n = 0;
+  const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = trRe.exec(raw))) {
+    const cells = [...m[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map((x) =>
+      stripTags(x[1] || ""),
+    );
+    if (cells.length < 2) continue;
+    const name = cells[0] || "";
+    if (!name || name.length < 3) continue;
+    if (/^usług|^cena|^pozycj|^lp\b|^rodzaj|^cennik\b/i.test(name)) continue;
+    const joined = cells.join(" ");
+    if (!/\d/.test(joined)) continue;
+    if (parseTableRowCandidate(cells)) n += 1;
+  }
+  return n;
+}
+
 export function parseWorkRateOffersFromHtml(input: {
   sourceId: WorkRateSourceId;
   html: string;
