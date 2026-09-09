@@ -1,13 +1,13 @@
 # INTELLIGENT ESTIMATOR — MASTER SSOT
 
-<!-- MASTER RECONCILED 2026-09-08 · tip 00b10b97 / 2.66.168 · awaiting Owner review -->
+<!-- MASTER RECONCILED 2026-09-09 · GO55 Knowledge Loop SSOT reconciliation (GO53/OD-52) · tip local 2.66.191 · prod live via version.json -->
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ JEDYNY MASTER SSOT Inteligentnego Kosztorysanta (IK)** · **★★ JEDYNY cold-start IK**
-> **Data:** **2026-09-08** · MASTER RECONCILE
+> **Data:** **2026-09-09** · **GO55** Master §16A reconcile with GO53/OD-52 (**docs only**) · prior GO44 Knowledge Base amendment
 > **Rola:** jedyny Master SSOT / cold-start dla IK · **Decision Tree = PRIMARY CONTINUITY CONTRACT**
 > **Zakaz:** drugi Orchestra / Chief / Research / Catalog / Decision Tree / Master SSOT
-> **Zasada:** **REUSE → CONNECT → VERIFY** · SEARCH BEFORE CREATE · **NO REBUILD**
+> **Zasada:** **REUSE → CONNECT → VERIFY** · **CATALOG FIRST → RESEARCH FALLBACK → LEARN → REUSE** · SEARCH BEFORE CREATE · **NO REBUILD**
 
 ---
 
@@ -25,11 +25,15 @@
 | **CURRENT CASE BRANCH (global Decision Tree)** | **ŚRODA A0.2** — Work Catalog coverage · **UNCHANGED** |
 | **CURRENT ACTIVE CAPABILITY TRACK** | **TPI/729 Document → C2 → OfferBoq → NG11** |
 | **CURRENT FIRST OPEN BLOCKER / CURRENT OPEN NODE** | **`OWNER_FINANCE_NOT_OK`** |
-| **CURRENT NEXT LEGAL** | **Owner GO only** — AI **nie** inventuje następnego kroku |
+| **CURRENT NEXT LEGAL** | **UTRZYMANIE / Owner GO** — Master §16A reconciled **GO55** (docs) · Labor Evidence persist+reuse+HTTP suppress **GO53** (local WIP tip `2.66.191`) · Knowledge Loop **PARTIAL** (Material Evidence / KB-06/07 OPEN) · `AUTO_G1` **GO21** · `AUTO_G2` **GO24** · Finance residual = osobne GO · TPI `OWNER_FINANCE_NOT_OK` · control Work `cc-ic-accept-6c2b8e82` (A1/Pack/Rate = 0 until Owner GO) |
 | **CHROBREGO** | **CLOSED CASE** (56/0 · G3 Final Bid) — **NIE reopen** |
 | **GLOBAL IK PRODUCTION VERIFIED** | **NO** |
 | **GLOBAL IK PRODUCTION VERIFIED = NO** | **LOCKED** — capability PV ≠ global E2E PV |
 | **TPI case auto → new global tree?** | **NIE** — TPI = capability track, nie nowy CURRENT CASE BRANCH |
+| **GO43** | Learning-loop audit · artefact `.tmp/goa-tpi729-knowledge-learning-loop-go43.*` |
+| **GO44** | Master §16A Knowledge Base / Learning Loop · **docs** |
+| **GO53** | Labor Evidence sufficiency + HTTP suppress runtime · OD-52 STATE_ONLY · tip local `2.66.191` |
+| **GO55** | **THIS AMENDMENT** — Master §16A reconcile with GO53/OD-52 · **docs only** · no runtime |
 
 ### 1.2 Vocabulary (nie mieszać)
 
@@ -311,8 +315,10 @@ Paczka XI evidence (HISTORY · READ-ONLY): tender `08dee8b8-…` · 167 lines ·
 | **Document / OfferBoq** | linie · qty · unit · identity candidacy | cena |
 | **Work Catalog OUR RATE** | Owner-accepted labor rate | Evidence · research quote |
 | **Labor Evidence** | obserwacje źródeł | OUR RATE |
-| **Price Memory** | material commercial CURRENT | auto Accept |
-| **SELL** | purchase/market + margin | Labor OUR RATE |
+| **Price Memory** | material commercial CURRENT (`marketQuotes`) | auto Accept |
+| **IdentityCandidate** | proponowana tożsamość Work (GO35–41) | CatalogWork · OUR RATE · Pack |
+| **SELL** | purchase/market BASE + **effective margin** | Labor OUR RATE · independent authority |
+| **commercialPricing / margin** | Owner item + global floor | Research quote · SELL authority |
 | **F5 Position Cost** | LABOR + MATERIAL (+ BOM/…) | Final Bid persist |
 | **P7** | bid **prepare** read-only | G3 persist |
 | **P8** | risk / decision prepare | auto Owner Accept |
@@ -322,8 +328,10 @@ Paczka XI evidence (HISTORY · READ-ONLY): tender `08dee8b8-…` · 167 lines ·
 | **`kosztorysForBid`** | canonical Bid/OfferBoq cost input | **`dossier.kosztorys`** |
 | **`dossier.kosztorys`** | legacy/ONE dossier snapshot | wymagany dla C2 path |
 
-**HARD:** `companyPricePln` = LEGACY ≠ OUR RATE.
-**HARD:** C2 handoff pisze / czyta **`kosztorysForBid`** — **NIGDY** nie zapisuje C2 do `dossier.kosztorys`.
+**HARD:** `companyPricePln` = LEGACY ≠ OUR RATE.  
+**HARD:** C2 handoff pisze / czyta **`kosztorysForBid`** — **NIGDY** nie zapisuje C2 do `dossier.kosztorys`.  
+**HARD:** Knowledge planes remain **separate** — see **§16A** (GO44). Do not collapse into one generic price table.  
+**★★ Learning / Catalog First product contract:** **§16A**.
 
 ---
 
@@ -410,14 +418,14 @@ Live flag observability ≠ claim Global IK PV.
 | Historical | `lookupHistoricalExecuted` | KNR / Host | jobs ATH index | EXACT/FAMILY/MISS | in-memory | authority GO | no | no (authority=false) |
 | Classification | `classifyEstimatorPricingPlane` | Labor/Material/IR | text/unit | LABOR/MATERIAL/COMPOUND/UNKNOWN | none | — | gates research | no |
 | Identity | `runIkIdentityPhase` | Orchestra | ADMITTED lines | work identity | OfferBoq | G1 | conditional | gated persist |
-| Labor Expert | `ik-labor-expert` / P5 | Orchestra | classified LABOR | rateStatus · candidate | Work Catalog · Evidence | G2 Labor Accept | selective on MISS | Catalog on Accept |
-| Material Expert | `ik-material-expert` / P6 | Orchestra | classified MATERIAL | priceStatus · candidate | Price Memory | G2 Material Accept (+ Chief avail) | DIY selective on MISS | PM on Accept |
+| Labor Expert | `ik-labor-expert` / P5 | Orchestra | classified LABOR | rateStatus · candidate | Work Catalog · Evidence | G2 Labor: AUTO_RATE REUSE · Owner Accept exception | selective on MISS | Catalog on Accept (exception) / REUSE on CURRENT |
+| Material Expert | `ik-material-expert` / P6 | Orchestra | classified MATERIAL | priceStatus · candidate | Price Memory | G2 Material Accept exception (+ Chief) · AUTO_BOM pack/LABOR_ONLY | DIY selective on MISS | PM on Accept (exception) |
 | Leaf Research | `ik-leaf-research-orchestrator` | Orchestra / composite path | pack-bound leaves | leaf labor/material research | session dedupe | **no Accept** | leaf only | **no** OUR RATE/PM ACTIVE |
 | Composite | `ik-composite-both-hold` | Orchestra | BOTH_HOLD rows | leaf costs → F5 | none | — | via leaf orch. | no Accept |
 | F5 | `computePositionCost` | Composite / P7 / Bid | OUR RATE + SELL + BOM | position PLN | ephemeral | — | no | no |
 | P7 | `runIkP7PositionCostBid` | Orchestra | F5 results | bid proposal prepare | none | Final Bid ≠ P7 | no | no |
 | P8 | `runIkP8RiskDecision` | Orchestra | P7 + validation | risk prepare | none | Owner | no | no |
-| Owner Gates | `ownerGate` API | UI panel | queue rows | Accept/Reject | Catalog / PM / OfferBoq | **YES** | no auto | on Accept |
+| Owner Gates | `ownerGate` API | UI panel | queue rows | Accept/Reject (**exception** for G1/G2 routine) | Catalog / PM / OfferBoq | G1 routine = **AUTO_G1** · G2 routine = **AUTO_G2** conditional · G3 = Owner | G1/G2: auto under contract · G3: no | G1: `auto_contract` · G2: REUSE/pack · Owner: on Accept |
 | Chief | `runChiefOrchestrator` | DetailPage | pricing readiness | Case/Task dossier | in-memory | — | no | session |
 | NG11 readiness | `derive-pipeline-readiness` | `useTenderPipelineRuntime` | dossier · `kosztorysForBid` · finance | `canonicalCostInputReady` · `pricingReady*` | derived | finance ok | no | no |
 | DIY Research | `createSelectiveDiyTrioResearchProvider` | Material / leaf | material key · region | quotes / PROVIDER BLOCK | Edge + PM | Accept later | **YES (DIY)** | PM only on Accept |
@@ -799,6 +807,8 @@ Przedmiar.pdf SHA:
 
 ## 12. IDENTITY / CLASSIFICATION
 
+> Identity plane ≠ rate plane. **IdentityCandidate** (GO35–41) = first-class proposal entity — see **§16A.11**.
+
 ### 12.1 Classification Gate (przed research)
 
 | Plane | Research |
@@ -814,14 +824,84 @@ Surface hold: commit **`93d701eb`**.
 ### 12.2 Identity
 
 - Orchestra `runIkIdentityPhase` na **ADMITTED** only.
-- G1 Owner Gate: manual override → `runGatedIdentityPersist`.
 - Canonical key: **`lineId`**.
 - KNR↔WC bridge P3/P4: Owner-gated CREATE / trusted seam — **nie** silent invent.
+
+#### 12.2.1 G1 autonomy policy (GO20 · OWNER SUPERSEDE · 2026-09-08)
+
+> **SUPERSEDES** prior Master §20 row «G1 Auto = **no**» and AUTONOMY-03 «Accept NEVER AUTO» **for routine G1 identity**.  
+> Historical Auto=no remains **HISTORY** for pre-GO20 audits — **not** current product law.  
+> DF: [`AUTO-G1-ACCEPT-DECISION-FRAMEWORK.md`](./AUTO-G1-ACCEPT-DECISION-FRAMEWORK.md) · GO19 audit `.tmp/goa-tpi729-autonomous-g1-v1.*` · GO20 `.tmp/goa-tpi729-autonomy-policy-v1.*`.
+
+| Transaction | Meaning | Normal path? |
+|-------------|---------|--------------|
+| **A. `AUTO_G1_ACCEPT`** | resolve → validate `AUTO_G1` contract → durable package persist (`matchMethod: auto_contract`) → continue | **YES — routine** |
+| **B. Owner G1 Accept/Edit/Reject** | `manualOverrides` + `matchMethod: manual` → persist | **NO — exception / correction only** |
+| **C. EXCEPTION / HOLD** | contract FAIL after permitted retries → real runtime exception state | **YES — fail-closed** (≠ «click Accept») |
+
+```text
+ROUTINE PATH (website):
+  resolve → validate AUTO_G1 contract → AUTO persist → continue
+
+EXCEPTION PATH:
+  AUTO attempt → FAIL → permitted resolution/research (if allowed) → re-validate
+  → still FAIL → EXCEPTION/HOLD (escalation available; not required as normal UX)
+
+FORBIDDEN AS ROUTINE:
+  recommend → Owner Accept → persist
+```
+
+- **`manualOverrides`:** human correction / escalation **only** — **not** the sole durable identity mechanism after GO21 implements `AUTO_G1_ACCEPT`.
+- **Provenance (selected name):** `matchMethod = "auto_contract"` — **OPEN IMPLEMENTATION** add to `OfferBoqMatchMethod` in GO21 (enum **does not** yet include it on tip; do not invent a second name).
+- **Runtime IMPLEMENT:** **GO21** — GO20 = policy/SSOT only · **no** TPI Accept · **no** package mutation in GO20.
+
+#### 12.2.2 Intended Orchestra route (policy)
+
+```text
+Document → C2 → OfferBoq
+  → G1 AUTO (AUTO_G1_ACCEPT)          ← GO21 runtime
+  → G2 AUTO_RATE / AUTO_BOM           ← GO23 policy · GO24+ runtime
+  → P5 / P6 / P7 / P8
+  → BidCutoverGate
+  → Finance ok (derived)
+  → Chief
+  → G3 Final Bid                      ← Owner KEEP
+```
+
+#### 12.2.3 G2 autonomy policy (GO23 · OWNER SUPERSEDE · 2026-09-08)
+
+> **SUPERSEDES** prior Master §20 rows «G2 Labor/Material Auto = **no**» as **routine product law**.  
+> Historical Auto=no remains **HISTORY** for pre-GO23 audits — **not** current target architecture.  
+> DF: [`AUTO-G2-ACCEPT-DECISION-FRAMEWORK.md`](./AUTO-G2-ACCEPT-DECISION-FRAMEWORK.md) · GO22 audit `.tmp/goa-tpi729-auto-g2-v1.*` · GO23 `.tmp/goa-tpi729-autonomy-g2-policy-v1.*`.
+
+| Transaction | Meaning | Normal path? |
+|-------------|---------|--------------|
+| **A1. `AUTO_RATE_ACCEPT`** | trusted identity → REUSE CURRENT `lookupWorkRate` (authorized) · PERSIST from research = **OPEN R1** default **NO** | **YES — conditional** |
+| **A2. `AUTO_BOM_ACCEPT`** | TechnologyPack singleton resolve **or** explicit LABOR_ONLY allowlist · never invent | **YES — conditional** |
+| **A. `AUTO_G2_ACCEPT`** | A1 ∧ A2 | **YES — conditional** |
+| **B. Owner G2 Accept/Edit/Reject** | candidate → OUR RATE / PM via existing Accept engines | **NO — exception / correction only** |
+| **C. EXCEPTION / HOLD** | MISSING rate/BOM / conflict / STALE per DF → fail-closed | **YES** (≠ force click) |
+
+```text
+ROUTINE PATH (website):
+  trusted identity → AUTO_RATE (REUSE CURRENT) → AUTO_BOM (pack|LABOR_ONLY) → continue
+
+EXCEPTION PATH:
+  AUTO FAIL → research→candidate (if allowed) → Owner Accept OR still EXCEPTION/HOLD
+
+FORBIDDEN AS ROUTINE:
+  recommend → Owner G2 Accept → persist   (for lines already CURRENT + pack/LABOR_ONLY OK)
+  invent rate/BOM · companyPrice→OUR RATE · Evidence→OUR RATE · MISSING_BOM→LABOR_ONLY invent
+```
+
+- **Runtime IMPLEMENT:** **GO24** — `evaluateAutoRateContract` / `evaluateAutoBomContract` · `runIkAutoG2Phase` · Owner CLOSED R1–O1 · **no** research persist · **no** provisional AUTO_BOM · **no** invent · **no** Finance unlock.
+- **OPEN residual:** none for authorized REUSE/pack path · Material PM Accept remains exception.
 
 ### 12.3 Unit / identity gaps (LOCKED policy)
 
 - **LP2 `IDENTITY_GAP` / `NIEPRAWIDŁOWA_JEDNOSTKA` → LEAVE GAP** — **do not auto-fix**.
 - `pkt ≠ mb` bez dowodu.
+- AUTO_G1 **must not** invent unit conversion · INVALID_UNIT → EXCEPTION/HOLD.
 
 ---
 
@@ -854,9 +934,11 @@ Identity Coverage starts after KL-3 settle. MISS / `RESEARCH_UNAVAILABLE` remain
 ```text
 LABOR plane
   → Work Catalog lookup (workId + unit)
-  → OUR RATE CURRENT? YES → REUSE (HTTP 0)
+  → OUR RATE CURRENT? YES → REUSE (HTTP 0) = AUTO_RATE_ACCEPT (REUSE) · GO23
                      NO  → selective research (allowlist) when executeResearch
-                          → Evidence → Candidate → Owner Accept → OUR RATE
+                          → Evidence → Candidate
+                          → Owner G2 Accept → OUR RATE   ← exception path (GO23)
+                          → AUTO_RATE_PERSIST from candidate = OPEN R1 (default NO)
 ```
 
 | Element | SSOT |
@@ -866,10 +948,11 @@ LABOR plane
 | Research | `runSelectiveWorkRateResearch` |
 | Evidence | `kw-wgdom-labor-source-evidence` |
 | Accept | `acceptWorkRateResearchCandidate` |
+| Policy | [`AUTO-G2-ACCEPT-DECISION-FRAMEWORK.md`](./AUTO-G2-ACCEPT-DECISION-FRAMEWORK.md) §4 |
 
-**NIGDY:** research gdy stawka CURRENT · Evidence ≠ OUR RATE · research ≠ auto Accept · drugi labor catalog.
+**NIGDY:** research gdy stawka CURRENT · Evidence ≠ OUR RATE · research ≠ silent Accept · `companyPricePln` ≠ OUR RATE · drugi labor catalog.
 
-**G2 Labor:** Chief **NOT** required. CHROBREGO m² **CLOSED/PASS** (benchmark) · inne tendery case-by-case.
+**G2 Labor:** Chief **NOT** required. Routine = **AUTO_RATE** under contract (GO23) · Owner Accept = exception · CHROBREGO m² **CLOSED/PASS** (benchmark) · runtime wire **GO24+**.
 
 ---
 
@@ -892,11 +975,13 @@ MATERIAL plane
 | Edge | `mmr-diy-selective-lookup` · `createEdgeDiySelectiveLookup` · `parseDiyShopHtml` |
 | Provider | `createSelectiveDiyTrioResearchProvider` |
 | 403→502 | Edge shop **403** mapped **502** = **PROVIDER BLOCK** · **no anti-bot bypass** |
-| G2 Material Accept | requires `chiefMaterialAvailable` · Reject allowed with Chief OFF |
+| G2 Material Accept | requires `chiefMaterialAvailable` · Reject allowed with Chief OFF · **exception path** (GO23) |
 | `mat.inv.*` | HARD-FORBID DIY invent |
+| AUTO_BOM | TechnologyPack singleton **or** explicit LABOR_ONLY allowlist · DF §5 · runtime GO24+ |
 
-**Accept path:** Candidate → Owner Gate G2 → PM write → Orchestra refresh epochs.
-**Research ≠ Accept.**
+**Accept path (exception):** Candidate → Owner Gate G2 → PM write → Orchestra refresh epochs.  
+**Routine BOM:** `AUTO_BOM_ACCEPT` when pack/LABOR_ONLY contract PASS (GO23 policy).  
+**Research ≠ Accept.** · **MISSING_BOM ≠ invent LABOR_ONLY** (Master / DF §6).
 
 ---
 
@@ -1003,6 +1088,421 @@ Wiring: `createSelectiveDiyTrioResearchProvider` + `createEdgeDiySelectiveLookup
 | Evidence | same-product only |
 | `autoAccepted` | **false** |
 | Upstream DIY block | may prevent live quote — conversion ≠ Accept |
+
+---
+
+## 16A. KNOWLEDGE BASE / LEARNING LOOP ★★ (GO44 + GO55)
+
+> **Owner decisions OD-43-01…OD-43-12 FROZEN** · GO43 audit · GO44 Master amendment · **GO55 = Master reconcile with GO53 / OD-52** (docs only; no runtime in GO55).  
+> Sibling depth: PRICE-MEMORY-CATALOG-01 DF · IK-MIGRATION-01-P5.16-B · IdentityCandidate GO35–41 · AUTO-G2 DF · Labor Evidence GO46–GO53.
+
+### 16A.1 Purpose — Knowledge Base
+
+**IK Knowledge Base** = reusable knowledge accumulated from tender processing, catalogs, research, accepted identity, TechnologyPack/BOM, pricing, and historical observations.
+
+```text
+Every processed tender SHOULD contribute reusable knowledge
+when sufficient evidence exists and the destination/authority
+rules for that knowledge type are satisfied.
+```
+
+**Product learning loop (intended):**
+
+```text
+CATALOG FIRST
+  → RESEARCH FALLBACK (when legal)
+  → EVIDENCE (durable)
+  → CANDIDATE (where required)
+  → ACCEPT / AUTO eligibility (only where separately authorized)
+  → CANONICAL KNOWLEDGE
+  → INDEX
+  → NEXT TENDER REUSE
+```
+
+**Runtime status (GO55 reconcile):** loop remains **PARTIAL** overall.
+
+| Slice | Status |
+|-------|--------|
+| Catalog First + Research fallback (labor OUR RATE / material PM) | **IMPLEMENTED** |
+| Labor Evidence **persist** (Wave-1 QUALIFIED → KV) | **IMPLEMENTED** (GO46) |
+| Labor Evidence **reuse** + Research **HTTP suppress** | **IMPLEMENTED** (GO53 · OD-52 STATE_ONLY) |
+| Knowledge Destination Router thin facade | **IMPLEMENTED** (GO48) · Material Evidence / Pack·BOM adapters **OPEN** |
+| Material Evidence plane (parity with labor) | **NOT IMPLEMENTED** |
+| Accept→Catalog (OUR RATE / PM) | **IMPLEMENTED** (separate Accept gates) |
+| IdentityCandidate | **IMPLEMENTED** (GO35–41) · cloud `DATA_KEYS` **OPEN** |
+| Full Knowledge Loop CLOSED | **NO** — do not claim |
+
+**Orchestra placement (authoritative):**
+
+```text
+IK Orchestra
+  → Expert Chain
+    → Labor Expert
+      → Catalog First (lookupWorkRate / OUR RATE)
+      → Evidence (when OUR RATE MISSING — not STALE bypass)
+      → Research fallback (when Evidence insufficient / STALE / conflict)
+```
+
+Knowledge Destination Router = **supporting service** for destination/persist routing.  
+**NOT** another Orchestra. **NOT** another Expert Chain.
+
+### 16A.2 Separate knowledge planes (OD-43-10)
+
+| Plane | Role | MUST NOT be treated as |
+|-------|------|------------------------|
+| Work Catalog / OUR RATE | Canonical labor BASE after Accept | Evidence · companyPrice |
+| Labor Evidence | Source observations | OUR RATE · PM · SELL · margin · Finance · G3 |
+| Price Memory / `marketQuotes` | Material commercial CURRENT | Labor OUR RATE |
+| Material knowledge (identity/hosts) | Product identity | invent from namePl |
+| Research Candidate | Ephemeral / session proposal | Canonical |
+| IdentityCandidate | Proposed Work identity (GO35–41) | OUR RATE · Pack ACTIVE |
+| TechnologyPack / BOM | Compound leaf binding | Identity Accept |
+| KNR / G177 | Norm discovery / PENDING_VERIFY | Work Catalog id |
+| Historical knowledge | ATH evidence index | authority pricing |
+| commercialPricing / margin | Owner margin | Research quote |
+| SELL | **Derived** BASE + effective margin | Independent authority |
+| Tender-specific knowledge | Case/OfferBoq/context | Global catalog overwrite |
+| Legacy `companyPrice` / `companyPricePln` | Technical legacy | OUR RATE |
+
+**HARD:** Do **not** collapse these into one generic price table. Connected planes ≠ one giant table.
+
+```text
+Evidence ≠ OUR RATE
+Evidence ≠ Price Memory
+Evidence ≠ SELL
+Evidence ≠ margin / Finance / G3
+Evidence NEVER auto-promotes to OUR RATE
+```
+
+### 16A.3 Catalog First (OD-43-09 / OD-43-12)
+
+**Mandatory lookup order:**
+
+```text
+1. Local / catalog knowledge (Work Catalog · Price Memory · indexes)
+2. Other durable reusable knowledge (Labor Evidence — when Catalog First MISS)
+3. Only then Research fallback (allowlist / DIY Edge)
+```
+
+| Lookup state | Legal behavior |
+|--------------|----------------|
+| **HIT** (CURRENT OUR RATE / CURRENT PM) | **REUSE** · HTTP 0 · no Research · Evidence not consulted for suppress |
+| **MISS** (OUR RATE missing) | may consult Labor Evidence · then Research if Evidence insufficient |
+| **STALE** (OUR RATE stale) | may Research / refresh under domain policy · **Evidence MUST NOT suppress refresh** (GO53) |
+| **INSUFFICIENT** | HOLD / GAP · Candidate or Owner — no fabricate |
+| **AMBIGUOUS** | EXCEPTION / HOLD · preserve competitors |
+| **RESEARCH REQUIRED** | MISS + Evidence insufficient + executeResearch allowed — still ≠ Accept |
+| **FORBIDDEN** | UNKNOWN parent invent · COMPOUND parent research · silent canonical write |
+
+Labor entry: `lookupWorkRate` (**only** `ourWorkRate`). Material entry: `lookupPriceMemory` / `evaluateMaterialCache`. See §14–§15.
+
+**CURRENT OUR RATE remains stronger than Evidence.** Evidence is consulted only after Catalog First does **not** yield CURRENT OUR RATE reuse.
+
+### 16A.4 Research fallback (OD-43-02 / OD-43-03)
+
+Research is **fallback**, not default.
+
+```text
+Research ≠ Accept
+Research ≠ OUR RATE
+Research ≠ SELL
+Research ≠ TechnologyPack ACTIVE
+Research ≠ Identity Accept
+```
+
+Allowed when **all** of §16.2 hold (plane LABOR/MATERIAL/leaf · MISS · flags · not UNKNOWN/COMPOUND parent invent) **and** Labor Evidence reuse did not suppress (see §16A.5a).
+
+### 16A.5 Research → Evidence (OD-43-02 · GO46)
+
+**Owner rule:** every **meaningful** Research execution/result **MUST** produce **durable Evidence** suitable for future reuse.
+
+| Rule | Value |
+|------|-------|
+| Evidence authority | Observation / provenance — **not** canonical OUR RATE / PM |
+| Labor Evidence store | `kw-wgdom-labor-source-evidence` |
+| Material evidence path | **NOT IMPLEMENTED** as labor-parity Evidence plane — Quotes history ≠ auto PM CURRENT |
+| Candidate | may coexist with Evidence · Candidate ≠ Accepted rate |
+| Labor persist runtime | **IMPLEMENTED** (GO46) — Wave-1 QUALIFIED → Evidence KV via KDR |
+| Labor reuse / HTTP suppress | **IMPLEMENTED** (GO53) — see §16A.5a |
+
+**Do not invent unsupported Evidence fields.** Preserve existing observation schemas; extend only via Owner GO + implementation.
+
+### 16A.5a Labor Evidence Reuse / Research Suppression ★★ (GO53 · OD-52)
+
+**Owner decision OD-52-EVIDENCE-FRESHNESS-MODE = `STATE_ONLY`.**
+
+```text
+Evidence freshness = authoritative Evidence state VALID vs STALE
+There is NO calendar TTL for Evidence.
+Do NOT copy OUR RATE 90-day rule to Evidence.
+Do NOT invent 7/30/60/90/180 day Evidence expiry.
+lastVerifiedAt for Evidence = NOT introduced (KB-06 remains OPEN).
+```
+
+**Distinction (HARD):**
+
+| Plane | Freshness rule |
+|-------|----------------|
+| **OUR RATE** | Existing **90-day** catalog freshness — **unchanged** · own rule |
+| **Labor Evidence** | **STATE_ONLY** · VALID eligible · STALE not eligible for suppress |
+
+**Labor path (authoritative runtime GO53):**
+
+```text
+Labor Expert
+  → Catalog First
+  → CURRENT OUR RATE REUSE (HIT) → stop · HTTP 0 · Evidence not used to suppress
+  → if OUR RATE STALE → Research / refresh path · Evidence MUST NOT bypass STALE
+  → if OUR RATE MISSING
+       → Evidence lookup (same workId)
+       → evaluateLaborEvidenceReuseSufficiency
+       → SUFFICIENT + VALID → EVIDENCE_REUSE → external HTTP suppressed
+       → else (INSUFFICIENT / STALE / conflict / incompatible) → existing Research path
+```
+
+| Outcome | Behavior |
+|---------|----------|
+| VALID + sufficient | Research HTTP **suppress** · `EVIDENCE_REUSE` · PLN for Expert display only · **≠** OUR RATE write |
+| STALE / insufficient / conflict | Research **allowed** (flags permitting) |
+| STALE OUR RATE | Evidence **cannot** suppress refresh |
+| `forceRefresh` | bypass Evidence suppress |
+
+**Owner sufficiency policy (document only proven rules — no invented thresholds):**
+
+1. exact canonical `workId` required  
+2. exact unit required  
+3. compatible labor scope required  
+4. package / material / parent / compound cannot satisfy labor leaf  
+5. `names_loosely` is **not** sufficient for automatic suppress  
+6. one VALID observation **may** be sufficient  
+7. material price conflicts **fail closed**  
+8. region must be compatible where region is required  
+9. STALE OUR RATE **cannot** be bypassed by Evidence  
+10. Evidence **cannot** automatically become OUR RATE  
+
+Implementation: `src/lib/work-catalog/labor-evidence-reuse-sufficiency.ts` · `evaluateLaborEvidenceReuseSufficiency` · Research seam `work-rate-research.ts` (`EVIDENCE_REUSE_POLICY = STATE_ONLY`).
+
+**Material Evidence reuse / suppress:** **NOT IMPLEMENTED**.
+
+### 16A.6 Knowledge Destination Router (OD-43-03 · GO48)
+
+**Architectural contract:**
+
+```text
+Research Result
+  → Knowledge Type
+  → Destination
+  → Authority
+  → Persistence
+  → Index
+  → Reuse
+```
+
+| Concept | Is |
+|---------|-----|
+| **Knowledge Destination Router** | Supporting policy/runtime facade mapping research outputs to planes |
+| **`catalog-write-router` / `saveWorkCatalogRouted`** | **Persist gate** for Work Catalog only — **≠** Knowledge Destination Router |
+
+**Status:** contract **DOCUMENTED (GO44)** · thin facade **IMPLEMENTED (GO48)** · Labor Evidence producer wiring **IMPLEMENTED (GO49)** · Labor Evidence reuse/suppress **IMPLEMENTED (GO53)** · Material Evidence / Pack·BOM adapters **OPEN** · overall KDR = **PARTIAL** (not a second Orchestra).
+
+### 16A.7 Knowledge Destination Matrix
+
+| Knowledge type | Destination | Authority | Reusable | Canonical | Owner Accept required | AUTO persist canonical |
+|----------------|-------------|-----------|----------|-----------|----------------------|------------------------|
+| Labor rate quote | Evidence + Research Candidate → OUR RATE | Owner Accept | after Accept | OUR RATE | **YES** (exception path; AUTO_RATE_PERSIST **OPEN R1** default **NO**) | **NO** default |
+| Material DIY quote | Candidate → Price Memory `marketQuotes` | Owner Accept (+ Chief when required) | after Accept | PM CURRENT | **YES** | **NO** |
+| Market quote | same as material / Quotes | Owner Accept | after Accept | PM | **YES** | **NO** |
+| Work identity | IdentityCandidate → CatalogWork | Owner Accept (GO39/41) | after Accept | CatalogWork.id | **YES** | **NO** |
+| IdentityCandidate | `kw-identity-candidates` (local durable from OWNER_REVIEW) | Owner Review / Accept | after Accept | no | Review YES · Accept for WC | create/queue may be autonomous under GO40 |
+| KNR / G177 | `kw-knr-catalog` / discovery evidence | PENDING_VERIFY → Owner VERIFY | after VERIFY | VERIFIED only after Owner | VERIFY YES | discovery≠VERIFIED |
+| Technology / BOM / TechnologyPack | Pack registry / BOM adapters | separate Owner/pack gates | pack-bound | ACTIVE pack | pack ACTIVE ≠ Identity Accept | AUTO_BOM only under GO23 contract |
+| Supplier / regional info | Evidence / source metadata | observation | PARTIAL | no | OPEN | OPEN |
+| Historical observation | Historical index | authority=false | evidence | no | — | index only |
+| Tender-specific price | tender/OfferBoq/context | case | case-scoped | no global overwrite | case | no |
+| Labor Evidence | Evidence KV | observation | **YES** when VALID+sufficient (GO53) | no | no for observe | persist **IMPLEMENTED** (GO46) · **≠** OUR RATE |
+| Material Evidence | — | — | — | — | — | **NOT IMPLEMENTED** |
+| Research Candidate | session / Orchestra | candidate | **NO** until Accept | no | for canonical | candidate create YES · Accept NO |
+| Margin | `commercialPricing` / settings | Owner | YES | item/global | manual / floor apply | no from Research |
+| SELL | derived `computeSellPricePln` | derived | no store as authority | **NO** | — | never as knowledge authority |
+| companyPricePln | CatalogWork legacy | LEGACY | N/A | **≠ OUR RATE** | — | **FORBIDDEN** as OUR RATE seed |
+
+Unresolved cells marked **OPEN** must not be invented in code without Owner GO.
+
+### 16A.8 Price lifecycle (OD-43-06 / OD-43-08 / OD-43-11 · OD-52)
+
+**Canonical distinctions:**
+
+| Type | Meaning |
+|------|---------|
+| **OUR RATE** | Owner-accepted labor **BASE** (`ourWorkRate`) |
+| **companyPrice / companyPricePln** | LEGACY technical — **MUST NOT** silently become OUR RATE |
+| **Price Memory** | Material commercial CURRENT via `marketQuotes` |
+| **Market / purchase price** | Quotes / invoice paths as implemented |
+| **Evidence** | Observations — **STATE_ONLY** freshness (VALID/STALE) · **≠** OUR RATE |
+| **Research Candidate** | Proposal only |
+| **Historical price** | Historical index — not authority |
+| **SELL** | **Derived** — BASE + **effective margin** — **not** an independent knowledge authority |
+
+**Lifecycle timestamps (conceptual contract):**
+
+| Field | Meaning |
+|-------|---------|
+| `createdAt` | first creation of the knowledge object/rate |
+| `updatedAt` | last mutation of stored value |
+| `effectiveAt` | when the rate/price becomes commercially effective (if/when supported) |
+| `lastVerifiedAt` | last Owner/system verification that the reusable price is still valid |
+
+**Implementation note:** existing code uses `updatedAt`, rate freshness helpers, and `freshnessStatus` / freshnessUx for **OUR RATE / PM**. Unified `lastVerifiedAt` on all planes = **OPEN** (KB-06). **Evidence** uses observation `freshnessStatus` VALID/STALE under OD-52 — **no** Evidence calendar TTL; **do not** invent Evidence `lastVerifiedAt` in GO55.
+
+**Freshness states:**
+
+| Plane | States / rule |
+|-------|----------------|
+| OUR RATE / PM | **CURRENT** · **STALE** · **MISSING** — catalog helpers · OUR RATE **90d** rule remains its own |
+| Labor Evidence | **VALID** · **STALE** — **STATE_ONLY** (OD-52) · no calendar TTL |
+
+### 16A.9 Manual vs automatic price update
+
+| Mode | Allowed today |
+|------|----------------|
+| Manual OUR RATE | YES — catalog UI → `patchOurWorkRateInStore` → routed save |
+| Manual PM base | PARTIAL — Accept / force-refresh Accept → Quotes |
+| Manual item margin | YES — `commercialPricing` |
+| Manual global margin floor | YES — `applyGlobalCommercialMarginFloorToStore` |
+| Automatic Research | YES on MISS+flags **when Evidence does not suppress** (labor) |
+| Automatic Labor Evidence persist | **YES** (GO46) on meaningful QUALIFIED research |
+| Automatic Labor Evidence reuse / HTTP suppress | **YES** (GO53) when VALID+sufficient · **≠** OUR RATE |
+| Automatic Material Evidence | **NO** / **NOT IMPLEMENTED** |
+| Automatic Candidate | YES ephemeral |
+| Automatic canonical OUR RATE / PM | **NO** unless separate explicit AUTO policy (R1 OPEN default NO) |
+
+Separate: manual update · Research evidence · Candidate · Accept · canonical update.
+
+### 16A.10 Margin architecture (OD-43-07 / OD-43-08)
+
+**Global margin is a FLOOR.**
+
+```text
+effectiveMargin(position) = max(positionMargin, globalMarginFloor)
+```
+
+| Example | Result |
+|---------|--------|
+| global 20%, position 15% | **20%** |
+| global 20%, position 20% | **20%** |
+| global 20%, position 30% | **30%** |
+
+**HARD:** A global margin update **MUST NEVER** lower an already higher position/item margin.
+
+**Runtime (already implemented — do not re-implement):** `applyGlobalMarginFloor` / `applyGlobalCommercialMarginFloorToStore` in `our-price-catalog.ts`. Per-item save = explicit overwrite (Owner). Read-time labor fallback: `defaultLaborCommercialMarginPct` when item margin UNSET (explicit `0` blocks fallback).
+
+**SELL:**
+
+```text
+SELL = BASE + effective margin
+     = computeSellPricePln(BASE, effectiveMarginPct)
+```
+
+SELL is **derived** — not a knowledge authority (OD-43-11).
+
+### 16A.11 IdentityCandidate reconciliation (OD-43-04 / OD-43-05 · GO35–41)
+
+IdentityCandidate is a **first-class** architectural entity.
+
+| Status | Persistence (GO37/GO38 Owner freeze) |
+|--------|--------------------------------------|
+| DISCOVERED / DRAFT_INTERNAL / IDENTITY_CANDIDATE | **EPHEMERAL** (pre-Owner-Review) |
+| OWNER_REVIEW | **DURABLE · NO EXPIRATION** |
+| ACCEPTED_CANONICAL | durable provenance |
+| REJECTED | durable indefinite |
+| SUPERSEDED | durable indefinite |
+
+```text
+No EXPIRED state.
+No hard-delete of durable decision history.
+Rejected fingerprints must not resurrect via similarity.
+```
+
+| Accept Identity | Does **NOT** |
+|-----------------|--------------|
+| Creates/reuses CatalogWork (GO39/41) | Activate TechnologyPack |
+| | Write OUR RATE |
+| | Unlock Finance |
+| | Execute G3 |
+| | Run A1 classification write |
+
+**Cloud:** `kw-identity-candidates` durability/authority requirements are defined here; **automatic expansion into Supabase `DATA_KEYS` is NOT authorized** (OD-43-05 · KB-05 cloud cell **OPEN**). Separate Owner GO required.
+
+**Control Work (TPI/729):** `cc-ic-accept-6c2b8e82` — created by explicit Owner Accept GO41 · A1/Pack/Rate/Research remain **0** until Owner GO.
+
+### 16A.12 Learning loop & cost optimization (OD-43-09 / OD-43-12 · GO53)
+
+```text
+Tender A
+  → Catalog First
+  → Research if required (after Evidence miss/insufficient)
+  → Evidence persist (durable — GO46)
+  → Candidate
+  → Owner / authorized AUTO acceptance
+  → Canonical Knowledge (OUR RATE / PM)
+  → Index
+  → Tender B Catalog First
+  → CURRENT OUR RATE REUSE  OR  Evidence VALID+sufficient → HTTP suppress (GO53)
+  → else Research
+```
+
+Knowledge reuse **MUST** reduce: Supabase reads/writes · external research · duplicate research · repeated normalization · repeated candidates.
+
+**HARD:** Process-memory cooldown alone is **insufficient** as the only protection against repeated research after reload (OD-43-12 · **KB-07 OPEN**). Durable Evidence + Catalog First + Accept are the primary protections; durable cooldown/index beyond Evidence = **OPEN** enhancement.
+
+### 16A.13 Orphan knowledge
+
+**Orphan** = research/evidence/candidate data that cannot be reused because destination, authority, index, or persistence is missing.
+
+**Known (GO55 reconcile):**
+
+| Orphan | Why | Status |
+|--------|-----|--------|
+| Ephemeral labor/material candidates | discarded on session end | OPEN |
+| Labor research without Evidence append | main path persist **CLOSED** GO46 for QUALIFIED Wave-1 | residual edge cases only |
+| APF ephemeral candidates | never OUR RATE | OPEN |
+| Leaf research sans Accept | no catalog write | OPEN |
+| IdentityCandidate not cloud-synced | OD-43-05 deliberate hold | OPEN |
+| Material Evidence plane | not implemented | OPEN |
+
+### 16A.14 Gap Register (GO55 reconciled)
+
+| ID | Finding | Severity | Status |
+|----|---------|----------|--------|
+| KB-01 | Missing Knowledge Base / Learning Loop chapter in Master | CRITICAL | **CLOSED** (GO44 §16A) · body kept current by **GO55** |
+| KB-02 | Durable Labor Research Evidence + reuse/suppress | CRITICAL | **IMPLEMENTED / DOCUMENTED** — persist GO46 · reuse+HTTP suppress GO53 · Master **GO55** · Material Evidence **still NOT IMPLEMENTED** |
+| KB-03 | Knowledge Destination Router | HIGH | **PARTIAL** — facade GO48 + producer GO49 + labor suppress GO53 **CLOSED** · Material Evidence / Pack·BOM adapters **OPEN** |
+| KB-04 | Global margin floor absent from Master | HIGH | **CLOSED** by GO44 §16A.10 |
+| KB-05 | IdentityCandidate Master reconciliation | HIGH | **CLOSED** by GO44 §16A.11 · cloud `DATA_KEYS` still **OPEN** |
+| KB-06 | `lastVerifiedAt` lifecycle gap | MEDIUM | **OPEN** |
+| KB-07 | Process-memory-only research cooldown/dedup | MEDIUM | **OPEN** |
+
+**Do not** mark entire Knowledge Loop CLOSED. **Do not** close KB-06 / KB-07. **Do not** mark Material Evidence complete.
+
+### 16A.15 Amendment / Traceability Register (GO43–GO55)
+
+| GO | Role | Verdict / tip |
+|----|------|---------------|
+| **GO43** | Learning-loop audit | `IK_KNOWLEDGE_LEARNING_LOOP_AUDIT_PASS_PARTIAL_LOOP_SSOT_INCOMPLETE` |
+| **GO44** | Master Knowledge Loop amendment | §16A · docs only |
+| **GO45** | Evidence seam audit | Wave-1 writes Evidence · Catalog First consumer then OPEN |
+| **GO46** | Labor Evidence persistence | tip `2.66.188` · persist **IMPLEMENTED** |
+| **GO47** | Knowledge Router audit | DISTRIBUTED · no central router yet |
+| **GO48** | Knowledge Router thin facade | tip `2.66.189` · **IMPLEMENTED** · KDR overall **PARTIAL** |
+| **GO49** | Evidence reuse E2E (producer + lookup) | tip `2.66.190` · HTTP suppress then OPEN → closed by GO53 |
+| **GO50** | Sufficiency policy audit | policy tree · no invent thresholds |
+| **GO51** | Integration / freshness audit | freshness threshold OPEN → OD-52 |
+| **GO52** | STATE_ONLY decision + suppress design | **OD-52 = STATE_ONLY** · no Evidence calendar TTL |
+| **GO53** | Evidence sufficiency + HTTP suppress runtime | tip `2.66.191` · `PASS_EVIDENCE_SUPPRESS_RUNTIME` |
+| **GO54** | Master vs runtime audit | `PASS_AUDIT_SSOT_PARTIAL_ALIGNMENT_DOCS_STALE` |
+| **GO55** | Master SSOT reconciliation | **THIS** · docs only · aligns §16A with GO53/OD-52 |
+
+**Owner OD-43-01:** Master amendment **before** further A1 / TechnologyPack / autonomous rate **runtime** work on the learning path.
 
 ---
 
@@ -1176,17 +1676,26 @@ Owner Ingest FULL PDF
 
 | Gate | Co | Persist | Research? | Auto? | Status |
 |------|----|---------|-----------|-------|--------|
-| **G1 Identity** | Accept/Edit/Reject identity | OfferBoq LS | Research Again = recalc | **no** | PV PASS (durable) · Reject fixtures NOT VERIFIED |
-| **G2 Labor** | Accept candidate OUR RATE | Work Catalog | ≠ Accept | **no** | CHROBREGO CLOSED · else case-by-case |
-| **G2 Material** | Accept candidate PM | Price Memory | ≠ Accept | **no** | requires Chief avail · global WAIT natural candidate |
-| **G3 Final Bid** | Persist `ikFinalBid` | pipeline item | no | **no** | CHROBREGO CLOSED · inne = osobny GO |
+| **G1 Identity (routine)** | `AUTO_G1_ACCEPT` under contract | OfferBoq LS (`auto_contract`) | Research Again = permitted re-resolve (≠ Accept) | **YES (routine)** | **GO20 POLICY** · runtime **GO21** · DF `AUTO-G1-ACCEPT` |
+| **G1 Identity (exception)** | Accept/Edit/Reject | OfferBoq LS (`manual`) | recalc | **no** (escalation only) | UI Owner Gate · PV PASS (durable) · Reject fixtures NOT VERIFIED |
+| **G2 Labor (routine)** | `AUTO_RATE_ACCEPT` REUSE CURRENT | Work Catalog read | research → candidate ≠ Accept | **YES (conditional)** | **GO23 POLICY** · **GO24 RUNTIME** · DF `AUTO-G2-ACCEPT` |
+| **G2 Labor (exception)** | Accept candidate OUR RATE | Work Catalog write | ≠ Accept | **no** (escalation only) | `acceptWorkRateResearchCandidate` · CHROBREGO CLOSED |
+| **G2 BOM (routine)** | `AUTO_BOM_ACCEPT` pack \| LABOR_ONLY | TechnologyPack / allowlist | ≠ invent · ≠ provisional | **YES (conditional)** | **GO23 POLICY** · **GO24 RUNTIME** |
+| **G2 Material (exception)** | Accept candidate PM | Price Memory | ≠ Accept | **no** (escalation only) | requires Chief avail · global WAIT natural candidate |
+| **G3 Final Bid** | Persist `ikFinalBid` | pipeline item | no | **no** | CHROBREGO CLOSED · inne = osobny GO · **KEEP Owner** |
 | **KL-6 KNR VERIFY** | DISCOVERED → VERIFIED | knr catalog | discovery ≠ verify | **no** | CLOSED/PV UI |
 | **Owner Map** | document→dwelling | LS multi-dwelling | no | **no** | REQUIRED multi |
 | **Margin / commercial** | owner commercialPricing | Catalog regions | no | **no** | A01 F5 MARGIN CLOSED (HISTORY) |
 | **Leaf DRAFT pack** | qtyFactor / bind draft | DRAFT only | leaf research only | **no Accept** | TPI gładzie DRAFT |
 | **AI Owner Authority Level A** | execute as Owner | — | — | — | **NOT AUTHORIZED** |
 
-**Research ≠ Accept ≠ Final Bid.**
+**HISTORY (pre-GO20):** G1 Auto = **no** — superseded by §12.2.1 for **routine** G1. Do not cite as current product law.  
+**HISTORY (pre-GO23):** G2 Labor/Material Auto = **no** — superseded by §12.2.3 for **conditional routine** G2. Do not cite as current product law.
+
+**Research ≠ Accept ≠ Final Bid.**  
+**AUTO_G1 ≠ invent identity / unit / price.**  
+**AUTO_G2 ≠ invent rate / BOM / waste · ≠ companyPrice→OUR RATE · ≠ Evidence→OUR RATE.**  
+**Finance `ok` = derived from BidCutoverGate prerequisites — not an Owner click.**
 
 ---
 
@@ -1214,9 +1723,10 @@ DF: [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-O
 | `kw-tenders-pipeline-guard` | guard meta | **YES** | count/revision · **≠** CAS |
 | `kw-multi-dwelling-package-v1` | Owner Map / compose | **NO (LS)** | documentToDwelling |
 | OfferBoq attach (dwelling) | lines v5 | LS | G1 persist |
-| `kw-wgdom-work-catalog` | OUR RATE / works | **YES** | Accept writes |
-| `kw-wgdom-labor-source-evidence` | Evidence | **YES** | ≠ OUR RATE |
-| Price Memory / commercial | materials | **YES** | Accept writes |
+| `kw-wgdom-work-catalog` | OUR RATE / works / `marketQuotes` (PM) / `commercialPricing` | **YES** | Accept writes · margin Owner |
+| `kw-wgdom-labor-source-evidence` | Evidence | **YES** | ≠ OUR RATE · OD-43-02 SHOULD append on research |
+| Price Memory / commercial | materials via WC Quotes | **YES** | Accept writes |
+| `kw-identity-candidates` | IdentityCandidate OWNER_REVIEW+ | **NO cloud DATA_KEYS (GO44)** | local durable · OD-43-05 no auto expand |
 | `kw-knr-catalog` | KNR knowledge | **YES** | PENDING_VERIFY / VERIFY |
 | `kw-owner-rate-input-v1` | Owner Input | **NO (LS)** | equipment/transport |
 | Chief dossier | session | memory | not cloud SSOT |
@@ -1238,8 +1748,10 @@ DF: [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-O
 4. C2 compose writes kosztorysForBid / OfferBoq — NEVER dossier.kosztorys
 5. Track B omission ≠ deletion of local truth
 6. bundleRevision ≠ CAS
-7. Accept writes only through Owner Gates (Catalog / PM / OfferBoq identity)
+7. Identity writes: routine = `AUTO_G1_ACCEPT` (`auto_contract`) · exception = Owner Gates (`manual`)
+7b. Rate/BOM: routine = `AUTO_RATE_ACCEPT` / `AUTO_BOM_ACCEPT` under GO23 DF (REUSE/pack/LABOR_ONLY) · Catalog/PM **write** from research still Owner until OPEN R1 closed · runtime GO24+
 8. G3 Final Bid = Owner-only persist on pipeline item
+9. Never write C2 / AUTO_G1 identity into `dossier.kosztorys`
 ```
 
 ### 22.2 Co wolno obserwować bez mutacji
@@ -1276,6 +1788,9 @@ DF: [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-O
 20. CHROBREGO CLOSED — do not reopen
 21. KL-3 must settle busy→ready (no deadlock)
 22. Live /version.json = runtime authority
+23. G1 routine = AUTO_G1_ACCEPT under contract (GO20) · ≠ invent · ≠ first-candidate · EXCEPTION ≠ force Owner click
+24. G2 routine = AUTO_RATE_ACCEPT / AUTO_BOM_ACCEPT under contract (GO23) · ≠ invent rate/BOM · research→OUR RATE persist default NO (OPEN R1) · EXCEPTION ≠ force Owner click
+24. G3 Final Bid remains Owner · Finance ok remains derived (not click)
 ```
 
 **Pricing safety (TPI NG11 PV):** demand gładź=1 · PM=0 · quotes=0 · OUR RATE null · margin null → **PASS** (fail-closed, nie silent price).
@@ -1288,6 +1803,12 @@ DF: [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-O
 ❌ „Accept 45 PLN / 2.65 PLN/kg automatycznie — Owner selected”
 ❌ „TPI jest teraz CURRENT CASE zamiast Środy”
 ❌ „NG11 zepsuty, bo pricingReady=false”
+❌ „Routine G1 = Owner must click Accept for every AMBIGUOUS line”
+❌ „AUTO_G1 = first candidate / invent catalogWorkId”
+❌ „AUTO_G1 unlocks Finance / G3 without BidCutoverGate / Owner Final Bid”
+❌ „Routine G2 = Owner must click Accept when OUR RATE CURRENT + BOM pack/LABOR_ONLY OK”
+❌ „AUTO_G2 = invent rate/BOM · research candidate silent OUR RATE · companyPrice→OUR RATE”
+❌ „MISSING_BOM → invent LABOR_ONLY”
 ❌ „Onninen już mamy” / „obejdź 403”
 ❌ „Global IK PRODUCTION VERIFIED”
 ❌ „Reopen CHROBREGO, żeby mieć wzorzec Accept”
@@ -1319,8 +1840,12 @@ Przy pracy IK: **nie** ruszaj `cloud-sync` merge payroll „przy okazji”.
 | 10 | Full Phase 2E KNR catalog product | KL corpus | OPEN | Owner GO |
 | 11 | Material G2 Accept (global/other tenders) | Chief + natural candidate | case-by-case | Owner GO |
 | 12 | Onninen / TIM providers | — | **NOT IMPLEMENTED** | Owner GO if ever |
+| 13 | **KB-02** Labor Evidence persist+reuse+suppress | §16A.5 / §16A.5a | **IMPLEMENTED / DOCUMENTED** (GO55) · Material Evidence **NOT IMPLEMENTED** | Owner GO only for Material |
+| 14 | **KB-03** Knowledge Destination Router | §16A.6 | **PARTIAL** | Material Evidence / Pack·BOM adapters OPEN |
+| 15 | **KB-06/07** lastVerifiedAt + durable research dedup | §16A | **OPEN** | Owner GO |
+| 16 | A1 / TechnologyPack / OUR RATE on `cc-ic-accept-6c2b8e82` | Identity Accept GO41 **DONE** | **OPEN** · **0** mutations | Owner GO — **after** Master learning SSOT (OD-43-01) |
 
-**Zakaz:** invent „napraw finance” / „włącz Chief” / „Accept 45 PLN” bez Owner GO.
+**Zakaz:** invent „napraw finance” / „włącz Chief” / „Accept 45 PLN” / „AUTO OUR RATE z research” bez Owner GO.
 
 ### 24.1 Recommended Owner AUDIT questions (read-only)
 
@@ -1369,6 +1894,14 @@ Dla `#1 OWNER_FINANCE_NOT_OK` — **bez IMPLEMENT**:
 | Composite BOTH_HOLD | `d62eb2a4` era | CLOSED / PV |
 | F5 Bid cutover rebuild | earlier | CLOSED / PV |
 | Multi-BOQ / Multi-Dwelling / Ingest-01 | 2.66.43 era | CLOSED / PV |
+| **GO55** Master §16A Knowledge Loop reconcile | docs · OD-52 / GO53 | **CLOSED (docs)** · runtime unchanged |
+| **GO53** Evidence sufficiency + HTTP suppress STATE_ONLY | tip `2.66.191` · OD-52 | **IMPLEMENTED** (local WIP) |
+| **GO49** router consumption E2E | tip `2.66.190` · Research→KDR→Evidence | **CLOSED** labor path · suppress via GO53 |
+| **GO48** Knowledge Destination Router facade | tip `2.66.189` | **IMPLEMENTED** · KDR overall **PARTIAL** (Material OPEN) |
+| **GO46** labor Evidence persist | tip `2.66.188` | **IMPLEMENTED** |
+| **GO44** Master Knowledge Base / Learning Loop | docs · §16A · tip `2.66.187` | **CLOSED (docs)** · kept current by GO55 |
+| GO43 Learning Loop audit | `.tmp/goa-tpi729-knowledge-learning-loop-go43.*` | **CLOSED (audit)** |
+| GO41 GK Identity Owner Accept | `cc-ic-accept-6c2b8e82` · local WIP | **CLOSED (Accept)** · A1/Pack/Rate still 0 |
 
 ---
 
@@ -1402,13 +1935,14 @@ Szczegóły session closeoutów = **HISTORY** w osobnych plikach — **nie** pow
 ```text
 1. TEN PLIK (Master SSOT)
 2. §9 CURRENT DECISION TREE — Case · Capability · Open Node
-3. §10 LIVE version.json + checkpoints
-4. §24 CURRENT OPEN WORK (FIRST blocker)
-5. docs/AI/09_PRODUCTION_BASELINE.md (documentary tip)
-6. INTELLIGENT-ESTIMATOR-REUSE-MAP.md (zanim cokolwiek CREATE)
-7. IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md (formal DF)
-8. Architecture / Data Flow siblings (gdy potrzeba głębokości)
-9. STOP — czekaj Owner GO zanim IMPLEMENT
+3. §16A Knowledge Base / Learning Loop (Catalog First · Evidence · Margin floor · IdentityCandidate)
+4. §10 LIVE version.json + checkpoints
+5. §24 CURRENT OPEN WORK (FIRST blocker)
+6. docs/AI/09_PRODUCTION_BASELINE.md (documentary tip)
+7. INTELLIGENT-ESTIMATOR-REUSE-MAP.md (zanim cokolwiek CREATE)
+8. IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md (formal DF)
+9. Architecture / Data Flow siblings (gdy potrzeba głębokości)
+10. STOP — czekaj Owner GO zanim IMPLEMENT
 ```
 
 ### 27.2 Function discovery rule
@@ -1459,6 +1993,9 @@ Pointer policy: [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLI
 | [`../AI/PAYROLL_SAFETY_GATE.md`](../AI/PAYROLL_SAFETY_GATE.md) | Payroll Hard Gate (osobny od IK) |
 | Experience DF | `IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md` |
 | Continuity handoffs | `IK-MASTER-CONTINUITY-HANDOFF-*.md` — **HISTORY / session** · nie zastępują Master |
+| GO43 Learning Loop audit | `.tmp/goa-tpi729-knowledge-learning-loop-go43.{json,md}` — HISTORY audit |
+| GO44 Master amendment artefact | `.tmp/goa-tpi729-knowledge-learning-loop-go44.{json,md}` |
+| PRICE-MEMORY / margin DF | `PRICE-MEMORY-CATALOG-01-DESIGN-FREEZE.md` · `IK-MIGRATION-01-P5.16-B-COMMERCIAL-PRICING.md` |
 
 **DEPRECATED jako entry IK:** `AI-START-HERE.md` · `AI-HANDOFF.md` · `CURSOR-HANDOFF.md`.
 

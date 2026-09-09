@@ -1,5 +1,34 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.191 — GO53 Evidence sufficiency + Research HTTP suppress (2026-09-09)
+
+- OD-52 **STATE_ONLY**: `evaluateLaborEvidenceReuseSufficiency` · Evidence HIT → SUFFICIENT → HTTP suppressed (≠ OUR RATE).
+- STALE OUR RATE never bypassed · no calendar TTL · fail-closed conflict.
+- Test: `test-labor-evidence-suppress-go53.mjs`.
+
+## 2.66.190 — GO49 KB-03 router consumption / Evidence E2E (2026-09-09)
+
+- Main-path Research → Knowledge Destination Router → Evidence.
+- Tender B Evidence lookup via KDR · `EVIDENCE_REUSE_POLICY=OPEN` (bez invent HTTP suppress).
+- Test: `test-kb03-consumption-go49.mjs`.
+
+## 2.66.189 — GO48 KB-03 Knowledge Destination Router runtime (2026-09-09)
+
+- Cienka fasada `knowledge-destination-router` (classify/route/persist/reuse) nad istniejącymi store’ami.
+- Fail-closed · Evidence ≠ OUR RATE · bez generic DB · `catalog-write-router` nietknięty.
+- Test: `test-knowledge-destination-router-go48.mjs`.
+
+## 2.66.188 — GO46 KB-02 durable labor Evidence runtime (2026-09-09)
+
+- Main-path `runSelectiveWorkRateResearch` → meaningful QUALIFIED → `kw-wgdom-labor-source-evidence` (CAS/dedupe).
+- Evidence ≠ OUR RATE · lookup consumer · HTTP suppress **POLICY OPEN**.
+- Test: `test-kb02-labor-evidence-runtime-go46.mjs`.
+
+## 2.66.187 — GO44 Master SSOT Knowledge Base / Learning Loop (2026-09-09)
+
+- **GO44:** Master §16A — Catalog First · Evidence · Knowledge Destination Router contract · IdentityCandidate · margin floor · Gap Register. Docs only.
+- Artefact: \`.tmp/goa-tpi729-knowledge-learning-loop-go44.{json,md}\`.
+
 ## 2.66.170 — OfferBoq lineId continuity OPTION B (2026-09-08)
 
 - **fix:** `composeDwellingOfferBoq` stamps Bid-canonical `buildOfferBoqLineId(tenderId, lp, desc, flattenIndex)`

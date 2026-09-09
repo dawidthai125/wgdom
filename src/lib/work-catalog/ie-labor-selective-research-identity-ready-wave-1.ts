@@ -14,7 +14,6 @@ import {
   classifyEstimatorPricingPlane,
 } from "@/lib/intelligent-estimator/classification-gate";
 import {
-  buildLaborSourceEvidenceObservation,
   upsertLaborSourceEvidenceObservations,
   type LaborSourceEvidenceCasResult,
   type LaborSourceEvidenceObservation,
@@ -32,11 +31,13 @@ import {
   type RunSelectiveWorkRateResearchResult,
   type WorkRateResearchCandidate,
 } from "@/lib/work-catalog/work-rate-research";
+import { buildEvidenceFromQualifiedObservation } from "@/lib/work-catalog/work-rate-research-evidence-persist";
 import type { WorkRateSelectiveLookupPort } from "@/lib/work-catalog/work-rate-selective-lookup-types";
 import { listWorkRateMatchNamesPl } from "@/lib/work-catalog/work-rate-synonyms";
-import type { WorkRateQualifiedObservation } from "@/lib/work-catalog/work-rate-qualify";
 import { lookupWorkRate } from "@/lib/work-catalog/work-rate-lookup";
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
+
+export { buildEvidenceFromQualifiedObservation } from "@/lib/work-catalog/work-rate-research-evidence-persist";
 
 export const IE_LABOR_IR_WAVE1_EPIC_ID =
   "IE-LABOR-SELECTIVE-RESEARCH-IDENTITY-READY-WAVE-1" as const;
@@ -162,10 +163,6 @@ export type IeLaborIrWave1BatchResult = {
   ourRateWritten: false;
   marginWritten: false;
 };
-
-export function isIeLaborIrWave1Keep4SourceId(sourceId: string): boolean {
-  return isLaborSourceEvidenceRuntimeSourceId(sourceId);
-}
 
 export function isIeLaborIrWave1CandidateHostForbidden(
   hostOrSource: string,
@@ -382,41 +379,8 @@ export function preflightIeLaborIrWave1Target(input: {
   };
 }
 
-export function buildEvidenceFromQualifiedObservation(input: {
-  workId: string;
-  workNamePl: string;
-  observation: WorkRateQualifiedObservation;
-  identityMethod: "owner_identity_mapping" | "owner_synonym" | "exact_name";
-  synonymUsed?: string | null;
-  retrievedAt?: string;
-}): LaborSourceEvidenceObservation {
-  const o = input.observation;
-  const hasRange =
-    o.sourceMinPln != null &&
-    o.sourceMaxPln != null &&
-    Number.isFinite(o.sourceMinPln) &&
-    Number.isFinite(o.sourceMaxPln) &&
-    o.sourceMinPln !== o.sourceMaxPln;
-  return buildLaborSourceEvidenceObservation({
-    workId: input.workId,
-    workNamePl: input.workNamePl,
-    sourceId: o.sourceId,
-    sourceUrl: o.sourceUrl,
-    observedName: o.workNamePl,
-    unit: o.unit,
-    priceMin: hasRange ? o.sourceMinPln! : null,
-    priceMax: hasRange ? o.sourceMaxPln! : null,
-    pricePoint: hasRange ? null : o.ratePln,
-    priceKind: hasRange ? "range" : "point",
-    region: o.regionScope,
-    identityMatched: true,
-    identityMethod: input.identityMethod,
-    synonymUsed: input.synonymUsed ?? null,
-    laborOnly: true,
-    includesMaterial: false,
-    observedAt: o.observedAt,
-    retrievedAt: input.retrievedAt || o.observedAt,
-  });
+export function isIeLaborIrWave1Keep4SourceId(sourceId: string): boolean {
+  return isLaborSourceEvidenceRuntimeSourceId(sourceId);
 }
 
 function mapResearchToBatchStatus(
@@ -496,6 +460,7 @@ export async function runIeLaborSelectiveResearchIdentityReadyWave1(input: {
       bypassCooldown: input.bypassCooldown ?? true,
       nowMs: input.nowMs,
       lookupPort: input.lookupPort,
+      persistEvidence,
     });
     totalHttpFetchCount += research.httpFetchCount;
 

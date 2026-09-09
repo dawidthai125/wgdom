@@ -91,6 +91,11 @@ export type IkLaborRateStatus =
   | "RESEARCH_COOLDOWN"
   | "RESEARCH_SKIPPED"
   /**
+   * GO53 — durable Evidence SUFFICIENT · HTTP Research suppressed.
+   * ≠ OUR RATE · ≠ Accept · price not copied into ourRatePln.
+   */
+  | "EVIDENCE_REUSE_HTTP_SUPPRESSED"
+  /**
    * Parent COMPOUND / BOTH — autonomous Labor Research intentionally not run.
    * ≠ RESEARCH_GAP (research executed, evidence insufficient).
    */
@@ -610,6 +615,13 @@ export async function runIkMasterBoqLaborExpert(opts: {
     if (res.status === "REUSE") {
       row.rateStatus = "CURRENT_HIT";
       row.ourRatePln = res.ourRatePln;
+      continue;
+    }
+    if (res.status === "EVIDENCE_REUSE") {
+      // GO53 — HTTP suppressed; Evidence ≠ OUR RATE (do not copy price into ourRatePln).
+      row.rateStatus = "EVIDENCE_REUSE_HTTP_SUPPRESSED";
+      row.ourRatePln = null;
+      row.researchMessagePl = res.messagePl;
       continue;
     }
     if (res.status === "CANDIDATE") {

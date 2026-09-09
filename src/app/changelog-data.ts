@@ -10,6 +10,62 @@ export interface ChangelogRelease {
 }
 
 export const CHANGELOG: ChangelogRelease[] = [
+
+  {
+    date: "2026-09-09",
+    version: "2.66.191",
+    label: "GO53 — Evidence sufficiency + Research HTTP suppress",
+    items: [
+      {
+        type: "new",
+        text: "GO53/OD-52 STATE_ONLY: evaluateLaborEvidenceReuseSufficiency · Evidence HIT → SUFFICIENT → HTTP Research suppressed (≠ OUR RATE). STALE OUR RATE never bypassed. Test: test-labor-evidence-suppress-go53.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-09",
+    version: "2.66.190",
+    label: "GO49 — KB-03 router consumption / Evidence E2E",
+    items: [
+      {
+        type: "improve",
+        text: "GO49: main-path Research → Knowledge Destination Router → Evidence · Tender B lookup via KDR · EVIDENCE_REUSE_POLICY=OPEN (bez invent HTTP suppress). Test: test-kb03-consumption-go49.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-09",
+    version: "2.66.189",
+    label: "GO48 — KB-03 Knowledge Destination Router runtime",
+    items: [
+      {
+        type: "new",
+        text: "GO48/KB-03: cienka fasada Knowledge Destination Router (classify/route/persist/reuse) nad istniejącymi store’ami · fail-closed · Evidence≠OUR RATE · bez generic DB · catalog-write-router nietknięty. Test: test-knowledge-destination-router-go48.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-09",
+    version: "2.66.188",
+    label: "GO46 — KB-02 durable labor Evidence runtime",
+    items: [
+      {
+        type: "new",
+        text: "GO46/KB-02: main-path runSelectiveWorkRateResearch → meaningful QUALIFIED → kw-wgdom-labor-source-evidence (CAS/dedupe). Evidence ≠ OUR RATE. Lookup consumer + HTTP suppress POLICY OPEN. Test: test-kb02-labor-evidence-runtime-go46.mjs.",
+      },
+    ],
+  },
+  {
+    date: "2026-09-09",
+    version: "2.66.187",
+    label: "GO44 — Master SSOT Knowledge Base / Learning Loop",
+    items: [
+      {
+        type: "improve",
+        text: "GO44: Master §16A Catalog First · Evidence · Knowledge Destination Router contract · IdentityCandidate GO35–41 · margin floor max(position,global) · Gap Register. Docs only — bez runtime.",
+      },
+    ],
+  },
   {
     date: "2026-09-08",
     version: "2.66.170",

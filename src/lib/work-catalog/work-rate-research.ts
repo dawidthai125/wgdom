@@ -30,11 +30,32 @@ import {
   runWorkRateResearchSingleFlight,
 } from "@/lib/work-catalog/work-rate-research-cooldown";
 import {
+  KB02_LABOR_EVIDENCE_SEAM_ID,
+  lookupReusableLaborResearchEvidence,
+  type PersistMeaningfulLaborResearchEvidenceResult,
+} from "@/lib/work-catalog/work-rate-research-evidence-persist";
+import {
+  persistKnowledge,
+  resolveKnowledgeReuse,
+} from "@/lib/knowledge-destination-router";
+import {
+  evaluateLaborEvidenceReuseSufficiency,
+  OD52_EVIDENCE_FRESHNESS_MODE,
+  type EvaluateLaborEvidenceReuseSufficiencyResult,
+} from "@/lib/work-catalog/labor-evidence-reuse-sufficiency";
+import type { LaborSourceEvidenceObservation } from "@/lib/labor-source-evidence";
+import {
   createEdgeWorkRateSelectiveLookup,
   createNullWorkRateSelectiveLookup,
 } from "@/lib/work-catalog/work-rate-selective-lookup-client";
+
+/** GO53 / OD-52 — STATE_ONLY freshness; HTTP suppress when Evidence SUFFICIENT. */
+export const EVIDENCE_REUSE_POLICY = OD52_EVIDENCE_FRESHNESS_MODE;
 import type { WorkRateSelectiveLookupPort } from "@/lib/work-catalog/work-rate-selective-lookup-types";
-import { parseWorkRateOffersFromHtml } from "@/lib/work-catalog/work-rate-source-html-parse";
+import {
+  countWorkRatePricedTableRows,
+  parseWorkRateOffersFromHtml,
+} from "@/lib/work-catalog/work-rate-source-html-parse";
 import {
   detectWorkRateSynonymUsed,
   listWorkRateMatchNamesPl,
@@ -53,6 +74,7 @@ import {
   type WorkRateWidthClaim,
 } from "@/lib/work-catalog/work-rate-market-base";
 import { resolveMarginPct } from "@/lib/price-intelligence/our-price-catalog";
+import { loadAppSettingsLocal } from "@/lib/app-settings";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { WorkRateRegionScope } from "@/lib/work-catalog/work-rate-types";
 import {
@@ -69,6 +91,7 @@ export const WORK_RATE_RESEARCH_SOURCE_ORDER: readonly WorkRateAuthorizedSourceI
   "cennikremontow_pl",
   "sccot",
   "extradom",
+  "remonty_apm",
 ] as const;
 
 export type WorkRateResearchTelemetryCode =
@@ -76,6 +99,8 @@ export type WorkRateResearchTelemetryCode =
   | "NO_SOURCE"
   | "NO_PAGE_HIT"
   | "PARSE_EMPTY"
+  /** HTML has priced rows but none matched expected/alias names (not invent). */
+  | "MATCH_EMPTY"
   | "IDENTITY_REJECT"
   | "UNIT_REJECT"
   | "LABOR_ONLY_REJECT"
@@ -87,7 +112,13 @@ export type WorkRateResearchTelemetryCode =
   | "COOLDOWN"
   | "CANDIDATE"
   | "GAP"
-  | "DEDUPED";
+  | "DEDUPED"
+  /** GO46 — durable Evidence available (lookup only; HTTP suppress policy OPEN). */
+  | "EVIDENCE_AVAILABLE"
+  | "EVIDENCE_SUFFICIENT"
+  | "EVIDENCE_INSUFFICIENT"
+  | "EVIDENCE_PERSISTED"
+  | "EVIDENCE_PERSIST_SKIP";
 
 export type WorkRateResearchTelemetryRow = {
   code: WorkRateResearchTelemetryCode;
@@ -96,6 +127,10 @@ export type WorkRateResearchTelemetryRow = {
   url?: string | null;
   discoveryMethod?: "PASS1_CANONICAL" | "PASS2_CATEGORY";
   messagePl?: string;
+  /** Primary query strategy (catalog_namePl / cleaned_boq / raw_boq). */
+  queryStrategy?: string;
+  /** Which expected name matched a row (when QUALIFIED). */
+  matchedName?: string;
 };
 
 export type WorkRateResearchRejectRow = {
@@ -143,12 +178,27 @@ export type RunSelectiveWorkRateResearchInput = {
   workId: string;
   unit: WgdomCostUnit;
   namePl: string;
+  /**
+   * Ordered match names for HTML parse (catalog / cleaned BOQ / raw).
+   * When omitted, only namePl + Owner synonyms apply.
+   */
+  matchNamesPl?: readonly string[] | null;
+  /** Telemetry — how namePl was chosen. */
+  queryStrategy?: string | null;
   /** Manual refresh — nawet CURRENT → research (nadal candidate). */
   forceRefresh?: boolean;
   /** Owner force omija cooldown (single-flight nadal obowiązuje). */
   bypassCooldown?: boolean;
   nowMs?: number;
   lookupPort?: WorkRateSelectiveLookupPort;
+  /**
+   * LABOR commercial margin policy (read-time). When omitted, loads
+   * `defaultLaborCommercialMarginPct` from AppSettings. Tests may inject.
+   * Does NOT write commercialPricing onto the work.
+   */
+  laborMarginPolicy?: {
+    defaultLaborCommercialMarginPct: number | null;
+  } | null;
   /**
    * Phase A — Leaf Research under COMPOUND (self-bind / pack leaf).
    * Direct COMPOUND research without this remains CLASSIFICATION_GATE BLOCKED.
@@ -159,6 +209,12 @@ export type RunSelectiveWorkRateResearchInput = {
     pack: TechnologyPack;
     callSite: typeof IK_LEAF_RESEARCH_CALL_SITE;
   } | null;
+  /**
+   * GO46 / KB-02 — persist meaningful QUALIFIED observations to
+   * kw-wgdom-labor-source-evidence. Default true. Tests may set false.
+   * NEVER writes OUR RATE / Accept / Work Catalog pricing.
+   */
+  persistEvidence?: boolean;
 };
 
 export type RunSelectiveWorkRateResearchResult =
@@ -182,6 +238,22 @@ export type RunSelectiveWorkRateResearchResult =
       telemetry: WorkRateResearchTelemetryRow[];
     }
   | {
+      /**
+       * GO53 — durable Evidence SUFFICIENT (STATE_ONLY) · HTTP suppressed.
+       * ≠ OUR RATE · ≠ Accept · ≠ Candidate authority.
+       */
+      status: "EVIDENCE_REUSE";
+      httpFetchCount: 0;
+      previousOurRatePln: number | null;
+      previousFreshness: "CURRENT" | "STALE" | "MISSING";
+      sufficiency: EvaluateLaborEvidenceReuseSufficiencyResult;
+      observations: LaborSourceEvidenceObservation[];
+      isOurRate: false;
+      fullCatalogueForbidden: true;
+      messagePl: string;
+      telemetry: WorkRateResearchTelemetryRow[];
+    }
+  | {
       status: "COOLDOWN";
       httpFetchCount: 0;
       messagePl: string;
@@ -194,6 +266,8 @@ export type RunSelectiveWorkRateResearchResult =
       httpFetchCount: number;
       fullCatalogueForbidden: true;
       telemetry: WorkRateResearchTelemetryRow[];
+      /** GO46 — Evidence persist result (never OUR RATE). */
+      evidencePersist?: PersistMeaningfulLaborResearchEvidenceResult | null;
     }
   | {
       status: "GAP";
@@ -204,6 +278,22 @@ export type RunSelectiveWorkRateResearchResult =
       messagePl: string;
       fullCatalogueForbidden: true;
       telemetry: WorkRateResearchTelemetryRow[];
+      /**
+       * When observations qualify but commercialPricing.marginPct is UNSET —
+       * market evidence only. NOT a Candidate (no proposed OUR RATE).
+       */
+      evidenceOnly?: {
+        gapClass: "MARGIN_UNSET";
+        marketBaseRatePln: number;
+        sampleSize: number;
+        lowSample: boolean;
+        regionScope: WorkRateRegionScope;
+        sourceMinPln: number | null;
+        sourceMaxPln: number | null;
+        observations: WorkRateQualifiedObservation[];
+      };
+      /** GO46 — Evidence persist result (never OUR RATE). */
+      evidencePersist?: PersistMeaningfulLaborResearchEvidenceResult | null;
     };
 
 function mapQualifyReasonToTelemetry(
@@ -332,13 +422,89 @@ async function researchOneWorkInner(
     };
   }
 
+  // GO46/GO49/GO53 — Catalog First: OUR RATE CURRENT already returned above.
+  // Durable Evidence via KDR → OD-52 STATE_ONLY sufficiency → may suppress HTTP.
+  // STALE OUR RATE: never suppress. forceRefresh: never suppress (Owner force).
+  const priorEvidence = resolveKnowledgeReuse({
+    knowledgeType: "EVIDENCE",
+    workId: input.workId,
+    workNamePl: input.namePl,
+    unit: input.unit,
+  });
+  if (priorEvidence.hit) {
+    telemetry.push({
+      code: "EVIDENCE_AVAILABLE",
+      messagePl: `Durable Evidence hit count=${priorEvidence.count} via KDR (policy ${EVIDENCE_REUSE_POLICY}).`,
+    });
+  }
+
+  if (!input.forceRefresh && previousFreshness === "MISSING" && priorEvidence.hit) {
+    const lookedUp = lookupReusableLaborResearchEvidence({
+      workId: input.workId,
+      workNamePl: input.namePl,
+      unit: input.unit,
+    });
+    const sufficiency = evaluateLaborEvidenceReuseSufficiency({
+      workId: input.workId,
+      unit: input.unit,
+      namePl: input.namePl,
+      ourRateFreshness: previousFreshness,
+      observations: lookedUp.observations,
+    });
+    if (sufficiency.sufficient) {
+      telemetry.push({
+        code: "EVIDENCE_SUFFICIENT",
+        messagePl: sufficiency.reasonPl,
+      });
+      return {
+        status: "EVIDENCE_REUSE",
+        httpFetchCount: 0,
+        previousOurRatePln,
+        previousFreshness,
+        sufficiency,
+        observations: sufficiency.eligible,
+        isOurRate: false,
+        fullCatalogueForbidden: true,
+        messagePl:
+          "Evidence SUFFICIENT (STATE_ONLY) — HTTP Research suppressed (≠ OUR RATE).",
+        telemetry,
+      };
+    }
+    telemetry.push({
+      code: "EVIDENCE_INSUFFICIENT",
+      messagePl: `${sufficiency.status}: ${sufficiency.reasonPl}`,
+    });
+  } else if (previousFreshness === "STALE" && priorEvidence.hit) {
+    telemetry.push({
+      code: "EVIDENCE_INSUFFICIENT",
+      messagePl: "BLOCKED_STALE_OUR_RATE — Evidence must not suppress STALE OUR RATE refresh.",
+    });
+  }
+
   const port = input.lookupPort ?? createEdgeWorkRateSelectiveLookup();
   const rejects: WorkRateResearchRejectRow[] = [];
   const qualified: WorkRateQualifiedObservation[] = [];
   const seenObs = new Set<string>();
   const fetchedUrls = new Set<string>();
   let httpFetchCount = 0;
-  const matchNames = listWorkRateMatchNamesPl(input.namePl);
+  const queryStrategy = String(input.queryStrategy || "").trim() || undefined;
+  // Prefer explicit match chain from labor expert; else namePl + Owner synonyms.
+  const explicitMatchNames = (input.matchNamesPl || [])
+    .map((n) => String(n || "").trim())
+    .filter(Boolean);
+  const synonymNames = listWorkRateMatchNamesPl(input.namePl);
+  const matchNames =
+    explicitMatchNames.length > 0
+      ? [
+          ...explicitMatchNames,
+          ...synonymNames.filter(
+            (s) =>
+              !explicitMatchNames.some(
+                (e) => e.toLowerCase() === s.toLowerCase(),
+              ),
+          ),
+        ]
+      : synonymNames;
   const alternateNames = matchNames.slice(1);
   let synonymUsed: string | null = null;
   let identityMappingUsed: string | null = null;
@@ -380,6 +546,7 @@ async function researchOneWorkInner(
         categoryKey: opts.categoryKey,
         discoveryMethod: opts.discoveryMethod,
         messagePl: lookupRes.error,
+        queryStrategy,
       });
       rejects.push({
         sourceId: opts.sourceId,
@@ -401,6 +568,7 @@ async function researchOneWorkInner(
         url: pageUrl,
         discoveryMethod: opts.discoveryMethod,
         messagePl: "Duplicate URL skipped.",
+        queryStrategy,
       });
       return;
     }
@@ -419,19 +587,30 @@ async function researchOneWorkInner(
     });
 
     if (offers.length === 0) {
+      const pricedRows = countWorkRatePricedTableRows(lookupRes.page.bodyText);
+      const emptyCode: WorkRateResearchTelemetryCode =
+        pricedRows > 0 ? "MATCH_EMPTY" : "PARSE_EMPTY";
       telemetry.push({
-        code: "PARSE_EMPTY",
+        code: emptyCode,
         sourceId: opts.sourceId,
         categoryKey: opts.categoryKey,
         url: pageUrl,
         discoveryMethod: opts.discoveryMethod,
+        queryStrategy,
+        messagePl:
+          emptyCode === "MATCH_EMPTY"
+            ? `Strona ma ${pricedRows} wierszy cenowych, ale żaden nie pasuje do namePl/aliasów.`
+            : "Brak wierszy cenowych w HTML.",
       });
       rejects.push({
         sourceId: opts.sourceId,
-        reason: "parse_empty",
-        messagePl: "Brak porównywalnej pozycji w odpowiedzi źródła.",
+        reason: emptyCode === "MATCH_EMPTY" ? "match_empty" : "parse_empty",
+        messagePl:
+          emptyCode === "MATCH_EMPTY"
+            ? "Źródło zwróciło cennik, lecz brak dopasowania nazwy (MATCH_EMPTY) — bez invent."
+            : "Brak porównywalnej pozycji w odpowiedzi źródła.",
         categoryKey: opts.categoryKey,
-        telemetryCode: "PARSE_EMPTY",
+        telemetryCode: emptyCode,
       });
       return;
     }
@@ -461,6 +640,7 @@ async function researchOneWorkInner(
           url: pageUrl,
           discoveryMethod: opts.discoveryMethod,
           messagePl: mapHit.messagePl,
+          queryStrategy,
         });
         rejects.push({
           sourceId: opts.sourceId,
@@ -479,6 +659,7 @@ async function researchOneWorkInner(
           url: pageUrl,
           discoveryMethod: opts.discoveryMethod,
           messagePl: "Ambiguous identity mapping — no auto match.",
+          queryStrategy,
         });
         rejects.push({
           sourceId: opts.sourceId,
@@ -503,6 +684,8 @@ async function researchOneWorkInner(
           url: pageUrl,
           discoveryMethod: opts.discoveryMethod,
           messagePl: `Evidence scope „${scopeTag}” poza primary pool.`,
+          queryStrategy,
+          matchedName: offer.workNamePl,
         });
         rejects.push({
           sourceId: opts.sourceId,
@@ -533,6 +716,8 @@ async function researchOneWorkInner(
           url: pageUrl,
           discoveryMethod: opts.discoveryMethod,
           messagePl: q.messagePl,
+          queryStrategy,
+          matchedName: offer.workNamePl,
         });
         rejects.push({
           sourceId: opts.sourceId,
@@ -553,6 +738,7 @@ async function researchOneWorkInner(
           url: pageUrl,
           discoveryMethod: opts.discoveryMethod,
           messagePl: "Duplicate observation skipped.",
+          queryStrategy,
         });
         continue;
       }
@@ -564,6 +750,8 @@ async function researchOneWorkInner(
         categoryKey: opts.categoryKey,
         url: pageUrl,
         discoveryMethod: opts.discoveryMethod,
+        queryStrategy,
+        matchedName: q.observation.workNamePl,
       });
 
       if (!synonymUsed) {
@@ -641,6 +829,64 @@ async function researchOneWorkInner(
 
   markWorkRateResearchCooldown(input.workId, input.unit, nowMs);
 
+  const persistEvidence = input.persistEvidence !== false;
+  const identityMethodHint =
+    identityMappingUsed != null
+      ? ("owner_identity_mapping" as const)
+      : synonymUsed
+        ? ("owner_synonym" as const)
+        : ("exact_name" as const);
+
+  function persistQualifiedEvidence(
+    observations: readonly WorkRateQualifiedObservation[],
+  ): PersistMeaningfulLaborResearchEvidenceResult | null {
+    if (!persistEvidence) return null;
+    if (observations.length === 0) {
+      telemetry.push({
+        code: "EVIDENCE_PERSIST_SKIP",
+        messagePl: "No meaningful QUALIFIED observations — Evidence not written.",
+      });
+      return null;
+    }
+    // GO49 — producer → Knowledge Destination Router → existing Evidence store (no duplicate writer).
+    const routed = persistKnowledge({
+      knowledgeType: "EVIDENCE",
+      laborEvidence: {
+        workId: input.workId,
+        workNamePl: input.namePl,
+        unit: input.unit,
+        observations,
+        synonymUsed: synonymUsed || identityMappingUsed,
+        identityMethod: identityMethodHint,
+        persist: true,
+      },
+    });
+    const labor =
+      (routed.detail as { laborEvidenceResult?: PersistMeaningfulLaborResearchEvidenceResult } | undefined)
+        ?.laborEvidenceResult ?? null;
+    const result: PersistMeaningfulLaborResearchEvidenceResult =
+      labor ??
+      ({
+        seamId: KB02_LABOR_EVIDENCE_SEAM_ID,
+        meaningful: routed.wrote,
+        attempted: Number((routed.detail as { attempted?: number } | undefined)?.attempted ?? 0),
+        persisted: Number((routed.detail as { persisted?: number } | undefined)?.persisted ?? 0),
+        cas: null,
+        observations: [],
+        ourRateWritten: false,
+        workCatalogMutated: false,
+        acceptPerformed: false,
+      } satisfies PersistMeaningfulLaborResearchEvidenceResult);
+
+    telemetry.push({
+      code: result.persisted > 0 ? "EVIDENCE_PERSISTED" : "EVIDENCE_PERSIST_SKIP",
+      messagePl: result.meaningful
+        ? `KDR→Evidence persist attempted=${result.attempted} persisted=${result.persisted} router=${routed.status}`
+        : `KDR Evidence skip status=${routed.status}`,
+    });
+    return result;
+  }
+
   const rep = calculateRepresentativeWorkRate(qualified);
   if (rep.status !== "ok" || rep.medianPln == null) {
     telemetry.push({ code: "GAP", messagePl: "No qualifying observations." });
@@ -653,19 +899,44 @@ async function researchOneWorkInner(
       messagePl: "Brak kwalifikowanych obserwacji labor-only — RATE_GAP.",
       fullCatalogueForbidden: true,
       telemetry,
+      evidencePersist: persistQualifiedEvidence([]),
     };
   }
 
-  // Resolve work for commercial margin (REUSE material commercialPricing).
+  // Resolve work for commercial margin (REUSE material commercialPricing + LABOR global policy).
   const catalogWork = lookupWorkInStore(input.store, input.workId);
-  const marginPct = resolveMarginPct(catalogWork);
+  const laborPolicy =
+    input.laborMarginPolicy !== undefined
+      ? input.laborMarginPolicy
+      : {
+          defaultLaborCommercialMarginPct:
+            loadAppSettingsLocal().defaultLaborCommercialMarginPct,
+        };
+  const marginPct = resolveMarginPct(catalogWork, { laborPolicy });
   const marketBaseRatePln = rep.medianPln;
   const proposedOurRatePln = computeProposedWorkRatePln(marketBaseRatePln, marginPct);
   if (proposedOurRatePln == null || marginPct == null) {
+    let sourceMinPln: number | null = null;
+    let sourceMaxPln: number | null = null;
+    for (const o of rep.observations) {
+      if (o.sourceMinPln != null && Number.isFinite(o.sourceMinPln)) {
+        sourceMinPln =
+          sourceMinPln == null
+            ? o.sourceMinPln
+            : Math.min(sourceMinPln, o.sourceMinPln);
+      }
+      if (o.sourceMaxPln != null && Number.isFinite(o.sourceMaxPln)) {
+        sourceMaxPln =
+          sourceMaxPln == null
+            ? o.sourceMaxPln
+            : Math.max(sourceMaxPln, o.sourceMaxPln);
+      }
+    }
     telemetry.push({
       code: "GAP",
       messagePl: "WGDOM commercialPricing.marginPct UNSET — cannot propose OUR RATE.",
     });
+    const evidencePersist = persistQualifiedEvidence(rep.observations);
     return {
       status: "GAP",
       rejects,
@@ -676,6 +947,17 @@ async function researchOneWorkInner(
         "Brak marży WGDOM (commercialPricing.marginPct) — ustaw marżę przed Candidate.",
       fullCatalogueForbidden: true,
       telemetry,
+      evidenceOnly: {
+        gapClass: "MARGIN_UNSET",
+        marketBaseRatePln,
+        sampleSize: rep.sampleSize,
+        lowSample: rep.lowSample,
+        regionScope: rep.regionScope,
+        sourceMinPln,
+        sourceMaxPln,
+        observations: rep.observations,
+      },
+      evidencePersist,
     };
   }
 
@@ -700,6 +982,8 @@ async function researchOneWorkInner(
     code: "CANDIDATE",
     messagePl: `sample=${rep.sampleSize}; base=${marketBaseRatePln}; margin=${marginPct}; proposed=${proposedOurRatePln}`,
   });
+
+  const evidencePersist = persistQualifiedEvidence(rep.observations);
 
   return {
     status: "CANDIDATE",
@@ -728,6 +1012,7 @@ async function researchOneWorkInner(
     httpFetchCount,
     fullCatalogueForbidden: isWorkRateFullCatalogueForbidden() as true,
     telemetry,
+    evidencePersist,
   };
 }
 
