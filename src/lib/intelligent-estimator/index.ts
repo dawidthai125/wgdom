@@ -180,6 +180,8 @@ export {
   inventoryIkDocuments,
   runIkDocumentExpert,
   przedmiarBranchLabelPl,
+  offerBoqStructuralContinuityEqual,
+  resolveF5SafeDwellingId,
 } from "./ik-document-expert";
 export type {
   IkDocumentExpertReport,

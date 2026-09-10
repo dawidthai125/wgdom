@@ -66,6 +66,38 @@ import {
 
 export type IkDocumentExpertStatus = "ready" | "partial" | "hold" | "gap" | "pending";
 
+/**
+ * GO76/GO77 F5 — exact structural continuity (lineId/qty/unit/desc/order).
+ * No fuzzy / LP / index fallback. Used when package OfferBoq participates under pool=0.
+ */
+export function offerBoqStructuralContinuityEqual(
+  a: OfferBoqDocument | null | undefined,
+  b: OfferBoqDocument | null | undefined,
+): boolean {
+  const la = a?.lines ?? [];
+  const lb = b?.lines ?? [];
+  if (la.length === 0 || lb.length === 0) return false;
+  if (la.length !== lb.length) return false;
+  for (let i = 0; i < la.length; i += 1) {
+    const x = la[i]!;
+    const y = lb[i]!;
+    if (String(x.lineId ?? "").trim() !== String(y.lineId ?? "").trim()) return false;
+    if (String(x.description ?? "").trim() !== String(y.description ?? "").trim()) return false;
+    if (Number(x.quantity) !== Number(y.quantity)) return false;
+    if (String(x.unit ?? "").trim() !== String(y.unit ?? "").trim()) return false;
+  }
+  return true;
+}
+
+/** F5 dwelling safety: exactly one dwelling with sourceDocumentIds. */
+export function resolveF5SafeDwellingId(
+  dwellings: ReadonlyArray<{ dwellingId: string; sourceDocumentIds?: string[] | null }>,
+): string | null {
+  const withSrc = dwellings.filter((d) => (d.sourceDocumentIds?.length ?? 0) > 0);
+  if (withSrc.length !== 1) return null;
+  return normalizeDwellingId(withSrc[0]!.dwellingId);
+}
+
 export type IkInventorySource = "bzp" | "upload" | "external" | "artifact";
 
 export interface IkInventoryDocument {
@@ -572,6 +604,10 @@ export function runIkDocumentExpert(opts: {
     ? (pkg.dwellings ?? []).filter((d) => (d.sourceDocumentIds?.length ?? 0) > 0)
     : [];
 
+  /** GO77 F5 — cloud-lean Master BOQ restoration flags (report-local). */
+  let f5ContinuityHold = false;
+  let f5CloudLeanFallbackActive = false;
+
   if (mappedDwellings.length > 0 && dwellingMapping.allMapped) {
     mode = "multi";
     dwellingCount = mappedDwellings.length;
@@ -594,6 +630,28 @@ export function runIkDocumentExpert(opts: {
             completeness: "incomplete",
           });
           continue;
+        }
+        // F5: package OfferBoq under pool=0 only with exact continuity vs dossier rebuild.
+        if (pool.length === 0) {
+          const canonical = tryBuildOfferBoqFromSnapshot(item.tenderDossier?.kosztorys);
+          if (
+            !canonical?.lines?.length
+            || !offerBoqStructuralContinuityEqual(unit.offerBoq, canonical)
+          ) {
+            f5ContinuityHold = true;
+            reasons.push(
+              "F5_CONTINUITY_HOLD — package OfferBoq ≠ kanoniczny dossier rebuild (pool=0).",
+            );
+            dwellingUnits.push({
+              dwellingId: unit.dwellingId,
+              labelPl,
+              sourceDocumentIds: [...(unit.sourceDocumentIds ?? [])],
+              lineCount: 0,
+              composeOk: false,
+              completeness: "hold",
+            });
+            continue;
+          }
         }
         // Attach BOQ fast-path: reconciliation evidence lives on costSnapshot.warnings.
         keepOneCollapsed += countKeepOneCollapsedFromWarnings(
@@ -659,6 +717,44 @@ export function runIkDocumentExpert(opts: {
         });
       }
     }
+
+    // F5 C2 — allMapped compose-miss + cloud-lean empty pool → dossier OfferBoq → pushMasterLines.
+    if (
+      masterBoqLines.length === 0
+      && pool.length === 0
+      && !f5ContinuityHold
+    ) {
+      const safeDwellingId = resolveF5SafeDwellingId(mappedDwellings);
+      const rebuilt = tryBuildOfferBoqFromSnapshot(item.tenderDossier?.kosztorys);
+      if (safeDwellingId && rebuilt?.lines?.length) {
+        offerBoq = rebuilt;
+        pushMasterLines(safeDwellingId, rebuilt.lines, null);
+        composedDocs.length = 0;
+        composedDocs.push(rebuilt);
+        f5CloudLeanFallbackActive = true;
+        reasons.push(
+          `F5_CLOUD_LEAN_ALLMAPPED_DOSSIER_FALLBACK dwelling=${safeDwellingId} lines=${rebuilt.lines.length} pool=0`,
+        );
+        const unit = mappedDwellings.find(
+          (d) => normalizeDwellingId(d.dwellingId) === safeDwellingId,
+        );
+        const labelPl = unit?.labelPl || safeDwellingId;
+        const existingIdx = dwellingUnits.findIndex(
+          (d) => normalizeDwellingId(d.dwellingId) === safeDwellingId,
+        );
+        const row = {
+          dwellingId: safeDwellingId,
+          labelPl,
+          sourceDocumentIds: [...(unit?.sourceDocumentIds ?? [])],
+          lineCount: rebuilt.lines.length,
+          composeOk: true,
+          completeness: "ready" as const,
+        };
+        if (existingIdx >= 0) dwellingUnits[existingIdx] = row;
+        else dwellingUnits.push(row);
+      }
+    }
+
     composedLineCount = allComposedLines.length;
     if (composedDocs.length >= 1) {
       // Keep first dwelling OfferBoq for legacy consumers; Master lineCount = sum.
@@ -680,6 +776,33 @@ export function runIkDocumentExpert(opts: {
     const primary = item.tenderDossier?.kosztorys ?? pool[0]?.snapshot ?? null;
     offerBoq = tryBuildOfferBoqFromSnapshot(primary);
     composedLineCount = offerBoq?.lines?.length ?? 0;
+    // F5 C1 — PARTIAL + pool=0: pushMasterLines parity with legacy_single.
+    if (
+      pool.length === 0
+      && offerBoq?.lines?.length
+      && masterBoqLines.length === 0
+    ) {
+      const safeDwellingId = resolveF5SafeDwellingId(mappedDwellings);
+      if (safeDwellingId) {
+        pushMasterLines(safeDwellingId, offerBoq.lines, null);
+        composedLineCount = allComposedLines.length;
+        f5CloudLeanFallbackActive = true;
+        const unit = mappedDwellings.find(
+          (d) => normalizeDwellingId(d.dwellingId) === safeDwellingId,
+        );
+        dwellingUnits.push({
+          dwellingId: safeDwellingId,
+          labelPl: unit?.labelPl || safeDwellingId,
+          sourceDocumentIds: [...(unit?.sourceDocumentIds ?? [])],
+          lineCount: offerBoq.lines.length,
+          composeOk: true,
+          completeness: "partial",
+        });
+        reasons.push(
+          `F5_CLOUD_LEAN_PARTIAL_PUSH_MASTER dwelling=${safeDwellingId} lines=${offerBoq.lines.length} pool=0`,
+        );
+      }
+    }
   } else if (dwellingMapArts.length > 1) {
     const mergePool = pool.length > 1 ? pool : [];
     const merged = mergePool.length > 1
@@ -746,8 +869,35 @@ export function runIkDocumentExpert(opts: {
     }
   }
   const sourceLineCount = countSourceLinesInArtifacts(integritySourceArts);
+
+  // F5 C3 — cloud-lean empty pool must not false-trigger UNEXPLAINED_DUPLICATION.
+  // Real duplication when sourceLineCount > 0 remains unchanged.
+  let integritySourceCount = sourceLineCount;
+  if (
+    mode === "multi"
+    && dwellingMapping.allMapped
+    && pool.length === 0
+    && sourceLineCount === 0
+    && composedLineCount > 0
+    && !f5ContinuityHold
+  ) {
+    const canonical = tryBuildOfferBoqFromSnapshot(item.tenderDossier?.kosztorys);
+    const continuityOk = Boolean(
+      offerBoq
+      && canonical
+      && offerBoqStructuralContinuityEqual(offerBoq, canonical),
+    );
+    if (continuityOk || f5CloudLeanFallbackActive) {
+      integritySourceCount = composedLineCount;
+      f5CloudLeanFallbackActive = true;
+      reasons.push(
+        `CLOUD_LEAN_EMPTY_POOL_DOSSIER_BASELINE sourcePool=0 composed=${composedLineCount} baseline=dossierOfferBoq`,
+      );
+    }
+  }
+
   const lineIntegrity = computeCompositionLineIntegrity({
-    sourceLineCount,
+    sourceLineCount: integritySourceCount,
     composedLineCount: mode === "multi" && dwellingMapping.allMapped
       ? composedLineCount
       : sourceLineCount, // without complete map: do not claim unexplained loss vs partial primary
@@ -831,7 +981,9 @@ export function runIkDocumentExpert(opts: {
   } else if (przedmiary.some((p) => p.unreadable) && validCount === 0) {
     status = "hold";
     reasons.push("HOLD_UNREADABLE_DOCUMENT");
-  } else if (reasons.some((r) => r.includes("CONFLICT"))) {
+  } else if (
+    reasons.some((r) => r.includes("CONFLICT") || r.includes("F5_CONTINUITY_HOLD"))
+  ) {
     status = "hold";
   } else if (integrityBlocking) {
     status = "hold";
