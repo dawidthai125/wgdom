@@ -12,6 +12,7 @@ export type {
   PositionLaborStatus,
   PositionMaterialInput,
   PositionMaterialStatus,
+  PositionPricingAuthority,
 } from "@/lib/tender-position-cost/types";
 
 export { computePositionCost } from "@/lib/tender-position-cost/engine";

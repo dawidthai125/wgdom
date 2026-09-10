@@ -28,7 +28,13 @@ import type {
   PositionMaterialInput,
 } from "@/lib/tender-position-cost/types";
 
-export type OurRateLaborResolveStatus = "CURRENT" | "STALE" | "MISSING" | "NO_IDENTITY";
+export type OurRateLaborResolveStatus =
+  | "CURRENT"
+  | "STALE"
+  | "MISSING"
+  | "NO_IDENTITY"
+  /** GO86 — companyPrice / seam estimate; ≠ Catalog OUR RATE CURRENT. */
+  | "PROVISIONAL";
 
 export type OurRateLaborResolve = {
   status: OurRateLaborResolveStatus;
@@ -57,6 +63,7 @@ const STATUS_LABEL: Record<OurRateLaborResolveStatus, string> = {
   STALE: "PRZETERMINOWANA",
   MISSING: "BRAK STAWKI",
   NO_IDENTITY: "BRAK TOŻSAMOŚCI ROBOTY",
+  PROVISIONAL: "PROVISIONAL",
 };
 
 function resolveLaborSell(

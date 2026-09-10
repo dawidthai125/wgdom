@@ -3,8 +3,23 @@
  * Pure contract · ZERO HTTP · ZERO store · ZERO zewnętrznych lookupów.
  */
 
-/** Status labor przekazany przez adapter (Faza 0 nie lookupuje). */
-export type PositionLaborStatus = "CURRENT" | "STALE" | "MISSING" | "NO_IDENTITY";
+/**
+ * Status labor przekazany przez adapter (Faza 0 nie lookupuje).
+ * GO86: PROVISIONAL = estimate-only (companyPrice / seam) — ≠ finance-authoritative CURRENT.
+ */
+export type PositionLaborStatus =
+  | "CURRENT"
+  | "STALE"
+  | "MISSING"
+  | "NO_IDENTITY"
+  | "PROVISIONAL";
+
+/**
+ * GO86 B+C — pricing authority for Position Cost.
+ * - `finance` (default): BidCutover / Finance — PROVISIONAL labor not computable
+ * - `estimate`: P7 / UI / research preview — PROVISIONAL may compute
+ */
+export type PositionPricingAuthority = "finance" | "estimate";
 
 /** Status materiału przekazany przez adapter (Faza 0 nie lookupuje). */
 export type PositionMaterialStatus =
@@ -27,7 +42,8 @@ export type PositionCostIssueCode =
   | "INVALID_QUANTITY"
   | "INVALID_LABOR_RATE"
   | "INVALID_MATERIAL_QUANTITY"
-  | "INVALID_MATERIAL_PRICE";
+  | "INVALID_MATERIAL_PRICE"
+  | "PROVISIONAL_LABOR_NOT_AUTHORITATIVE";
 
 export interface PositionCostIssue {
   code: PositionCostIssueCode;
@@ -72,6 +88,11 @@ export interface PositionCostInput {
   unit: string;
   labor: PositionLaborInput | null;
   materials: PositionMaterialInput[];
+  /**
+   * GO86 — default `finance` (fail-closed for BidCutover).
+   * Estimate/P7 pass `estimate` so provisional companyPrice remains preview-computable.
+   */
+  pricingAuthority?: PositionPricingAuthority;
 }
 
 export interface PositionCostResult {

@@ -323,6 +323,8 @@ export function computePositionCostShadowAndGate(
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
     ephemeralCostBasisByLineId: opts.ephemeralCostBasisByLineId ?? null,
     ephemeralBomBasisByLineId: opts.ephemeralBomBasisByLineId ?? null,
+    // GO86 — BidCutover is always finance-authoritative (fail-closed).
+    pricingAuthority: "finance",
   });
   return { shadow, gate: evaluateBidCutoverGate(shadow) };
 }

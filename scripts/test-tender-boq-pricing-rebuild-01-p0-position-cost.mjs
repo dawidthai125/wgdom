@@ -326,6 +326,51 @@ ok("T6 quantity positive covered", true);
   ok("TX NO_BOM", hasCode(noBom.issues, "BRAK_BOM"));
 }
 
+// ——— GO86: PROVISIONAL labor authority separation ———
+{
+  const est = computePositionCost({
+    quantity: 10,
+    unit: "m2",
+    labor: { status: "PROVISIONAL", ourRatePln: 25 },
+    materials: [],
+    pricingAuthority: "estimate",
+  });
+  ok("GO86-A estimate provisional computable", est.laborComputable && est.positionComplete);
+  eq("GO86-A estimate total", est.totalPositionCostPln, 250);
+
+  const fin = computePositionCost({
+    quantity: 10,
+    unit: "m2",
+    labor: { status: "PROVISIONAL", ourRatePln: 25 },
+    materials: [],
+    pricingAuthority: "finance",
+  });
+  ok(
+    "GO86-B finance provisional blocked",
+    !fin.laborComputable && !fin.positionComplete && hasCode(fin.issues, "PROVISIONAL_LABOR_NOT_AUTHORITATIVE"),
+  );
+
+  const def = computePositionCost({
+    quantity: 10,
+    unit: "m2",
+    labor: { status: "PROVISIONAL", ourRatePln: 25 },
+    materials: [],
+  });
+  ok(
+    "GO86-B default=finance provisional blocked",
+    !def.laborComputable && !def.positionComplete,
+  );
+
+  const cur = computePositionCost({
+    quantity: 10,
+    unit: "m2",
+    labor: { status: "CURRENT", ourRatePln: 25 },
+    materials: [],
+    pricingAuthority: "finance",
+  });
+  ok("GO86-C CURRENT OUR RATE still authoritative", cur.laborComputable && cur.positionComplete);
+}
+
 console.log("");
 console.log(`WYNIK P0 POSITION COST: ${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);

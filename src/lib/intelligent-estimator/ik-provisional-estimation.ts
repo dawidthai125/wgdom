@@ -424,7 +424,8 @@ function buildProvisionalLaborResolve(args: {
 }): OurRateLaborResolve {
   const marginPct = null;
   return {
-    status: "CURRENT",
+    // GO86 B+C — never masquerade as CURRENT OUR RATE (Finance/BidCutover fail-closed).
+    status: "PROVISIONAL",
     statusLabelPl: "PROVISIONAL",
     workId: args.workId,
     unit: args.unit,
@@ -436,7 +437,7 @@ function buildProvisionalLaborResolve(args: {
     regionScope: null,
     observedAt: null,
     updatedAt: null,
-    labor: { status: "CURRENT", ourRatePln: args.sellPricePln },
+    labor: { status: "PROVISIONAL", ourRatePln: args.sellPricePln },
     lookup: args.lookup,
   };
 }

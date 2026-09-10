@@ -183,6 +183,8 @@ function buildProvisionalPricingSummaryFromPackage(opts: {
       boqDependencyGraph:
         opts.boqDependencyGraphsByDwelling?.[d.dwellingId] ?? opts.boqDependencyGraph ?? null,
       ensureOwnerQuestions: false,
+      // GO86 — provisional pricing summary is estimate/non-finance.
+      pricingAuthority: "estimate",
       ephemeralCostBasisByLineId: buildApfEphemeralCostBasisByLineId(
         opts.labor,
         d.dwellingId,

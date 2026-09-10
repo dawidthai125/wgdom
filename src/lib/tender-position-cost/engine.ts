@@ -34,11 +34,13 @@ function pushIssue(issues: PositionCostIssue[], issue: PositionCostIssue): void 
 /**
  * Labor: CURRENT + finite ourRatePln ≥ 0 → quantity × rate.
  * STALE → issue, not computable (C-STALE-1 default).
+ * GO86: PROVISIONAL computable only when pricingAuthority === "estimate".
  */
 function computeLaborCost(
   lineQuantity: number,
   labor: PositionLaborInput,
   issues: PositionCostIssue[],
+  pricingAuthority: "finance" | "estimate",
 ): { cost: number | null; computable: boolean } {
   if (labor.status === "NO_IDENTITY") {
     pushIssue(issues, {
@@ -65,10 +67,25 @@ function computeLaborCost(
     return { cost: null, computable: false };
   }
 
+  if (labor.status === "PROVISIONAL") {
+    if (pricingAuthority !== "estimate") {
+      pushIssue(issues, {
+        code: "PROVISIONAL_LABOR_NOT_AUTHORITATIVE",
+        messagePl:
+          "Stawka provisional/companyPrice nie jest OUR RATE — BidCutover/Finance wymaga CURRENT OUR RATE.",
+      });
+      return { cost: null, computable: false };
+    }
+    // estimate: fall through like CURRENT (preview only)
+  }
+
   if (labor.ourRatePln == null) {
     pushIssue(issues, {
       code: "BRAK_OUR_RATE",
-      messagePl: "Status CURRENT, ale brak wartości OUR RATE.",
+      messagePl:
+        labor.status === "PROVISIONAL"
+          ? "Status PROVISIONAL, ale brak wartości stawki."
+          : "Status CURRENT, ale brak wartości OUR RATE.",
     });
     return { cost: null, computable: false };
   }
@@ -215,6 +232,7 @@ function computeMaterialLineCost(
  */
 export function computePositionCost(input: PositionCostInput): PositionCostResult {
   const issues: PositionCostIssue[] = [];
+  const pricingAuthority = input.pricingAuthority === "estimate" ? "estimate" : "finance";
 
   if (!isFiniteNumber(input.quantity)) {
     pushIssue(issues, {
@@ -243,7 +261,12 @@ export function computePositionCost(input: PositionCostInput): PositionCostResul
     laborCostPln = 0;
     laborComputable = true;
   } else {
-    const laborResult = computeLaborCost(input.quantity, input.labor, issues);
+    const laborResult = computeLaborCost(
+      input.quantity,
+      input.labor,
+      issues,
+      pricingAuthority,
+    );
     laborCostPln = laborResult.computable ? laborResult.cost : null;
     laborComputable = laborResult.computable;
   }

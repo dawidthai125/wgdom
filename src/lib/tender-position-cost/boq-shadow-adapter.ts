@@ -61,6 +61,7 @@ import type {
   PositionCostResult,
   PositionLaborInput,
   PositionMaterialInput,
+  PositionPricingAuthority,
 } from "@/lib/tender-position-cost/types";
 import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
 import {
@@ -470,6 +471,11 @@ export type ComputeShadowPositionCostForLineInput = {
    * NEVER invents CatalogWork · NEVER HTTP · fixture/test candidate only.
    */
   ephemeralCostBasis?: EphemeralResearchBasis | null;
+  /**
+   * GO86 B+C — default `finance` (BidCutover fail-closed).
+   * Pass `estimate` for P7 / UI / research provisional preview.
+   */
+  pricingAuthority?: PositionPricingAuthority;
 };
 
 /** S5-A — Owner Input quantity must use existing S4-B resolver (no alternate SSOT). */
@@ -556,10 +562,19 @@ function tryComputeShadowLineFromEphemeralBasis(args: {
   if (!engineInput) return null;
 
   // Identity stays NO_IDENTITY / workId=null — ephemeral is not CatalogWork.
+  // GO86: BidCutover/finance must not treat ephemeral as authoritative OUR RATE.
+  const pricingAuthority =
+    input.pricingAuthority === "estimate" ? "estimate" : "finance";
+  engineInput.pricingAuthority = pricingAuthority;
   base.quantity = pricingQuantity;
   base.engineInput = engineInput;
   base.position = computePositionCost(engineInput);
-  base.positionComplete = base.position.positionComplete;
+  base.positionComplete =
+    pricingAuthority === "estimate" ? base.position.positionComplete : false;
+  if (pricingAuthority === "finance" && base.position.positionComplete) {
+    // Defensive: ephemeral never finance-complete even if engine said so
+    base.positionComplete = false;
+  }
   base.gaps = gaps;
   base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
   base.costBasisKind = "EPHEMERAL_RESEARCH";
@@ -879,6 +894,10 @@ export function computeShadowPositionCostForOfferBoqLine(
     rationaleTags,
   };
 
+  const pricingAuthority: PositionPricingAuthority =
+    input.pricingAuthority === "estimate" ? "estimate" : "finance";
+  const estimateMode = pricingAuthority === "estimate";
+
   let ourRateResolved = resolveLaborInputFromOurWorkRate(store, workId, unit, nowMs);
   const provisionalLabor = tryResolveProvisionalLaborInput(store, {
     workId,
@@ -888,7 +907,9 @@ export function computeShadowPositionCostForOfferBoqLine(
     existingOurRate: ourRateResolved,
     context: provisionalCtx,
   });
-  if (provisionalLabor) {
+  // GO86 B+C — provisional labor overlay is estimate-only for computation.
+  // Finance keeps authoritative OUR RATE lookup (MISSING stays MISSING).
+  if (provisionalLabor && estimateMode) {
     ourRateResolved = provisionalLabor.ourRate;
   }
 
@@ -916,17 +937,24 @@ export function computeShadowPositionCostForOfferBoqLine(
       existing: materialSellResolved,
       context: provisionalCtx,
     });
-    if (provisionalMat) {
+    // GO86 B+C — provisional material/companyPrice sell is estimate-only (not Finance).
+    if (provisionalMat && estimateMode) {
       materialSellResolved = provisionalMat.sell;
     }
   }
 
+  // GO86: provisional LABOR_ONLY / seam materialSupply are estimate-only — not Finance BOM authority.
   const laborOnly =
     explicitLaborOnly
-    || isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
-    || isProvisionalLaborOnlyPath(workId, estimatePlane ?? undefined);
+    || (estimateMode
+      && (isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
+        || isProvisionalLaborOnlyPath(workId, estimatePlane ?? undefined)));
   const materialSupply =
-    explicitMaterialSupply || isSeamProvisionalPricingStatus(provisionalMat?.pricingStatus);
+    explicitMaterialSupply
+    || (estimateMode && isSeamProvisionalPricingStatus(provisionalMat?.pricingStatus));
+
+  const suppressProvisionalRateGap =
+    estimateMode && isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus);
 
   let materialsResolved: Array<MaterialSellResolve | CatalogWorkQuotesSellResolve> = [];
   let materials: PositionMaterialInput[];
@@ -948,12 +976,14 @@ export function computeShadowPositionCostForOfferBoqLine(
     ourRate = ourRateResolved;
     base.ourRate = ourRate;
     if (
-      (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY")
-      && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
+      (ourRate.status === "MISSING"
+        || ourRate.status === "NO_IDENTITY"
+        || ourRate.status === "PROVISIONAL")
+      && !suppressProvisionalRateGap
     ) {
       pushGap(gaps, "BRAK_STAWKI_ROBOT");
     }
-    if (ourRate.status === "STALE" && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)) {
+    if (ourRate.status === "STALE" && !suppressProvisionalRateGap) {
       pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
     }
     const bom = resolveLaborOnlyBomForWork({
@@ -968,12 +998,14 @@ export function computeShadowPositionCostForOfferBoqLine(
     ourRate = ourRateResolved;
     base.ourRate = ourRate;
     if (
-      (ourRate.status === "MISSING" || ourRate.status === "NO_IDENTITY")
-      && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
+      (ourRate.status === "MISSING"
+        || ourRate.status === "NO_IDENTITY"
+        || ourRate.status === "PROVISIONAL")
+      && !suppressProvisionalRateGap
     ) {
       pushGap(gaps, "BRAK_STAWKI_ROBOT");
     }
-    if (ourRate.status === "STALE" && !isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)) {
+    if (ourRate.status === "STALE" && !suppressProvisionalRateGap) {
       pushGap(gaps, "PRZETERMINOWANA_STAWKA_ROBOT");
     }
     const bom = resolveTechnologyBomForWork({
@@ -1006,6 +1038,7 @@ export function computeShadowPositionCostForOfferBoqLine(
     unit,
     labor: laborInput,
     materials,
+    pricingAuthority,
   };
   const position = computePositionCost(engineInput);
   base.engineInput = engineInput;
@@ -1015,9 +1048,9 @@ export function computeShadowPositionCostForOfferBoqLine(
   base.gapLabelsPl = gaps.map((g) => GAP_LABEL_PL[g]);
   base.costBasisKind = "CATALOG_BOUND";
   base.ephemeralCandidateId = null;
-  if (provisionalLabor?.attestation) {
+  if (estimateMode && provisionalLabor?.attestation) {
     base.provisionalAttestation = provisionalLabor.attestation;
-  } else if (provisionalMat?.attestation) {
+  } else if (estimateMode && provisionalMat?.attestation) {
     base.provisionalAttestation = provisionalMat.attestation;
   }
   return base;
@@ -1054,6 +1087,10 @@ export type ComputeShadowBoqPositionCostsInput = {
     | ReadonlyMap<string, IkEphemeralBomBasis>
     | Readonly<Record<string, IkEphemeralBomBasis>>
     | null;
+  /**
+   * GO86 B+C — default `finance`. Estimate/P7 must pass `estimate`.
+   */
+  pricingAuthority?: PositionPricingAuthority;
 };
 
 function resolveEphemeralCostBasisForLine(
@@ -1098,6 +1135,7 @@ export function computeShadowPositionCostsForOfferBoq(
       tenderId: input.tenderId,
       dwellingId: input.dwellingId,
       ensureOwnerQuestions: input.ensureOwnerQuestions,
+      pricingAuthority: input.pricingAuthority,
       ephemeralCostBasis: resolveEphemeralCostBasisForLine(
         input.ephemeralCostBasisByLineId ?? null,
         line.lineId,
