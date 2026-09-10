@@ -9,9 +9,10 @@
  *   → evaluateMaterialCache / lookupPriceMemory (HIT → reuse)
  *      · with product identity: materialKey + catalogWorkId
  *      · P5.13 demand path: catalogWorkId only (empty materialKey — no fabricate mat.*)
- *   → executeMaterialResearchPhase2 (MISS only · executeResearch === true only · never auto-Accept)
+ *   → executeMaterialResearchPhase2 (MISS only · executeResearch === true only)
  *      · product identity key OR demand.work.<workId> coordination key
- *   → Candidate → Owner Accept REQUIRED → Price Memory (Accept separate)
+ *   → Candidate → AUT-MAT contract (optional) OR Owner Accept → Price Memory
+ *      · attempt ≠ unconditional Accept · EXCEPTION → Owner path
  *
  * P0: executeResearch requires explicit `=== true` (never `!== false` / undefined).
  * ZERO invent product/SKU/price from namePl alone · ZERO Labor rewrite · ZERO F5/Bid.
@@ -30,7 +31,11 @@ import {
 } from "@/lib/tender-position-cost/boq-shadow-adapter";
 import type { CatalogWork, WorkCatalogStore } from "@/lib/work-catalog/types";
 import { listActiveWorksForRegion } from "@/lib/work-catalog/catalog-work-utils";
-import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
+import {
+  loadWorkCatalogStoreLocal,
+  saveWorkCatalogStoreLocal,
+} from "@/lib/work-catalog/work-catalog-store";
+import { loadWorkCatalogStore } from "@/lib/work-catalog/work-catalog-sync";
 import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
 import { resolveDemandProductIdentityExact } from "@/lib/pricing-expert/material-market-map";
 import { evaluateMaterialCache } from "@/lib/price-intelligence/market-material-research-cache";
@@ -52,7 +57,9 @@ import {
   normalizePriceDemandStore,
 } from "@/lib/price-intelligence/demand-queue";
 import { acceptMaterialResearchCandidate } from "@/lib/price-intelligence/market-material-research-orchestrate";
+import { tryAutMatAcceptMaterialCandidate } from "@/lib/price-intelligence/aut-mat-accept";
 import type { CommitMarketQuotesDeps } from "@/lib/work-catalog/commit-market-quotes";
+import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
 import { isInvoicePurchaseMaterialKey } from "@/lib/price-intelligence/invoice-purchase-host";
 import { classifyEstimatorPricingPlane, IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL } from "./classification-gate";
 import type {
@@ -147,6 +154,8 @@ export type IkMaterialExpertCounts = {
   candidates: number;
   ownerAcceptRequired: number;
   accepted: number;
+  /** AUT-MAT autonomous PM writes this pass (≠ Owner Accept). */
+  autMatAccepted: number;
 };
 
 export type IkMaterialExpertReport = {
@@ -163,7 +172,8 @@ export type IkMaterialExpertReport = {
   branchPreservation: boolean;
   provenancePreservation: boolean;
   researchBoundaryOk: boolean;
-  autoAcceptExecuted: false;
+  /** True when at least one AUT-MAT autonomous PM write succeeded this pass. */
+  autoAcceptExecuted: boolean;
   pricingExecuted: false;
   laborResearchExecuted: false;
   lines: IkMaterialExpertLineResult[];
@@ -267,6 +277,7 @@ function emptyCounts(input: number): IkMaterialExpertCounts {
     candidates: 0,
     ownerAcceptRequired: 0,
     accepted: 0,
+    autMatAccepted: 0,
   };
 }
 
@@ -318,6 +329,15 @@ export async function runIkMasterBoqMaterialExpert(opts: {
   works?: CatalogWork[];
   /** Default false — Phase2 only when executeResearch === true (P6 MODE B). */
   executeResearch?: boolean;
+  /**
+   * AUT-MAT — attempt autonomous Accept after CANDIDATE (default true).
+   * attempt ≠ unconditional Accept · contract EXCEPTION → Owner path.
+   */
+  enableAutMatAccept?: boolean;
+  /** AUT-MAT Catalog/PM persist via commit deps. Default true. */
+  autMatPersist?: boolean;
+  /** Test injection — in-memory commit deps (same shape as Owner Accept tests). */
+  autMatCommitDeps?: Partial<CommitMarketQuotesDeps>;
   lease?: MaterialResearchLeasePort;
   provider?: MaterialResearchProvider;
   mockPriceNet?: number;
@@ -335,10 +355,13 @@ export async function runIkMasterBoqMaterialExpert(opts: {
   const nowIso = new Date(nowMs).toISOString();
   const region = opts.region || "wroclaw";
   const executeResearch = opts.executeResearch === true;
-  const autoAcceptExecuted = false as const;
+  const enableAutMatAccept = opts.enableAutMatAccept !== false;
+  const autMatPersist = opts.autMatPersist !== false;
+  let autoAcceptExecuted = false;
   const pricingExecuted = false as const;
   const laborResearchExecuted = false as const;
   const reasons: string[] = [];
+  let liveStore = opts.store ?? loadWorkCatalogStoreLocal();
 
   if (!resolveIkExpertAdmission(expert).expertChainMayProceed) {
     return {
@@ -364,10 +387,10 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     };
   }
 
-  const store = opts.store ?? loadWorkCatalogStoreLocal();
+  const store = liveStore;
   const works =
     opts.works ?? listActiveWorksForRegion(store, store.activeRegion);
-  const worksById = new Map(works.map((w) => [w.id, w]));
+  let worksById = new Map(works.map((w) => [w.id, w]));
   const mapCtx: OfferBoqMappingContext = {
     works,
     mappedAt: nowIso,
@@ -623,6 +646,91 @@ export async function runIkMasterBoqMaterialExpert(opts: {
       continue;
     }
     if (res.ok && res.candidate) {
+      const identityTrusted =
+        row.materialIdentity != null
+        || (
+          Boolean(row.catalogWorkId)
+          && row.plane === "MATERIAL"
+          && row.bucket === "MATERIAL"
+        );
+
+      if (executeResearch && enableAutMatAccept && identityTrusted) {
+        const commitDeps: Partial<CommitMarketQuotesDeps> =
+          opts.autMatCommitDeps
+          ?? (autMatPersist
+            ? {
+                load: loadWorkCatalogStore,
+                save: saveWorkCatalogRouted,
+                loadLocal: loadWorkCatalogStoreLocal,
+                saveLocal: saveWorkCatalogStoreLocal,
+              }
+            : {
+                load: async () => liveStore,
+                save: async (next) => {
+                  liveStore = next;
+                  worksById = new Map(
+                    listActiveWorksForRegion(next, next.activeRegion).map((w) => [
+                      w.id,
+                      w,
+                    ]),
+                  );
+                  return { ok: true, saved: true };
+                },
+                loadLocal: () => liveStore,
+                saveLocal: (next) => {
+                  liveStore = next;
+                },
+              });
+
+        const aut = await tryAutMatAcceptMaterialCandidate({
+          worksById,
+          store: liveStore,
+          candidate: res.candidate,
+          expectedUnit: row.unit,
+          identityTrusted: true,
+          commitDeps,
+          nowMs,
+          region,
+        });
+
+        if (aut.ok && aut.accepted) {
+          // Refresh worksById from commit deps when possible
+          try {
+            const after =
+              typeof commitDeps.loadLocal === "function"
+                ? commitDeps.loadLocal()
+                : liveStore;
+            liveStore = after;
+            worksById = new Map(
+              listActiveWorksForRegion(after, after.activeRegion).map((w) => [
+                w.id,
+                w,
+              ]),
+            );
+          } catch {
+            /* keep prior map */
+          }
+          row.priceStatus = "PRICE_MEMORY_HIT";
+          row.priceMemoryHitPln = aut.contract.priceNet;
+          row.candidate = null;
+          row.researchError = `AUT-MAT ACCEPT · ${aut.contract.ruleId}`;
+          autoAcceptExecuted = true;
+          continue;
+        }
+        if (aut.ok && aut.idempotentNoop) {
+          row.priceStatus = "PRICE_MEMORY_HIT";
+          row.priceMemoryHitPln = aut.contract.priceNet;
+          row.candidate = null;
+          row.researchError = "AUT-MAT IDEMPOTENT_NOOP";
+          continue;
+        }
+        reasons.push(
+          `AUT_MAT_EXCEPTION line=${row.lineId} reason=${
+            aut.ok === false ? aut.reason : "UNKNOWN"
+          }`,
+        );
+      }
+
       row.priceStatus = "CANDIDATE_OWNER_ACCEPT_REQUIRED";
       row.candidate = res.candidate;
       continue;
@@ -706,7 +814,17 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     }
   }
   counts.researchCalls = researchKeys.length;
-  counts.accepted = 0; // P5 never auto-Accept
+  if (autoAcceptExecuted) {
+    counts.autMatAccepted = lines.filter(
+      (r) =>
+        r.priceStatus === "PRICE_MEMORY_HIT"
+        && typeof r.researchError === "string"
+        && r.researchError.startsWith("AUT-MAT"),
+    ).length;
+    counts.accepted = counts.autMatAccepted;
+  } else {
+    counts.accepted = 0; // Owner Accept remains via acceptIkMaterialResearchCandidate
+  }
 
   const bucketSum =
     counts.material
@@ -803,7 +921,8 @@ export async function runIkMasterBoqMaterialExpert(opts: {
 
 /**
  * Owner Accept → Price Memory (REUSE acceptMaterialResearchCandidate).
- * Never called automatically from runIkMasterBoqMaterialExpert.
+ * AUT-MAT uses the same writer via tryAutMatAcceptMaterialCandidate (decision.kind=AUT_MAT).
+ * Manual Owner path remains available for EXCEPTION cases.
  */
 export async function acceptIkMaterialResearchCandidate(opts: {
   candidate: PriceCandidate;
@@ -825,6 +944,7 @@ export async function acceptIkMaterialResearchCandidate(opts: {
     expectedUnit: opts.expectedUnit,
     commitDeps: opts.commitDeps,
     updatedAtIso: opts.updatedAtIso,
+    decision: { kind: "OWNER" },
   });
 }
 

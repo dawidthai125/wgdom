@@ -342,6 +342,7 @@ const material = await runIkMasterBoqMaterialExpert({
   store,
   works,
   executeResearch: true,
+  enableAutMatAccept: false,
   nowMs: NOW,
 });
 
@@ -391,6 +392,7 @@ const tpiMat = await runIkMasterBoqMaterialExpert({
   store,
   works,
   executeResearch: true,
+  enableAutMatAccept: false,
   nowMs: NOW,
 });
 

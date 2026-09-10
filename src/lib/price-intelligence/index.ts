@@ -236,6 +236,22 @@ export {
 } from "./market-material-research-orchestrate";
 
 export {
+  evaluateAutMatMaterialAcceptContract,
+  AUT_MAT_DECISION_ID,
+  AUT_MAT_RULE_ID,
+  type AutMatContractResult,
+  type AutMatDecision,
+  type AutMatExceptionReason,
+  type EvaluateAutMatInput,
+} from "./aut-mat-accept-contract";
+
+export {
+  tryAutMatAcceptMaterialCandidate,
+  type TryAutMatAcceptInput,
+  type TryAutMatAcceptResult,
+} from "./aut-mat-accept";
+
+export {
   buildNeededMaterialLinesFromExperts,
   createEdgeResearchLeasePort,
   enqueueMaterialResearchPhase1,

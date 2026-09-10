@@ -352,6 +352,7 @@ const report = await runIkMasterBoqMaterialExpert({
   store,
   works,
   executeResearch: true,
+  enableAutMatAccept: false,
   lease: leasePort(createMemoryAtomicResearchJobStore()),
   provider: countingProvider,
   nowMs: NOW,

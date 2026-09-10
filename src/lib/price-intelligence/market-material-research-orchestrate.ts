@@ -42,7 +42,7 @@ import type {
 import { acceptManualMarketPriceResearchPure } from "./manual-price-research";
 import type { PriceCandidate } from "./price-candidate-types";
 import type { CommitMarketQuotesDeps } from "@/lib/work-catalog/commit-market-quotes";
-import { assertMaterialResearchAllowed } from "@/lib/intelligent-estimator";
+import { assertMaterialResearchAllowed } from "@/lib/intelligent-estimator/classification-gate";
 
 /** Short failure cooldown — blocks request storm (not PE 90d window). */
 export const MMR_DEFAULT_COOLDOWN_MS = 60_000;
@@ -423,8 +423,9 @@ export async function orchestrateMaterialResearch(
 }
 
 /**
- * Owner Accept → persist Market Quote (REUSE acceptManualMarketPriceResearchPure).
+ * Owner Accept / AUT-MAT Accept → persist Market Quote (REUSE acceptManualMarketPriceResearchPure).
  * NEVER Purchase / company knowledge.
+ * Default decision = OWNER (exception path). AUT_MAT stamps decisionKind on snapshots.
  */
 export async function acceptMaterialResearchCandidate(opts: {
   candidate: PriceCandidate;
@@ -432,6 +433,11 @@ export async function acceptMaterialResearchCandidate(opts: {
   expectedUnit: string;
   commitDeps?: Partial<CommitMarketQuotesDeps>;
   updatedAtIso?: string;
+  decision?: {
+    kind: "OWNER" | "AUT_MAT";
+    ruleId?: string;
+    evaluatedAtIso?: string;
+  };
 }): Promise<AcceptResearchCandidateResult> {
   if (!unitsCompatible(opts.expectedUnit, opts.candidate.unit)) {
     return {
@@ -445,6 +451,7 @@ export async function acceptMaterialResearchCandidate(opts: {
     };
   }
 
+  const decisionKind = opts.decision?.kind ?? "OWNER";
   const result = await acceptManualMarketPriceResearchPure({
     candidate: {
       ...opts.candidate,
@@ -456,6 +463,9 @@ export async function acceptMaterialResearchCandidate(opts: {
       updatedAtIso: opts.updatedAtIso ?? opts.candidate.retrievedAt,
       deps: opts.commitDeps,
     },
+    decisionKind,
+    decisionRuleId:
+      decisionKind === "AUT_MAT" ? opts.decision?.ruleId : undefined,
   });
 
   return {

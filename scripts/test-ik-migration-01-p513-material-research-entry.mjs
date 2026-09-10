@@ -430,6 +430,7 @@ const reportMiss = await runIkMasterBoqMaterialExpert({
   store: storeMiss,
   works: worksMiss,
   executeResearch: true,
+  enableAutMatAccept: false,
   lease: leasePort(atomic),
   provider: evidenceProvider,
   nowMs: NOW,
@@ -540,6 +541,7 @@ const reportHit = await runIkMasterBoqMaterialExpert({
   store: deps.loadLocal(),
   works: worksAfter,
   executeResearch: true,
+  enableAutMatAccept: false,
   lease: leasePort(createMemoryAtomicResearchJobStore()),
   provider: evidenceProvider,
   nowMs: NOW + 2000,
@@ -578,6 +580,7 @@ const reportPaintHit = await runIkMasterBoqMaterialExpert({
   store: makeStore(paintWorks),
   works: paintWorks,
   executeResearch: true,
+  enableAutMatAccept: false,
   lease: leasePort(createMemoryAtomicResearchJobStore()),
   provider: {
     id: "noop",

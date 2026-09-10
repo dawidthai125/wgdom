@@ -509,6 +509,7 @@ console.log("\n=== PHASE A — Leaf Research under COMPOUND ===\n");
     store,
     works,
     executeResearch: true,
+    enableAutMatAccept: false,
     nowMs: NOW,
   });
   const matRow = material.lines.find((l) => l.lineId === "L-gladzie");

@@ -62,6 +62,9 @@ export const MARKET_COVERAGE_VALUES: readonly MarketCoverage[] = [
   "indicative",
 ] as const;
 
+/** Accept decision stamp — Owner Exception vs AUT-MAT Autonomous Accept. */
+export type MarketQuoteDecisionKind = "OWNER" | "AUT_MAT";
+
 export interface MarketSourceSnapshot {
   price: number;
   regionCode: MarketRegionCode;
@@ -69,6 +72,13 @@ export interface MarketSourceSnapshot {
   updatedAt: string;
   confidence: number;
   origin: MarketQuoteOriginId;
+  /**
+   * Optional Accept provenance (additive).
+   * Absent on legacy Owner Accept cells → treat as OWNER-strength for overwrite gates.
+   */
+  decisionKind?: MarketQuoteDecisionKind;
+  /** AUT-MAT rule id when decisionKind=AUT_MAT. */
+  decisionRuleId?: string;
 }
 
 /** `origin` → `regionCode` → snapshot (P3.0B). Klucz obejmuje legacy_seed (migracja). */
@@ -132,6 +142,15 @@ export function normalizeMarketSourceSnapshot(
       ? snap.updatedAt.trim()
       : fallbackUpdatedAt;
 
+  const decisionKind =
+    snap.decisionKind === "OWNER" || snap.decisionKind === "AUT_MAT"
+      ? snap.decisionKind
+      : undefined;
+  const decisionRuleId =
+    typeof snap.decisionRuleId === "string" && snap.decisionRuleId.trim()
+      ? snap.decisionRuleId.trim()
+      : undefined;
+
   return {
     price: roundMarketPricePln(price),
     regionCode,
@@ -139,6 +158,8 @@ export function normalizeMarketSourceSnapshot(
     updatedAt,
     confidence,
     origin,
+    ...(decisionKind ? { decisionKind } : {}),
+    ...(decisionRuleId ? { decisionRuleId } : {}),
   };
 }
 

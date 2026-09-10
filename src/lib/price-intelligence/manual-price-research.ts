@@ -158,6 +158,10 @@ function previewRow(
  */
 export function buildManualMarketQuotesPreview(
   candidate: PriceCandidate,
+  opts?: {
+    decisionKind?: "OWNER" | "AUT_MAT";
+    decisionRuleId?: string;
+  },
 ): MarketCsvPreviewReport {
   const origin = mapManualProviderToQuoteOrigin(candidate.provider);
   const regionCode = resolveRegionCode(candidate.region);
@@ -165,6 +169,15 @@ export function buildManualMarketQuotesPreview(
     ? candidate.priceDate
     : `${candidate.priceDate}T12:00:00.000Z`;
   const sourceLabel = manualProviderSourceLabel(candidate.provider);
+  const decisionStamp =
+    opts?.decisionKind === "AUT_MAT"
+      ? {
+          decisionKind: "AUT_MAT" as const,
+          ...(opts.decisionRuleId ? { decisionRuleId: opts.decisionRuleId } : {}),
+        }
+      : opts?.decisionKind === "OWNER"
+        ? { decisionKind: "OWNER" as const }
+        : {};
 
   const primary: MarketSourceSnapshot = {
     price: candidate.priceNet,
@@ -173,6 +186,7 @@ export function buildManualMarketQuotesPreview(
     updatedAt,
     confidence: origin === "wgdom" ? 0.7 : 0.85,
     origin,
+    ...decisionStamp,
   };
 
   const rows: MarketCsvPreviewRow[] = [
@@ -200,6 +214,7 @@ export function buildManualMarketQuotesPreview(
       updatedAt,
       confidence: 0.7,
       origin: "wgdom",
+      ...decisionStamp,
     };
     rows.push(
       previewRow({
@@ -367,17 +382,21 @@ export async function acceptManualMarketPriceResearch(
   };
 }
 
-/** Pure ACCEPT path for tests (in-memory demand + commit deps). */
 export async function acceptManualMarketPriceResearchPure(opts: {
   candidate: PriceCandidate;
   demandStore: import("./demand-types").PriceDemandStore;
   commitOptions?: AcceptManualMarketPriceResearchOpts["commitOptions"];
+  decisionKind?: "OWNER" | "AUT_MAT";
+  decisionRuleId?: string;
 }): Promise<
   AcceptManualMarketPriceResearchResult & {
     nextDemandStore: import("./demand-types").PriceDemandStore;
   }
 > {
-  const preview = buildManualMarketQuotesPreview(opts.candidate);
+  const preview = buildManualMarketQuotesPreview(opts.candidate, {
+    decisionKind: opts.decisionKind,
+    decisionRuleId: opts.decisionRuleId,
+  });
   const region = resolveCatalogSlice(opts.candidate.region);
   const deps = opts.commitOptions?.deps;
 
