@@ -104,6 +104,8 @@ export function workRateSourceTypeLabelPl(
       return "WŁASNA STAWKA";
     case "ACCEPT":
       return "ZAAKCEPTOWANA";
+    case "AUTO_R1":
+      return "AUTO R1 (AUTONOMICZNA)";
     case "CALCULATED":
       return "WYLICZONA";
     case "RESEARCH":

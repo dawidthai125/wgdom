@@ -384,6 +384,8 @@ const report = await runIkMasterBoqLaborExpert({
   store,
   works,
   executeResearch: true,
+  // P4 asserts Owner-only Accept (no autonomous write). AUT-R1 default ON elsewhere.
+  enableAutR1Accept: false,
   lookupPort,
   nowMs: NOW,
   bypassCooldown: true,

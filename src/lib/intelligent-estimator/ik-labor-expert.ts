@@ -69,6 +69,7 @@ import {
   type ApfLaborMarketPort,
 } from "@/lib/tender-position-cost/autonomous-pricing-fallback";
 import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
+import { tryAutR1AcceptLaborCandidate } from "@/lib/work-catalog/aut-r1-accept";
 
 export type IkLaborBucket =
   | "LABOR"
@@ -177,7 +178,8 @@ export type IkLaborExpertReport = {
   branchPreservation: boolean;
   provenancePreservation: boolean;
   researchBoundaryOk: boolean;
-  autoAcceptExecuted: false;
+  /** True when at least one AUT-R1 autonomous Catalog write succeeded this pass. */
+  autoAcceptExecuted: boolean;
   pricingExecuted: false;
   materialResearchExecuted: false;
   lines: IkLaborExpertLineResult[];
@@ -278,6 +280,16 @@ export async function runIkMasterBoqLaborExpert(opts: {
    * Default / undefined / false → no HTTP (never `!== false`).
    */
   executeResearch?: boolean;
+  /**
+   * AUT-R1 — after research CANDIDATE, attempt autonomous Accept under contract.
+   * Default true when executeResearch. Set false to keep Owner-only Accept (tests).
+   */
+  enableAutR1Accept?: boolean;
+  /**
+   * AUT-R1 Catalog persist (saveWorkCatalogRouted). Default true.
+   * Tests may set false to inspect in-memory store only.
+   */
+  autR1Persist?: boolean;
   /** Default true — REUSE P5.26-E lookupInternalFirst on MISS. */
   enableInternalFirst?: boolean;
   lookupPort?: WorkRateSelectiveLookupPort;
@@ -296,9 +308,12 @@ export async function runIkMasterBoqLaborExpert(opts: {
     ?? runIkDocumentExpert({ item, package: opts.package ?? null });
   const nowMs = opts.nowMs ?? Date.now();
   const executeResearch = opts.executeResearch === true;
+  const enableAutR1Accept = opts.enableAutR1Accept !== false;
+  const autR1Persist = opts.autR1Persist !== false;
   const enableInternalFirst = opts.enableInternalFirst !== false;
   const enableApfFallback = opts.enableApfFallback !== false;
-  const autoAcceptExecuted = false as const;
+  let autoAcceptExecuted = false;
+  let store = opts.store ?? loadWorkCatalogStoreLocal();
   const pricingExecuted = false as const;
   const materialResearchExecuted = false as const;
   const reasons: string[] = [];
@@ -328,7 +343,6 @@ export async function runIkMasterBoqLaborExpert(opts: {
     };
   }
 
-  const store = opts.store ?? loadWorkCatalogStoreLocal();
   const works =
     opts.works ?? listActiveWorksForRegion(store, store.activeRegion);
   const internalIndex = enableInternalFirst
@@ -619,15 +633,47 @@ export async function runIkMasterBoqLaborExpert(opts: {
     }
     if (res.status === "EVIDENCE_REUSE") {
       // GO53 — HTTP suppressed; Evidence ≠ OUR RATE (do not copy price into ourRatePln).
+      // AUT-R1 requires WorkRateResearchCandidate — Evidence-only path stays Owner Exception.
       row.rateStatus = "EVIDENCE_REUSE_HTTP_SUPPRESSED";
       row.ourRatePln = null;
       row.researchMessagePl = res.messagePl;
       continue;
     }
     if (res.status === "CANDIDATE") {
-      row.rateStatus = "CANDIDATE_OWNER_ACCEPT_REQUIRED";
       row.candidate = res.candidate;
       row.ourRatePln = res.candidate.proposedOurRatePln;
+      const identityTrusted = row.identity.status === "OK" && Boolean(row.identity.workId);
+      if (executeResearch && enableAutR1Accept && identityTrusted) {
+        const aut = await tryAutR1AcceptLaborCandidate({
+          store,
+          candidate: res.candidate,
+          identityTrusted: true,
+          matchMethod: row.identity.matchMethod,
+          evidenceObservations: res.evidencePersist?.observations ?? null,
+          nowMs,
+          persist: autR1Persist,
+        });
+        if (aut.ok && aut.accepted) {
+          store = aut.store;
+          row.rateStatus = "CURRENT_HIT";
+          row.ourRatePln = aut.contract.marketBaseRatePln;
+          row.candidate = null;
+          row.researchMessagePl = `AUT-R1 ACCEPT · ${aut.contract.ruleId}`;
+          autoAcceptExecuted = true;
+          continue;
+        }
+        if (aut.ok && aut.idempotentNoop) {
+          row.rateStatus = "CURRENT_HIT";
+          row.ourRatePln = aut.contract.marketBaseRatePln;
+          row.candidate = null;
+          row.researchMessagePl = "AUT-R1 IDEMPOTENT_NOOP";
+          continue;
+        }
+        reasons.push(
+          `AUT_R1_EXCEPTION line=${row.lineId} reason=${aut.ok === false ? aut.reason : "UNKNOWN"}`,
+        );
+      }
+      row.rateStatus = "CANDIDATE_OWNER_ACCEPT_REQUIRED";
       continue;
     }
     if (res.status === "COOLDOWN") {
@@ -717,11 +763,20 @@ export async function runIkMasterBoqLaborExpert(opts: {
     }
   }
   counts.researchCalls = researchKeys.length;
+  // AUT-R1 writes counted as acceptedOurRate (canonical Catalog CURRENT)
+  if (autoAcceptExecuted) {
+    counts.acceptedOurRate = lines.filter(
+      (r) =>
+        r.rateStatus === "CURRENT_HIT"
+        && typeof r.researchMessagePl === "string"
+        && r.researchMessagePl.startsWith("AUT-R1"),
+    ).length;
+  }
   counts.researchHttpFetches = researchBudget.runHttpCount;
   counts.apfAttempts = apfAttempts;
   counts.apfCandidates = apfCandidates;
   counts.apfHttpFetches = apfHttpFetches;
-  counts.acceptedOurRate = 0; // never auto-Accept
+  // counts.acceptedOurRate set above for AUT-R1 (Owner Accept remains via ownerGate, not this pass)
 
   const bucketSum =
     counts.labor

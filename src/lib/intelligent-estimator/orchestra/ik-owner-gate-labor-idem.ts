@@ -53,7 +53,7 @@ export function isLaborAcceptIdempotentNoop(
 ): boolean {
   const current = findWorkOurRate(store, candidate.workId, candidate.unit);
   if (!current) return false;
-  if (current.sourceType !== "ACCEPT") return false;
+  if (current.sourceType !== "ACCEPT" && current.sourceType !== "AUTO_R1") return false;
   const marketBase = roundRatePln(candidate.marketBaseRatePln);
   if (Math.abs(current.ourRatePln - marketBase) > 0.009) return false;
 

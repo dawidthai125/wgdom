@@ -711,7 +711,25 @@ export {
 export {
   acceptWorkRateResearchCandidate,
   type AcceptWorkRateResearchResult,
+  type AcceptWorkRateDecisionContext,
+  type AcceptWorkRateDecisionKind,
 } from "@/lib/work-catalog/work-rate-accept";
+
+export {
+  AUT_R1_DECISION_ID,
+  AUT_R1_RULE_ID,
+  evaluateAutR1LaborAcceptContract,
+  type AutR1ContractResult,
+  type AutR1Decision,
+  type AutR1ExceptionReason,
+  type EvaluateAutR1Input,
+} from "@/lib/work-catalog/aut-r1-accept-contract";
+
+export {
+  tryAutR1AcceptLaborCandidate,
+  type TryAutR1AcceptInput,
+  type TryAutR1AcceptResult,
+} from "@/lib/work-catalog/aut-r1-accept";
 
 export {
   computeProposedWorkRatePln,

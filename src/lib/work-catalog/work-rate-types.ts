@@ -32,7 +32,16 @@ export const WORK_RATE_REGION_FALLBACK_CHAIN: readonly WorkRateRegionScope[] = [
   "POLSKA",
 ] as const;
 
-export type WorkRateSourceType = "OWNER" | "ACCEPT" | "CALCULATED" | "RESEARCH";
+/**
+ * ACCEPT = Owner Accept path.
+ * AUTO_R1 = AUT-R1 Autonomous Accept (Evidence+Candidate+§0.2 contract) — ≠ Owner click.
+ */
+export type WorkRateSourceType =
+  | "OWNER"
+  | "ACCEPT"
+  | "AUTO_R1"
+  | "CALCULATED"
+  | "RESEARCH";
 
 /** Rodzaj wpisu historii — SOURCE (kandydat rynkowy) vs OUR (zaakceptowana). */
 export type WorkRateHistoryKind = "OUR" | "SOURCE";
@@ -64,6 +73,16 @@ export interface OurWorkRate {
   /** Opcjonalna stawka rynkowa (kandydat) — P0 zwykle undefined (research BLOCKED). */
   sourceRatePln?: number;
   history: OurWorkRateHistoryEntry[];
+  /**
+   * AUT-R1 autonomous Accept audit (optional · additive).
+   * Present when sourceType=AUTO_R1.
+   */
+  autR1?: {
+    decisionId: "AUT_R1_LABOR_OUR_RATE_ACCEPT";
+    ruleId: string;
+    evaluatedAtIso: string;
+    kind: "AUT_R1";
+  };
 }
 
 /** Status logiczny freshness OUR RATE. */

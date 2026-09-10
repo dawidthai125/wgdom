@@ -26,7 +26,13 @@ const VALID_UNITS: WgdomCostUnit[] = [
   "prob",
   "pomiar",
 ];
-const VALID_SOURCE_TYPES: WorkRateSourceType[] = ["OWNER", "ACCEPT", "CALCULATED", "RESEARCH"];
+const VALID_SOURCE_TYPES: WorkRateSourceType[] = [
+  "OWNER",
+  "ACCEPT",
+  "AUTO_R1",
+  "CALCULATED",
+  "RESEARCH",
+];
 const VALID_KINDS: WorkRateHistoryKind[] = ["OUR", "SOURCE"];
 
 function isValidUnit(value: unknown): value is WgdomCostUnit {
@@ -136,6 +142,22 @@ export function normalizeOurWorkRate(
   const sourceRatePln = Number(r.sourceRatePln);
   const history = normalizeOurWorkRateHistory(r.history, workId, unit);
 
+  const autRaw = (r as { autR1?: OurWorkRate["autR1"] }).autR1;
+  const autR1 =
+    r.sourceType === "AUTO_R1"
+    && autRaw
+    && typeof autRaw === "object"
+    && autRaw.kind === "AUT_R1"
+    && typeof autRaw.ruleId === "string"
+    && typeof autRaw.evaluatedAtIso === "string"
+      ? {
+          decisionId: "AUT_R1_LABOR_OUR_RATE_ACCEPT" as const,
+          ruleId: autRaw.ruleId,
+          evaluatedAtIso: autRaw.evaluatedAtIso,
+          kind: "AUT_R1" as const,
+        }
+      : undefined;
+
   return {
     workId,
     unit,
@@ -148,6 +170,7 @@ export function normalizeOurWorkRate(
       ? { sourceRatePln: roundRatePln(sourceRatePln) }
       : {}),
     history,
+    ...(autR1 ? { autR1 } : {}),
   };
 }
 
