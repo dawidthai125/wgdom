@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.198",
+    label: "AUT-R1 durable PLN Evidence — 1118-09 + 0829-03",
+    items: [
+      {
+        type: "new",
+        text: "TPI/729: Owner exact Labor Evidence routes (BIP Olecko 48.201 PLN/m² · public estimate 61.12 PLN/m²) → kw-wgdom-labor-source-evidence → AUT-R1. HOLD bez PLN: 0815-04 / 2006-04 / 1205-09. ZERO r-g×stawka · ZERO transfer stawek. Test: test-labor-source-evidence-01.mjs · ops catalog-aut-r1-durable-pln-evidence-tpi729-ops.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.197",
     label: "CLLR multi-rule compound→leaf + ACLC table-code guard",
     items: [

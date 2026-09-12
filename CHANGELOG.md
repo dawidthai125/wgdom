@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.198 — AUT-R1 durable PLN Evidence 1118-09 + 0829-03 (2026-09-13)
+
+- Owner exact Labor Evidence routes (BIP Olecko 48.201 PLN/m² · public estimate 61.12 PLN/m²) → durable Evidence → AUT-R1
+- HOLD bez invent PLN: 0815-04 / 2006-04 / 1205-09 · ZERO r-g×stawka · ZERO transfer stawek
+
 ## 2.66.197 — CLLR multi-rule + ACLC table-code guard (2026-09-13)
 
 - CLLR exact-scope: 0815-04 / 2006-04 / 1205-09 / 1118-09 / 0829-03 (not parent-global; 0815-05 CLOSED).

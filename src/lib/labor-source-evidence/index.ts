@@ -55,10 +55,26 @@ export {
 
 export {
   assertLaborSourceEvidenceHostLock,
+  isLaborSourceEvidenceKeep5SourceId,
   isLaborSourceEvidenceRuntimeSourceId,
   isLaborSourceEvidenceUrlAllowed,
+  listLaborSourceEvidenceApfSourceIds,
+  listLaborSourceEvidenceOwnerRouteSourceIds,
   listLaborSourceEvidenceRuntimeSourceIds,
 } from "@/lib/labor-source-evidence/host-lock";
+
+export {
+  OWNER_AUTHORIZED_LABOR_EVIDENCE_ROUTES,
+  OWNER_LABOR_EVIDENCE_STATUS_AUTHORIZED,
+  isOwnerAuthorizedLaborEvidenceSourceId,
+  listOwnerAuthorizedLaborEvidenceSourceIds,
+  normalizeOwnerLaborEvidenceUrl,
+  ownerLaborEvidenceUrlsMatch,
+  resolveOwnerAuthorizedLaborEvidenceRoute,
+  resolveOwnerAuthorizedLaborEvidenceRouteByUrl,
+  type OwnerAuthorizedLaborEvidenceRoute,
+  type OwnerAuthorizedLaborEvidenceSourceId,
+} from "@/lib/labor-source-evidence/owner-authorized-routes";
 
 export { resolveLaborSourceEvidenceSourceRole } from "@/lib/labor-source-evidence/source-roles";
 

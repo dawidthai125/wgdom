@@ -21,6 +21,7 @@ import {
   isLaborSourceEvidenceAllowedWriteKey,
   loadLaborSourceEvidenceStoreLocal,
   mergeLaborSourceEvidenceStore,
+  resolveOwnerAuthorizedLaborEvidenceRoute,
   upsertLaborSourceEvidenceObservations,
 } from "../src/lib/labor-source-evidence/index.ts";
 import { WORK_CATALOG_STORAGE_KEY as CATALOG_KEY } from "../src/lib/work-catalog/work-catalog-store.ts";
@@ -359,6 +360,19 @@ function saveSeed(store) {
     nowIso: NOW,
   });
   ok("E13 zleca runtime reject", !badUpsert.ok && badUpsert.reason === "host_rejected");
+
+  const olecko = resolveOwnerAuthorizedLaborEvidenceRoute("bip_staro_olecko_1118_09");
+  ok("E13b Owner route 1118 present", Boolean(olecko?.url));
+  const ownerOk = assertLaborSourceEvidenceHostLock({
+    sourceId: "bip_staro_olecko_1118_09",
+    sourceUrl: olecko.url,
+  });
+  ok("E13b Owner BIP route allowed", ownerOk.ok);
+  const ownerMix = assertLaborSourceEvidenceHostLock({
+    sourceId: "bip_staro_olecko_1118_09",
+    sourceUrl: "https://fliphtml5.com/wnzvl/ndtc/RB-_ca%C5%82o%C5%9B%C4%87-_po_inwent/",
+  });
+  ok("E13b Owner cross-route rejected", !ownerMix.ok);
 }
 
 // ——— E14 Work Catalog isolation ———
