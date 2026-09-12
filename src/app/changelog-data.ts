@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-12",
+    version: "2.66.194",
+    label: "CLLR-v1.1 — relevant TechnologyPack context (≠ baseline ALLB)",
+    items: [
+      {
+        type: "fix",
+        text: "CLLR: globalne baseline packs nie wymuszają ALLB_BLOCK. ALLB tylko dla packów z exact parent/leaf w labour[]|steps[]. NO_RELEVANT_PACK_CONTEXT ≠ ALLB_BLOCK. Shadow/BOM runPacks bez zmian. Test: test-compound-to-labor-leaf-rebind-go.mjs.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-09",
     version: "2.66.193",
     label: "GO63 B2 — AUTO G2 RATE∥BOM w Orchestra (po G1)",

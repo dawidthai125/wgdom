@@ -2551,7 +2551,7 @@ FORBIDDEN shortcuts:
 | Finance / P7 / P8 | Bid prepare · risk | `runIkP7PositionCostBid` · `runIkP8RiskDecision` | P7→P8 | F5 results | bid CALC prepare | none | G3 / READY_TO_BID |
 | G3 | Final bid boundary | Owner Gates / bid persist | G3 | CALC ready | `ikFinalBid` persist | dossier/bid | Submission (out of scope) |
 | Corpus conflict | CCR-v1 | `knr-corpus-conflict-resolution-v1.ts` | KNR/Knowledge | conflicting corpus | resolved leaf/bind or FAIL_CLOSED | catalog/knowledge | Identity/P5 |
-| Labor leaf rebind | CLLR | `compound-to-labor-leaf-rebind-contract.ts` | COMPOUND→LABOR | compound hold | labor leaf bind | OfferBoq/Catalog | P5 |
+| Labor leaf rebind | CLLR-v1.1 | `compound-to-labor-leaf-rebind-contract.ts` · `selectCllrRelevantTechnologyPacks` | COMPOUND→LABOR | compound hold | labor leaf bind | OfferBoq/Catalog | P5 · **GLOBAL baseline packs ≠ CLLR relevant context** · `NO_RELEVANT_PACK_CONTEXT` ≠ `ALLB_BLOCK` · relevant pack → ALLB REQUIRED |
 
 **Rule:** if a row exists → **REUSE → CONNECT → VERIFY**. `NEW` only with Owner architecture GO.
 

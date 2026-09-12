@@ -6,10 +6,18 @@ import {
   evaluateCompoundToLaborLeafRebind,
   applyCompoundLaborLeafRebindToLine,
   isCeilingSingleLayerGypsumSkimActivity,
+  selectCllrRelevantTechnologyPacks,
   CLLR_LEAF_0815_05,
 } from "../src/lib/intelligent-estimator/orchestra/compound-to-labor-leaf-rebind-contract.ts";
 import { normalizeWorkCatalogStore } from "../src/lib/work-catalog/work-catalog-store.ts";
 import { normalizeTechnologyPack } from "../src/lib/technology-foundation/pack-schema.ts";
+import {
+  clearPackRegistryForTests,
+  listAllPacks,
+  seedB0Fixtures,
+  seedScreedEconomyWetCementV1,
+} from "../src/lib/technology-foundation/index.ts";
+import { ensureBaselineTechnologyPacksRegistered } from "../src/lib/technology-foundation/ensure-baseline-technology-packs.ts";
 
 let pass = 0;
 let fail = 0;
@@ -256,6 +264,56 @@ const withAllb = evaluateCompoundToLaborLeafRebind({
 });
 assert(withAllb.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "ACCEPT with ALLB pack");
 assert(withAllb.allbPass === true, "allbPass true");
+assert(withAllb.relevantPackCount === 1, "relevant pack count 1");
+
+// TEST A — unrelated baseline packs → NO_RELEVANT_PACK_CONTEXT (≠ ALLB_BLOCK)
+clearPackRegistryForTests();
+ensureBaselineTechnologyPacksRegistered();
+seedB0Fixtures();
+seedScreedEconomyWetCementV1();
+const baselinePacks = listAllPacks();
+assert(baselinePacks.length === 6, "baseline pack count 6");
+const relevantBaseline = selectCllrRelevantTechnologyPacks({
+  packs: baselinePacks,
+  parentWorkId: PARENT,
+  leafWorkId: LEAF,
+});
+assert(relevantBaseline.length === 0, "TEST A relevantPacks=0");
+const unrelated = evaluateCompoundToLaborLeafRebind({
+  line: ceilingLine,
+  store: storeOk,
+  packs: baselinePacks,
+  nowMs: NOW,
+});
+assert(unrelated.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "TEST A ACCEPT");
+assert(
+  unrelated.reasons.includes("NO_RELEVANT_PACK_CONTEXT"),
+  "TEST A NO_RELEVANT_PACK_CONTEXT",
+);
+assert(!unrelated.reasons.includes("ALLB_BLOCK"), "TEST A no ALLB_BLOCK");
+assert(unrelated.relevantPackCount === 0, "TEST A relevantPackCount=0");
+
+// TEST B — empty packs (regression)
+const emptyPacks = evaluateCompoundToLaborLeafRebind({
+  line: ceilingLine,
+  store: storeOk,
+  packs: [],
+  nowMs: NOW,
+});
+assert(emptyPacks.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "TEST B ACCEPT");
+assert(
+  emptyPacks.reasons.includes("ALLB_OPTIONAL_SKIPPED_NO_PACK"),
+  "TEST B ALLB_OPTIONAL_SKIPPED_NO_PACK",
+);
+
+// TEST C — covered by withAllb above
+assert(withAllb.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "TEST C ACCEPT");
+assert(withAllb.allbPass === true, "TEST C ALLB PASS");
+
+// TEST D — relevant pack WITHOUT labor authorization for leaf → ALLB_BLOCK
+assert(matBlock.decision === "COMPOUND_LEAF_REBIND_EXCEPTION", "TEST D EXCEPTION");
+assert(matBlock.reasons.includes("ALLB_BLOCK"), "TEST D ALLB_BLOCK");
+assert(matBlock.relevantPackCount === 1, "TEST D relevantPackCount=1");
 
 console.log(`\n${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);

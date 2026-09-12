@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.194 — CLLR-v1.1 relevant TechnologyPack context (2026-09-12)
+
+- CLLR: global baseline packs ≠ relevant pack context for ALLB.
+- `selectCllrRelevantTechnologyPacks` — exact parent/leaf in `labour[]`|`steps[]` only.
+- `NO_RELEVANT_PACK_CONTEXT` ≠ `ALLB_BLOCK`; relevant pack without auth still fail-closed.
+- Shadow/BOM `runPacks` unchanged. Test: `test-compound-to-labor-leaf-rebind-go.mjs`.
+
 ## 2.66.193 — GO63 B2 AUTO G2 RATE∥BOM w Orchestra (2026-09-09)
 
 - B2: `runIkAutoG2Phase` po Identity(G1) · przed Classification.

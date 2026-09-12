@@ -7,8 +7,15 @@
  * REUSE: owner classification / plane discovery · verified KNR knowledge ·
  * Catalog First lookup · AUTO_G1 apply provenance (`auto_contract`).
  *
+ * Pack context (CLLR-v1.1):
+ *   GLOBAL / baseline runPacks ≠ CLLR relevant pack context.
+ *   ALLB runs only on packs with exact parent/leaf binding in labour[]|steps[].
+ *   relevantPacks.length===0 → NO_RELEVANT_PACK_CONTEXT (≠ ALLB_BLOCK).
+ *   relevantPacks.length>0 → ALLB REQUIRED (fail-closed preserved).
+ *
  * DOES NOT: invent leaf · fuzzy match · map whole parent · material→labor ·
- * mutate dossier.kosztorys · Owner queue · change OUR RATE.
+ * mutate dossier.kosztorys · Owner queue · change OUR RATE · invent labour[] ·
+ * remove global baseline packs from shadow/BOM.
  */
 
 import type { OfferBoqLine, OfferBoqMatchCandidate } from "@/lib/tender-offer-boq";
@@ -25,7 +32,7 @@ import { unitsCompatible as unitsCompatiblePm } from "@/lib/price-intelligence/m
 
 export const COMPOUND_LABOR_LEAF_REBIND_DECISION_ID =
   "COMPOUND_TO_LABOR_LEAF_REBIND" as const;
-export const COMPOUND_LABOR_LEAF_REBIND_POLICY_VERSION = "CLLR-v1.0" as const;
+export const COMPOUND_LABOR_LEAF_REBIND_POLICY_VERSION = "CLLR-v1.1" as const;
 
 /** Ceiling single-layer gypsum skim — KNR 2-02 0815-05 (generic scope, not TPI-hardcode). */
 export const CLLR_RULE_CEILING_SINGLE_GYPSUM_SKIM =
@@ -49,11 +56,43 @@ export type CompoundLaborLeafRebindResult = {
   reasons: string[];
   evaluatedAtIso: string;
   allbPass: boolean | null;
+  /** Packs after exact parent/leaf relevance filter (≠ raw runPacks). */
+  relevantPackCount: number | null;
   rateStatus: "CURRENT" | "STALE" | "MISSING" | null;
   ourRatePln: number | null;
   invent: false;
   ownerRuntimeDependency: 0;
 };
+
+/**
+ * Exact TechnologyPack relevance for CLLR/ALLB — no fuzzy / semantic invent.
+ *
+ * Relevant iff labourKey or steps.catalogWorkId equals parentWorkId and/or leafWorkId.
+ * materials[] alone never makes a pack relevant.
+ */
+export function selectCllrRelevantTechnologyPacks(input: {
+  packs: readonly TechnologyPack[] | null | undefined;
+  parentWorkId: string;
+  leafWorkId: string;
+}): TechnologyPack[] {
+  const parent = String(input.parentWorkId || "").trim();
+  const leaf = String(input.leafWorkId || "").trim();
+  if (!parent && !leaf) return [];
+  const out: TechnologyPack[] = [];
+  for (const pack of input.packs || []) {
+    if (!pack) continue;
+    const labourHit = (pack.labour || []).some((l) => {
+      const key = String(l.labourKey || "").trim();
+      return Boolean(key) && (key === parent || key === leaf);
+    });
+    const stepHit = (pack.steps || []).some((s) => {
+      const id = String(s.catalogWorkId || "").trim();
+      return Boolean(id) && (id === parent || id === leaf);
+    });
+    if (labourHit || stepHit) out.push(pack);
+  }
+  return out;
+}
 
 function normDesc(line: OfferBoqLine): string {
   return String(line.normalizedDescription || line.description || "");
@@ -97,6 +136,7 @@ function exception(
     reasons,
     evaluatedAtIso,
     allbPass: null,
+    relevantPackCount: null,
     rateStatus: null,
     ourRatePln: null,
     invent: false,
@@ -147,6 +187,7 @@ export function evaluateCompoundToLaborLeafRebind(input: {
       reasons: ["ALREADY_BOUND_TO_CANONICAL_LEAF", "IDEMPOTENT_NOOP"],
       evaluatedAtIso,
       allbPass: null,
+      relevantPackCount: null,
       rateStatus: lookup.status as CompoundLaborLeafRebindResult["rateStatus"],
       ourRatePln: lookup.ourRatePln ?? null,
       invent: false,
@@ -231,11 +272,18 @@ export function evaluateCompoundToLaborLeafRebind(input: {
   }
 
   let allbPass: boolean | null = null;
-  const packs = (input.packs || []).filter(Boolean);
-  if (packs.length > 0) {
+  const runPacks = (input.packs || []).filter(Boolean);
+  const relevantPacks = selectCllrRelevantTechnologyPacks({
+    packs: runPacks,
+    parentWorkId,
+    leafWorkId,
+  });
+  const relevantPackCount = relevantPacks.length;
+  // GLOBAL baseline / unrelated runPacks must NOT force ALLB.
+  // ALLB is required only when at least one pack exactly binds parent or leaf.
+  if (relevantPackCount > 0) {
     let anyPass = false;
-    let anyEval = false;
-    for (const pack of packs) {
+    for (const pack of relevantPacks) {
       const allb = evaluateAuthorizedLaborLeafBinding({
         parentWorkId,
         pack,
@@ -245,7 +293,6 @@ export function evaluateCompoundToLaborLeafRebind(input: {
         leafWorkId,
         nowMs,
       });
-      anyEval = true;
       if (
         allb.decision === "AUTHORIZED_LABOR_LEAF_BINDING"
         && allb.bindings.some((b) => b.leafWorkId === leafWorkId)
@@ -255,7 +302,7 @@ export function evaluateCompoundToLaborLeafRebind(input: {
       }
     }
     allbPass = anyPass;
-    if (anyEval && !anyPass) {
+    if (!anyPass) {
       return exception(
         ["ALLB_BLOCK", "NO_AUTHORIZED_LABOUR_LEAF_IN_PACKS"],
         evaluatedAtIso,
@@ -263,6 +310,7 @@ export function evaluateCompoundToLaborLeafRebind(input: {
           parentWorkId,
           leafWorkId,
           allbPass: false,
+          relevantPackCount,
           rateStatus: "CURRENT",
           ourRatePln: lookup.ourRatePln ?? null,
         },
@@ -284,12 +332,17 @@ export function evaluateCompoundToLaborLeafRebind(input: {
       "LEAF_IN_CATALOG",
       "CATALOG_FIRST_CURRENT",
       `OUR_RATE=${lookup.ourRatePln}`,
-      allbPass === true ? "ALLB_PASS" : "ALLB_OPTIONAL_SKIPPED_NO_PACK",
+      allbPass === true
+        ? "ALLB_PASS"
+        : runPacks.length > 0
+          ? "NO_RELEVANT_PACK_CONTEXT"
+          : "ALLB_OPTIONAL_SKIPPED_NO_PACK",
       "NO_FUZZY",
       "NO_OWNER_QUEUE",
     ],
     evaluatedAtIso,
     allbPass,
+    relevantPackCount,
     rateStatus: "CURRENT",
     ourRatePln: lookup.ourRatePln ?? null,
     invent: false,
