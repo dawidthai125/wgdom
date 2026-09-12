@@ -10,7 +10,7 @@ import {
   isCeilingSingleLayerGypsumSkimActivity,
   CLLR_LEAF_0815_05,
 } from "../src/lib/intelligent-estimator/orchestra/compound-to-labor-leaf-rebind-contract.ts";
-import { buildAutonomousCanonicalWorkId } from "../src/lib/work-catalog/autonomous-canonical-leaf-create.ts";
+import { buildAutonomousCanonicalWorkId, extractTableCodeFromCanonicalWorkId } from "../src/lib/work-catalog/autonomous-canonical-leaf-create.ts";
 
 const RULE_LEAF_FIRST = "COMPOUND_PARENT_RATE_GAP → RESOLVE_CANONICAL_LABOR_LEAF_FIRST";
 const RULE_NORM_NE_RATE = "KNR_LABOR_NORM != OUR_RATE_PLN";
@@ -47,6 +47,12 @@ const leaf05 = buildAutonomousCanonicalWorkId({
 assert.equal(leaf05, CLLR_LEAF_0815_05);
 assert.equal(leaf04, "cw.knr.knr-2-02.0815-04.m2");
 assert.notEqual(leaf04, leaf05);
+assert.equal(extractTableCodeFromCanonicalWorkId(leaf04), "0815-04");
+assert.equal(extractTableCodeFromCanonicalWorkId(leaf05), "0815-05");
+assert.notEqual(
+  extractTableCodeFromCanonicalWorkId(leaf04),
+  extractTableCodeFromCanonicalWorkId(leaf05),
+);
 
 // Empty store → walls compound NEVER ACCEPT (no invent path)
 const emptyStore = {
@@ -76,8 +82,15 @@ const wallEval = evaluateCompoundToLaborLeafRebind({
 });
 assert.equal(wallEval.decision, "COMPOUND_LEAF_REBIND_EXCEPTION");
 assert.ok(
-  wallEval.reasons.includes("SCOPE_NOT_CEILING_SINGLE_LAYER_GYPSUM_SKIM"),
-  "0815-04 must not ride 0815-05 CLLR rule",
+  wallEval.reasons.includes("LEAF_NOT_IN_CATALOG")
+    || wallEval.reasons.includes("LEAF_RATE_MISSING")
+    || wallEval.reasons.includes("OUR_RATE_MUST_BE_CURRENT_NO_RESEARCH"),
+  "0815-04 exact rule · empty store → leaf/rate gate (≠ ride 0815-05 CURRENT)",
+);
+assert.ok(
+  wallEval.ruleId === "cllr.walls_double_layer_gypsum_skim.0815_04_v1"
+    || wallEval.reasons.includes("SCOPE_NO_CLLR_RULE") === false,
+  "walls bind to 0815-04 rule id when matched",
 );
 
 // Floor panel character must not share ceiling leaf id

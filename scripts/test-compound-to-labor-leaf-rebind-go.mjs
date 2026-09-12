@@ -6,8 +6,14 @@ import {
   evaluateCompoundToLaborLeafRebind,
   applyCompoundLaborLeafRebindToLine,
   isCeilingSingleLayerGypsumSkimActivity,
+  isWallsDoubleLayerGypsumSkimActivity,
+  isFloorPanelsActivity,
+  isStoneTileFloorActivity,
+  isWallTilesOnGlueActivity,
   selectCllrRelevantTechnologyPacks,
   CLLR_LEAF_0815_05,
+  CLLR_LEAF_0815_04,
+  CLLR_RULE_WALLS_DOUBLE_GYPSUM_SKIM,
 } from "../src/lib/intelligent-estimator/orchestra/compound-to-labor-leaf-rebind-contract.ts";
 import { normalizeWorkCatalogStore } from "../src/lib/work-catalog/work-catalog-store.ts";
 import { normalizeTechnologyPack } from "../src/lib/technology-foundation/pack-schema.ts";
@@ -161,10 +167,16 @@ const wall = evaluateCompoundToLaborLeafRebind({
   store: storeOk,
   nowMs: NOW,
 });
-assert(wall.decision === "COMPOUND_LEAF_REBIND_EXCEPTION", "walls HOLD");
+assert(wall.decision === "COMPOUND_LEAF_REBIND_EXCEPTION", "walls HOLD without 0815-04 leaf/rate");
 assert(
-  wall.reasons.includes("SCOPE_NOT_CEILING_SINGLE_LAYER_GYPSUM_SKIM"),
-  "walls scope block",
+  wall.reasons.includes("LEAF_NOT_IN_CATALOG")
+    || wall.reasons.includes("LEAF_RATE_MISSING")
+    || wall.reasons.includes("OUR_RATE_MUST_BE_CURRENT_NO_RESEARCH"),
+  "walls 0815-04 exact rule · leaf/rate gate (≠ ride 0815-05)",
+);
+assert(
+  !isCeilingSingleLayerGypsumSkimActivity(wallLine.description),
+  "walls description still rejected by 0815-05 scope gate",
 );
 
 const storeNoRate = makeStore(false);
@@ -363,6 +375,118 @@ assert(withAllb.allbPass === true, "TEST C ALLB PASS");
 assert(matBlock.decision === "COMPOUND_LEAF_REBIND_EXCEPTION", "TEST D EXCEPTION");
 assert(matBlock.reasons.includes("ALLB_BLOCK"), "TEST D ALLB_BLOCK");
 assert(matBlock.relevantPackCount === 1, "TEST D relevantPackCount=1");
+
+// TEST E — multi-rule exact scopes (≠ parent-global)
+assert(
+  isWallsDoubleLayerGypsumSkimActivity(
+    "Wewnętrzne gładzie gipsowe dwuwarstwowe na ścianach 0815-04",
+  ),
+  "TEST E walls 0815-04 scope",
+);
+assert(
+  !isWallsDoubleLayerGypsumSkimActivity(
+    "Gładź gipsowa na sufitach jednowarstwowa 0815-05",
+  ),
+  "TEST E walls gate rejects ceiling",
+);
+assert(isFloorPanelsActivity("Posadzka z paneli podłogowych 1205-09"), "TEST E panels");
+assert(!isFloorPanelsActivity("Izolacje cieplne z pianki pod panele"), "TEST E panels≠foam");
+assert(!isFloorPanelsActivity("Rozebranie paneli podłogowych"), "TEST E panels≠demo");
+assert(
+  isStoneTileFloorActivity(
+    "Posadzki z płytek z kamieni sztucznych układanych na klej 1118-09",
+  ),
+  "TEST E stone",
+);
+assert(
+  isWallTilesOnGlueActivity("Licowanie ścian płytkami na klej 0829-03"),
+  "TEST E glazura",
+);
+assert(
+  !isWallTilesOnGlueActivity("Przygotowanie podłoża 0829-01"),
+  "TEST E rejects 0829-01",
+);
+
+// TEST F — 0815-04 ACCEPT when leaf+CURRENT present (packs undefined)
+function makeWallStore() {
+  const parent = {
+    id: PARENT,
+    tradeId: "SCIANY_GK",
+    namePl: "Gładzie / tynki (m2)",
+    unit: "m2",
+    updatedAt: new Date(NOW).toISOString(),
+    freshnessStatus: "missing",
+    keywords: [],
+    active: true,
+    favorite: false,
+    usageCount: 0,
+    source: "custom",
+  };
+  const leaf = {
+    id: CLLR_LEAF_0815_04,
+    tradeId: "SCIANY_GK",
+    namePl: "KNR 2-02 0815-04 — gładź ściany",
+    unit: "m2",
+    updatedAt: new Date(NOW).toISOString(),
+    freshnessStatus: "missing",
+    keywords: [],
+    active: true,
+    favorite: false,
+    usageCount: 0,
+    source: "custom",
+    ourWorkRate: {
+      ourRatePln: 31.5,
+      unit: "m2",
+      sourceType: "AUTO_R1",
+      updatedAt: new Date(NOW).toISOString(),
+      observedAt: new Date(NOW).toISOString(),
+      regionScope: "POLSKA",
+      history: [],
+    },
+  };
+  const works = [parent, leaf];
+  return normalizeWorkCatalogStore({
+    schemaVersion: 4,
+    activeRegion: "wroclaw",
+    catalogs: {
+      wroclaw: { region: "wroclaw", works, updatedAt: new Date(NOW).toISOString() },
+      dolnyslask: {
+        region: "dolnyslask",
+        works: structuredClone(works),
+        updatedAt: new Date(NOW).toISOString(),
+      },
+    },
+    updatedAt: new Date(NOW).toISOString(),
+  });
+}
+const wallAccept = evaluateCompoundToLaborLeafRebind({
+  line: wallLine,
+  store: makeWallStore(),
+  packs: undefined,
+  nowMs: NOW,
+});
+assert(wallAccept.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "TEST F walls ACCEPT");
+assert(wallAccept.leafWorkId === CLLR_LEAF_0815_04, "TEST F leaf 0815-04");
+assert(wallAccept.ruleId === CLLR_RULE_WALLS_DOUBLE_GYPSUM_SKIM, "TEST F rule id");
+assert(wallAccept.leafWorkId !== CLLR_LEAF_0815_05, "TEST F ≠ 0815-05");
+
+// Podłogi parent must not map ALL scopes to one leaf
+const foamHold = evaluateCompoundToLaborLeafRebind({
+  line: {
+    ...ceilingLine,
+    lineId: "obl_foam",
+    description: "Izolacje cieplne z pianki pod panele",
+    catalogWorkId: "legacy-podlogi-m2",
+  },
+  store: storeOk,
+  packs: undefined,
+  nowMs: NOW,
+});
+assert(foamHold.decision === "COMPOUND_LEAF_REBIND_EXCEPTION", "TEST G foam HOLD");
+assert(
+  foamHold.reasons.includes("SCOPE_NO_CLLR_RULE"),
+  "TEST G foam no CLLR rule (OWNER_DECISION)",
+);
 
 console.log(`\n${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);

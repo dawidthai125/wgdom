@@ -120,6 +120,15 @@ export function buildAutonomousCanonicalWorkId(input: {
   return `cw.knr.${fam}.${code}.${unit}`.replace(/\.+/g, ".").replace(/^\.|\.$/g, "");
 }
 
+/** Extract KNR/KNNR table code from canonical id `cw.knr.*.0815-04.m2` — null if absent. */
+export function extractTableCodeFromCanonicalWorkId(workId: string): string | null {
+  const m = String(workId || "")
+    .trim()
+    .toLowerCase()
+    .match(/\.(\d{3,4}-\d{2})(?:\.|$)/);
+  return m?.[1] ?? null;
+}
+
 function unitOk(a: string, b: string): boolean {
   const x = normalizeWorkRateUnitToken(a);
   const y = normalizeWorkRateUnitToken(b);
@@ -249,9 +258,20 @@ export function evaluateAutonomousCanonicalLeafCreate(input: {
   const conflictState: AutonomousCanonicalLeafCreateEvaluation["conflictState"] =
     (rec.alternateFamilies || []).length > 0 ? "FAMILY_VARIANT_NOTED" : "NONE";
 
-  const otherValidCanonical =
+  const otherValidCanonicalRaw =
     matches.validCanonical && matches.validCanonical !== proposedWorkId
       ? matches.validCanonical
+      : null;
+  // Never collapse distinct KNR table codes (e.g. 0815-04 ↛ 0815-05 via semantic AIDISC).
+  const proposedCode = String(rec.tableCode || "").trim().toLowerCase();
+  const otherCode = otherValidCanonicalRaw
+    ? extractTableCodeFromCanonicalWorkId(otherValidCanonicalRaw)
+    : null;
+  const otherValidCanonical =
+    otherValidCanonicalRaw
+    && otherCode
+    && otherCode === proposedCode
+      ? otherValidCanonicalRaw
       : null;
 
   const conditions: Record<AutonomousCreateConditionKey, boolean> = {

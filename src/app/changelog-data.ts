@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.197",
+    label: "CLLR multi-rule compound→leaf + ACLC table-code guard",
+    items: [
+      {
+        type: "new",
+        text: "CLLR: exact-scope rules 0815-04 / 2006-04 / 1205-09 / 1118-09 / 0829-03 (≠ parent-global; 0815-05 CLOSED). ACLC: nie REUSE innego kodu KNR (0815-04 ↛ 0815-05). OUR RATE nadal tylko AUT-R1. Test: test-compound-to-labor-leaf-rebind-go.mjs · test-compound-parent-labor-leaf-resolution-knowledge-go.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.196",
     label: "KNR 2-02 0815-05 — TechnologyPack gładź sufitowa",
     items: [

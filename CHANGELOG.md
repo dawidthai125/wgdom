@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.197 — CLLR multi-rule + ACLC table-code guard (2026-09-13)
+
+- CLLR exact-scope: 0815-04 / 2006-04 / 1205-09 / 1118-09 / 0829-03 (not parent-global; 0815-05 CLOSED).
+- ACLC: refuse REUSE across different KNR table codes (0815-04 ↛ 0815-05).
+- OUR RATE still AUT-R1 only · KNR r-g ≠ PLN.
+- Tests: `test-compound-to-labor-leaf-rebind-go.mjs` · `test-compound-parent-labor-leaf-resolution-knowledge-go.mjs`.
+
 ## 2.66.196 — KNR 2-02 0815-05 TechnologyPack gładź sufitowa (2026-09-13)
 
 - Baseline pack `pack.gypsum_skim.ceiling_0815_05_v1` — exact bind `cw.knr.knr-2-02.0815-05.m2`.

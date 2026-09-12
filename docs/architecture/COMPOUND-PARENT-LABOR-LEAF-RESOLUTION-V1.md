@@ -14,14 +14,16 @@
 ## 0. Executive verdict (this GO)
 
 ```text
-implementedConfirmed = 0 / 27
-RESEARCH_REQUIRED     = 22
-OWNER_DECISION_REQUIRED = 5
-Finance AFTER = BEFORE (74 / 22 / 52)
-0815-05 TechnologyPack / leaf = UNTOUCHED
+Wave ×22 RESEARCH_REQUIRED (2026-09-13 · tip 2.66.197):
+  ACLC CREATE leaves: 0815-04 · 2006-04 · 1205-09 (knnr-2) · 1118-09 · 0829-03
+  CLLR exact-scope rules: ADDED (≠ parent-global)
+  AUT-R1: 0 ACCEPT (no durable PLN evidence) → FAIL-CLOSED
+  CLLR ACCEPT on ×22 lines: 0 (LEAF_RATE_MISSING — contract requires CURRENT)
+  Demolition / foam / 0411-08: NOT TOUCHED
+  0815-05 leaf+pack: UNTOUCHED
 ```
 
-No CLLR ACCEPT was possible: candidate labor leaves are **not** in Work Catalog **or** lack **OUR RATE CURRENT**. Inventing PLN / parent rates / r-g→PLN is forbidden.
+Partial groundwork is intentional: identity+CatalogWork ready; Finance stays fail-closed until AUT-R1 CURRENT.
 
 ---
 

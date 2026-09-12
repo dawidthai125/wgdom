@@ -2568,13 +2568,14 @@ FORBIDDEN shortcuts:
 - **NOT** LABOR_ONLY / allowlist / painting reuse / 0815-04·06 qty copy
 - Finance consumes resolved BOM; next residual after six 0815-05 lines complete is primarily `BRAK_STAWKI_ROBOT` elsewhere
 
-**COMPOUND parent rate-gap policy (2026-09-13 · TPI/729 ×27 GO):**
+**COMPOUND parent rate-gap policy (2026-09-13 · TPI/729 ×27 GO → ×22 wave):**
 - SSOT knowledge: [`COMPOUND-PARENT-LABOR-LEAF-RESOLUTION-V1.md`](./COMPOUND-PARENT-LABOR-LEAF-RESOLUTION-V1.md)
 - **Rules:** `COMPOUND_PARENT_RATE_GAP → RESOLVE_CANONICAL_LABOR_LEAF_FIRST` · `KNR_LABOR_NORM != OUR_RATE_PLN`
-- **Forbidden:** OUR RATE on compound parent · invent PLN · r-g→PLN · auto-CLLR without leaf∈WC+CURRENT · Finance gap rewrite
-- **TPI/729 residual 27:** implementedConfirmed **0** · RESEARCH_REQUIRED **22** · OWNER_DECISION_REQUIRED **5** (foam underlay family · 0411-08 multi-family) · Finance unchanged **74/22/52**
-- Character split required on shared parents (`legacy-podlogi-m2` = panels / foam / demontage / stone tiles — never one leaf)
-- Package parents (`cc-w2-scianki-…-pakiet`) hosting **2006-04** GK ceiling lines ≠ labor leaf authority
+- **CLLR exact-scope rules (tip 2.66.197):** 0815-04 walls · 2006-04 GK · 1205-09 panels · 1118-09 stone · 0829-03 glazura — **never** parent-global; foam/0411-08/demolition **HOLD**
+- **ACLC:** CREATE missing leaves · **refuse** semantic REUSE across different table codes (0815-04 ↛ 0815-05)
+- **Forbidden:** OUR RATE on compound parent · invent PLN · r-g→PLN · Finance gap rewrite · reopen 0815-05 pack
+- **×22 wave status:** leaves CREATED · CLLR rules READY · AUT-R1 **0** (no durable PLN Evidence) · CLLR ACCEPT blocked by `LEAF_RATE_MISSING` until CURRENT
+- Package parents (`cc-w2-scianki-…-pakiet`) hosting **2006-04** ≠ labor leaf authority
 
 **Rule:** if a row exists → **REUSE → CONNECT → VERIFY**. `NEW` only with Owner architecture GO.
 
