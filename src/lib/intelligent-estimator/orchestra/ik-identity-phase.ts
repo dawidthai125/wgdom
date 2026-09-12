@@ -41,6 +41,11 @@ import {
   applyAutoG1ExceptionToLine,
   evaluateAutoG1Contract,
 } from "./auto-g1-accept-contract";
+import {
+  applyCompoundLaborLeafRebindToLine,
+  evaluateCompoundToLaborLeafRebind,
+} from "./compound-to-labor-leaf-rebind-contract";
+import type { TechnologyPack } from "@/lib/technology-foundation/types";
 
 /** OD-05 minimal seam — no-op when caller omits or passes empty array. */
 export type OwnerManualIdentityOverride = {
@@ -85,6 +90,8 @@ export type IkIdentityPhaseInput = {
   package?: TenderPackage | null;
   manualOverrides?: readonly OwnerManualIdentityOverride[] | null;
   works?: readonly CatalogWork[];
+  /** Optional TechnologyPacks for ALLB during compound→leaf rebind. */
+  packs?: readonly TechnologyPack[] | null;
   nowMs?: number;
 };
 
@@ -219,6 +226,7 @@ function tallyIdentityStatus(
   identity: ReturnType<typeof resolveWorkIdentityFromOfferBoqLine>,
   hadProvisionalPatch: boolean,
 ): "trusted" | "ambiguous" | "no_identity" | "other" {
+  if (identity.status === "NOISE_SKIP" || identity.status === "INVALID_UNIT") return "other";
   if (identity.status === "OK" && identity.workId && !hadProvisionalPatch) return "trusted";
   if (identity.status === "AMBIGUOUS") return "ambiguous";
   if (identity.status === "NO_IDENTITY" || !identity.workId) return "no_identity";
@@ -358,6 +366,21 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
         identity = resolveWorkIdentityFromOfferBoqLine(lineForOut);
       } else if (!autoResult.reasons.some((r) => r.includes("ALREADY_TRUSTED"))) {
         lineForOut = applyAutoG1ExceptionToLine(lineForOut, autoResult);
+      }
+    }
+
+    // CLLR-v1 — Compound parent → canonical labor leaf (exact scope · leaf OUR RATE CURRENT).
+    // May upgrade an already-trusted COMPOUND bind; never invent; never fuzzy; no Owner queue.
+    {
+      const rebind = evaluateCompoundToLaborLeafRebind({
+        line: lineForOut,
+        store,
+        packs: input.packs,
+        nowMs,
+      });
+      if (rebind.decision === "COMPOUND_LEAF_REBIND_ACCEPT") {
+        lineForOut = applyCompoundLaborLeafRebindToLine(lineForOut, rebind);
+        identity = resolveWorkIdentityFromOfferBoqLine(lineForOut);
       }
     }
 

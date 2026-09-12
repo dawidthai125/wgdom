@@ -40,8 +40,27 @@ export {
   AUTO_G1_MATCH_METHOD,
   AUTO_G1_GK_LOCKED_WINNER,
   AUTO_G1_RULE_GK_CLADDING_SCIANKI,
+  AUTO_G1_WINDOW_SASH_LOCKED_WINNER,
+  AUTO_G1_RULE_WINDOW_SASH_STOLARKA,
+  isAutoG1NoiseDescription,
+  isWindowSashFamilyDescription,
+  isGkCladdingFamilyDescription,
 } from "./auto-g1-accept-contract";
 export type { AutoG1ContractResult, AutoG1Decision } from "./auto-g1-accept-contract";
+
+export {
+  evaluateCompoundToLaborLeafRebind,
+  applyCompoundLaborLeafRebindToLine,
+  isCeilingSingleLayerGypsumSkimActivity,
+  COMPOUND_LABOR_LEAF_REBIND_DECISION_ID,
+  COMPOUND_LABOR_LEAF_REBIND_POLICY_VERSION,
+  CLLR_RULE_CEILING_SINGLE_GYPSUM_SKIM,
+  CLLR_LEAF_0815_05,
+} from "./compound-to-labor-leaf-rebind-contract";
+export type {
+  CompoundLaborLeafRebindResult,
+  CompoundLaborLeafRebindDecision,
+} from "./compound-to-labor-leaf-rebind-contract";
 
 export {
   evaluateAutoRateContract,
@@ -56,8 +75,23 @@ export type {
   AutoRateContractResult,
   AutoBomContractResult,
 } from "./auto-g2-accept-contract";
+export {
+  evaluateLaborOnlyAutoBomV1Contract,
+  isLaborOnlyAutoBomV1Eligible,
+  LABOR_ONLY_AUTO_BOM_V1_DECISION_ID,
+  LABOR_ONLY_AUTO_BOM_V1_RULE_ID,
+  AUTO_BOM_RULE_LABOR_ONLY_AUTO_BOM_V1,
+} from "./labor-only-auto-bom-v1-contract";
+export type { LaborOnlyAutoBomV1Result } from "./labor-only-auto-bom-v1-contract";
 export { runIkAutoG2Phase } from "./ik-auto-g2-phase";
 export type { IkAutoG2PhaseResult } from "./ik-auto-g2-phase";
+export {
+  runIkAtesdTechnologyPhase,
+  buildAtesdLeavesFromOrchestraOfferBoq,
+  extractOfferBoqTableCodeTokens,
+  IK_ATESD_TECHNOLOGY_PHASE_SEAM_ID,
+} from "./ik-atesd-technology-phase";
+export type { IkAtesdTechnologyPhaseResult } from "./ik-atesd-technology-phase";
 
 export type {
   ChiefAdvisoryPort,
@@ -72,6 +106,18 @@ export type {
 
 export { resolveEffectiveItem } from "./orchestra-ports";
 export { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
+
+export {
+  runIkCompoundIdentityPhase,
+  deriveOrchestraNextLegalTransaction,
+  collectCompoundParentsFromClassification,
+  IK_COMPOUND_IDENTITY_PHASE_VERSION,
+} from "./ik-compound-identity-phase";
+export type {
+  IkCompoundIdentityPhaseResult,
+  IkCompoundIdentityParentResult,
+  RunIkCompoundIdentityPhaseInput,
+} from "./ik-compound-identity-phase";
 export {
   buildKnrReanalysisSignalFromHostResult,
   buildKnrReanalysisDiag,

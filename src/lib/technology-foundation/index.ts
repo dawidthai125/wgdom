@@ -131,6 +131,9 @@ export {
   seedElectricalCableEconomyV1,
 } from "./fixtures";
 
+/** Canonical production init — same packs as Execution Expert ensureFixtures. */
+export { ensureBaselineTechnologyPacksRegistered } from "./ensure-baseline-technology-packs";
+
 export { filterPackRecipeForCoats } from "./pack-recipe-coats";
 export type { PaintCoats as TfPaintCoats } from "./pack-recipe-coats";
 export { filterPackRecipeForMaterialKey } from "./pack-recipe-material-key";

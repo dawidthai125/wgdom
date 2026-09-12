@@ -46,8 +46,8 @@ const SIMILAR_CAP = 5;
 /** Frozen advisory notes for known MOPS field risks (DF §10 / §16). */
 const SPECIAL_RISK_BY_KEY: Readonly<Record<string, readonly string[]>> = {
   "KNNR||1014-07": ["NO_SAFE_EXISTING_WORK_ID", "mycie_posadzek"],
-  "KNNR|5|1305-01": ["UNIT_PROB_HOLD", "first_probe"],
-  "KNNR|5|1305-02": ["UNIT_PROB_HOLD", "next_probe"],
+  "KNNR|5|1305-01": ["first_probe", "C2_OWNER_MAPPED"],
+  "KNNR|5|1305-02": ["next_probe", "C2_OWNER_MAPPED"],
   "KNR-W|4-01|0909-04": ["dopasowanie_skrzydel_not_demontaz_okna"],
   "KNR-W|5-08|0407-01": ["family_KNR_W_vs_KNR_verify"],
   "KNR|13-21|0402-03": ["RCD_test_not_generic_pomiar"],
@@ -171,7 +171,7 @@ function unitStatusOf(unitRaw: string): {
   if (!raw) return { unitStatus: "UNKNOWN", proposedUnit: null };
   const lower = raw.toLowerCase();
   if (lower === "prob" || lower === "prób" || lower === "prób." || lower === "prob.") {
-    return { unitStatus: "HOLD_UNIT", proposedUnit: null };
+    return { unitStatus: "OK", proposedUnit: "prob" };
   }
   const canon = normalizeWgdomCostUnit(raw);
   if (!canon) return { unitStatus: "HOLD_UNIT", proposedUnit: null };

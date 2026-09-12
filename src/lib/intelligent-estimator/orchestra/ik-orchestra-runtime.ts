@@ -15,6 +15,12 @@ import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-exp
 import { runIkMasterBoqLaborExpert } from "@/lib/intelligent-estimator/ik-labor-expert";
 import { runIkMasterBoqMaterialExpert } from "@/lib/intelligent-estimator/ik-material-expert";
 import {
+  runIkAtesdTechnologyPhase,
+  type IkAtesdTechnologyPhaseResult,
+} from "@/lib/intelligent-estimator/orchestra/ik-atesd-technology-phase";
+import type { WorkCatalogStore } from "@/lib/work-catalog/types";
+import type { TechnologyPack } from "@/lib/technology-foundation/types";
+import {
   resolveHostKnrKnowledgeLookupOnly,
   type KnrKnowledgeEnvelope,
   type KnrHostKnowledgeResolveResult,
@@ -205,6 +211,50 @@ export async function executeP6MaterialExpert(opts: {
   } catch {
     if (!opts.isCancelled()) opts.setMaterial(null);
   }
+}
+
+/**
+ * ATESD/ATHED Orchestra CONNECT — after G2 identity/rate, before P6 material.
+ * REUSE runIkAtesdTechnologyPhase → BatchAsync ATHED→ATSS→ATA→AUTO_BOM.
+ */
+export async function executeAtesdTechnologyPhase(opts: {
+  effectiveItem: TenderPipelineItem;
+  pkg: TenderPackage | null;
+  expert: IkDocumentExpertReport;
+  executeAthedFetch: boolean;
+  store?: WorkCatalogStore;
+  packs?: readonly TechnologyPack[];
+  isCancelled: () => boolean;
+  setAtesd: (value: IkAtesdTechnologyPhaseResult | null) => void;
+  onSettled?: () => void;
+}): Promise<void> {
+  try {
+    const result = await runIkAtesdTechnologyPhase({
+      expert: opts.expert,
+      package: opts.pkg,
+      store: opts.store,
+      packs: opts.packs,
+      tenderId: opts.effectiveItem.id || opts.effectiveItem.tenderId || "",
+      executeAthedFetch: opts.executeAthedFetch === true,
+      registerAcceptedPackInMemory: true,
+      disableAmpedLive: true,
+    });
+    if (opts.isCancelled()) return;
+    opts.setAtesd(result);
+    opts.onSettled?.();
+  } catch {
+    if (opts.isCancelled()) return;
+    opts.setAtesd(null);
+    opts.onSettled?.();
+  }
+}
+
+export function buildAtesdAttemptKey(
+  key: string,
+  expert: IkDocumentExpertReport,
+  executeAthedFetch: boolean,
+): string {
+  return `${key}|atesd|${expert.masterBoq.lineCount}|${expert.masterBoqLines.length}|${executeAthedFetch ? "F" : "A"}`;
 }
 
 export function buildLaborAttemptKey(

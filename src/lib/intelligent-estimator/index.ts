@@ -27,6 +27,64 @@ export type {
 } from "./classification-gate";
 
 export {
+  resolveUnknownPricingPlane,
+  classifyEstimatorPricingPlaneWithDiscovery,
+} from "./autonomous-unknown-plane-discovery";
+export type {
+  AutonomousDiscoveryOutcome,
+  AutonomousDiscoveryDownstreamRoute,
+  ResolveUnknownPricingPlaneInput,
+  ResolveUnknownPricingPlaneResult,
+} from "./autonomous-unknown-plane-discovery";
+
+export {
+  collectAutonomousClassificationEvidence,
+  resolvePlaneAfterIdentity,
+  classificationEvidenceFromKnrNorms,
+} from "./autonomous-classification-evidence";
+export type {
+  ClassificationEvidenceHit,
+  ClassificationEvidenceStrength,
+  CollectClassificationEvidenceInput,
+  CollectClassificationEvidenceResult,
+  ResolvePlaneAfterIdentityInput,
+  KnrNormsClassificationInput,
+} from "./autonomous-classification-evidence";
+
+export {
+  resolveAutonomousLaborResearchPath,
+} from "./autonomous-labor-research-path";
+export type {
+  AutonomousLaborResearchPath,
+  ResolveAutonomousLaborResearchPathResult,
+} from "./autonomous-labor-research-path";
+
+export {
+  runAutonomousLiveLaborResearch,
+} from "./autonomous-live-labor-research";
+export type {
+  AutonomousLiveLaborResearchResult,
+  RunAutonomousLiveLaborResearchInput,
+} from "./autonomous-live-labor-research";
+
+export {
+  persistApfLaborEvidenceToCanonical,
+  mapApfEvidenceToCanonicalObservations,
+  buildCandidateFromDurableLaborEvidence,
+  resolveApfEvidenceCatalogUnit,
+  APF_EVIDENCE_PERSIST_SEAM_ID,
+  APF_EVIDENCE_PARSER_VERSION,
+  APF_EVIDENCE_RESEARCH_METHOD,
+  APF_EVIDENCE_WRITER,
+  APF_EVIDENCE_STORAGE_KEY,
+} from "./apf-labor-evidence-persist";
+export type {
+  PersistApfLaborEvidenceInput,
+  PersistApfLaborEvidenceResult,
+  PersistApfLaborEvidenceFailReason,
+} from "./apf-labor-evidence-persist";
+
+export {
   ESTIMATOR_OWNER_CLASSIFICATION_COUNTS,
   ESTIMATOR_OWNER_CLASSIFICATION_MAP,
   getOwnerClassificationPlane,
@@ -43,6 +101,8 @@ export {
   forceIkMaterialResearchForTests,
   forceIkF5E2eForTests,
   forceIkRiskDecisionE2eForTests,
+  forceIkAtesdTechnologyForTests,
+  forceIkAtesdExecuteFetchForTests,
   isIkEntryEnabled,
   isIkAutoIngestEnabled,
   isIkIdentityCoverageEnabled,
@@ -61,6 +121,8 @@ export {
   isIkP5LaborE2eActive,
   isIkP5LaborExecuteResearchActive,
   resolveIkP5LaborExecuteResearch,
+  isIkAtesdTechnologyE2eActive,
+  isIkAtesdExecuteFetchActive,
   isIkP6MaterialE2eActive,
   isIkP6MaterialExecuteResearchActive,
   resolveIkP6MaterialExecuteResearch,
@@ -328,6 +390,8 @@ export {
   buildMaterialDemandResearchKey,
   isMaterialDemandResearchKey,
   MATERIAL_DEMAND_RESEARCH_KEY_PREFIX,
+  isBomLeafMaterialResearchEligible,
+  collectBomLeafMaterialResearchJobs,
 } from "./ik-material-expert";
 export type {
   IkMaterialBucket,
@@ -444,6 +508,22 @@ export type {
   RunIkLeafMaterialResearchInput,
   RunIkLeafMaterialResearchResult,
 } from "./ik-leaf-research-orchestrator";
+
+/** Authorized labor leaf binding — pure contract over TechnologyPack + leaf gate (no persist). */
+export {
+  evaluateAuthorizedLaborLeafBinding,
+  enumeratePackLaborLeafCandidates,
+  AUTHORIZED_LABOR_LEAF_BINDING_DECISION_ID,
+  AUTHORIZED_LABOR_LEAF_BINDING_RULE_ID,
+  AUTHORIZED_LABOR_LEAF_BINDING_POLICY_VERSION,
+} from "./authorized-labor-leaf-binding";
+export type {
+  AuthorizedLaborLeafBinding,
+  AuthorizedLaborLeafBindingDecision,
+  AuthorizedLaborLeafBindingReason,
+  EvaluateAuthorizedLaborLeafBindingInput,
+  EvaluateAuthorizedLaborLeafBindingResult,
+} from "./authorized-labor-leaf-binding";
 
 export {
   runIkBomGapResearch,

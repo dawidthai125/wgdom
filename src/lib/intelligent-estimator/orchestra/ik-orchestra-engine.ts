@@ -1,6 +1,8 @@
 /**
  * W1/W2 Orchestra — sync pipeline.
- * Order: Document → KNR → KL-3 → Slice D → P4 → Identity(G1) → AUTO G2 → Classification → IdentityCoverage → Composite → P7 → P8.
+ * Order: Document → KNR → KL-3 → Slice D → P4 → Identity(G1) → AUTO G2 → Classification
+ *   → CompoundIdentity(CIE+CIV) → IdentityCoverage → Composite → P7 → P8.
+ * Async runtime (use-ik-orchestra): P5 Labor → ATESD/ATHED → P6 Material.
  */
 
 import { runIkDocumentExpert } from "@/lib/intelligent-estimator/ik-document-expert";
@@ -14,6 +16,11 @@ import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-deci
 import { runIkIdentityPhase } from "@/lib/intelligent-estimator/orchestra/ik-identity-phase";
 import { runIkAutoG2Phase } from "@/lib/intelligent-estimator/orchestra/ik-auto-g2-phase";
 import type { IkAutoG2PhaseResult } from "@/lib/intelligent-estimator/orchestra/ik-auto-g2-phase";
+import {
+  runIkCompoundIdentityPhase,
+  deriveOrchestraNextLegalTransaction,
+  type IkCompoundIdentityPhaseResult,
+} from "@/lib/intelligent-estimator/orchestra/ik-compound-identity-phase";
 import {
   buildDeferredIdentityBlockedContext,
   buildKnrReanalysisDiag,
@@ -272,6 +279,22 @@ export function computeIkOrchestraSyncSnapshot(
     expert: expertForDownstream,
   });
 
+  // ORCHESTRA_COMPOUND_IDENTITY_WIRING — CIE-v1 + CIV-v1 after Classification (ephemeral)
+  let compoundIdentityPhase: IkCompoundIdentityPhaseResult | null = null;
+  if (!knrDownstreamDeferred && postMayProceed && classification.status !== "blocked") {
+    compoundIdentityPhase = runIkCompoundIdentityPhase({
+      classification,
+      store: loadWorkCatalogStoreLocal(),
+    });
+  }
+
+  const nextLegal = deriveOrchestraNextLegalTransaction({
+    classification,
+    compoundIdentity: compoundIdentityPhase,
+    knrDownstreamDeferred,
+    postMayProceed,
+  });
+
   let identityCoverage = null;
   if (
     !knrDownstreamDeferred
@@ -341,6 +364,10 @@ export function computeIkOrchestraSyncSnapshot(
     identityPersistOutcome: null,
     autoG2Phase,
     classification,
+    compoundIdentityPhase,
+    nextLegalTransaction: nextLegal.nextLegalTransaction,
+    nextLegalSource: nextLegal.source,
+    nextLegalOwnerBoundary: nextLegal.ownerBoundaryReached,
     identityCoverage,
     composite,
     positionCostBid,

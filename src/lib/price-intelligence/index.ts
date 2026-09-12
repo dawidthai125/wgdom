@@ -208,6 +208,8 @@ export {
 
 export {
   createEdgeDiySelectiveLookup,
+  createDirectDiySelectiveLookup,
+  createFallbackDiySelectiveLookup,
   createFixtureDiySelectiveLookup,
   createNullDiySelectiveLookup,
 } from "./diy-selective-lookup-client";
@@ -250,6 +252,67 @@ export {
   type TryAutMatAcceptInput,
   type TryAutMatAcceptResult,
 } from "./aut-mat-accept";
+
+export {
+  AUTONOMOUS_MATERIAL_PRICE_EVIDENCE_VERSION,
+  runAutonomousMaterialPriceEvidenceDiscovery,
+  type AmpedMaterialLine,
+  type AmpedMaterialResult,
+  type RunAmpedInput,
+  type RunAmpedResult,
+} from "./autonomous-material-price-evidence-discovery";
+
+export {
+  AUTONOMOUS_MATERIAL_EVIDENCE_DISCOVERY_VERSION,
+  recoverMaterialSpecification,
+  resolveAmedEvidenceConflicts,
+  runAutonomousMaterialEvidenceDiscovery,
+  type AmedConflictState,
+  type AmedEvidenceHit,
+  type AmedMaterialCandidate,
+  type AmedProviderProbe,
+  type AmedProviderStatus,
+  type RunAmedInput,
+  type RunAmedResult,
+} from "./autonomous-material-evidence-discovery";
+
+export type {
+  MaterialSpecificationLevel,
+  MaterialSpecificationRecovery,
+} from "./material-specification-recovery";
+
+export {
+  AUTONOMOUS_MATERIAL_SPECIFICATION_RECOVERY_VERSION,
+  materialEvidenceMatchesRecoveredSpecification,
+  runAutonomousMaterialSpecificationRecovery,
+  type AmsrAttributeHit,
+  type AmsrNormalizedSpecification,
+  type AmsrSourceTier,
+  type RunAmsrInput,
+} from "./material-specification-recovery";
+
+export {
+  AUTONOMOUS_NAMED_SYSTEM_MARKET_MATCH_VERSION,
+  extractNamedSystemCandidatesFromText,
+  isNamedSystemRetailPdpUrl,
+  productLinksToNamedSystem,
+  runAutonomousNamedSystemMarketMatch,
+  type AmsmMatchDecision,
+  type RunAmsmInput,
+  type RunAmsmResult,
+} from "./named-system-market-match";
+
+export {
+  MATERIAL_EVIDENCE_KNOWLEDGE_VERSION,
+  buildMaterialSearchStrategies,
+  clearMaterialEvidenceKnowledgeForTests,
+  findExhaustedEvidenceGap,
+  listMaterialEvidenceKnowledge,
+  recordExhaustedEvidenceGap,
+  upsertMaterialEvidenceKnowledge,
+  type MaterialEvidenceKnowledgeKind,
+  type MaterialEvidenceKnowledgeRecord,
+} from "./material-evidence-knowledge";
 
 export {
   buildNeededMaterialLinesFromExperts,

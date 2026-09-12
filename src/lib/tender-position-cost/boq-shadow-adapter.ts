@@ -16,7 +16,10 @@ import type {
 import type { BoqDependencyGraph } from "@/lib/intelligent-estimator/boq-dependency-graph";
 import { resolveBoqPricingQuantity } from "@/lib/intelligent-estimator/boq-pricing-quantity-resolver";
 import type { TechnologyPack } from "@/lib/technology-foundation";
-import { listAllPacks } from "@/lib/technology-foundation";
+import {
+  ensureBaselineTechnologyPacksRegistered,
+  listAllPacks,
+} from "@/lib/technology-foundation";
 import {
   mergeEphemeralBomPacksIntoRunPacks,
   type IkEphemeralBomBasis,
@@ -31,6 +34,9 @@ import {
   type BomTechnologyResolve,
 } from "@/lib/tender-position-cost/bom-technology-adapter";
 import { isExplicitLaborOnlyWork } from "@/lib/tender-position-cost/labor-only-classification";
+import { isLaborOnlyAutoBomV1Eligible } from "@/lib/intelligent-estimator/orchestra/labor-only-auto-bom-v1-contract";
+import type { KnrDiscoveryEvidenceStore } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-types";
+import { loadKnrDiscoveryEvidenceStoreLocal } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-store";
 import { isExplicitMaterialSupplyWork } from "@/lib/tender-position-cost/material-supply-classification";
 import {
   extractProvisionalRationaleTags,
@@ -462,6 +468,11 @@ export type ComputeShadowPositionCostForLineInput = {
    * NEVER inferred from MISSING_BOM.
    */
   laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
+  /**
+   * LABOR_ONLY_AUTO_BOM_V1 — discovery evidence (default: local kw-knr-discovery-evidence).
+   * Pass null to disable V1 path.
+   */
+  discoveryStore?: KnrDiscoveryEvidenceStore | null;
   /** P5.16-B — extra Owner-approved MATERIAL_SUPPLY workIds (explicit only). */
   materialSupplyWorkIds?: ReadonlySet<string> | readonly string[] | null;
   /**
@@ -916,6 +927,15 @@ export function computeShadowPositionCostForOfferBoqLine(
   const explicitLaborOnly = isExplicitLaborOnlyWork(workId, {
     extraLaborOnlyWorkIds: input.laborOnlyWorkIds,
   });
+  const discoveryStore =
+    input.discoveryStore === undefined
+      ? loadKnrDiscoveryEvidenceStoreLocal()
+      : input.discoveryStore;
+  const laborOnlyV1 = isLaborOnlyAutoBomV1Eligible(workId, {
+    unit,
+    discoveryStore,
+    nowMs,
+  });
   const explicitMaterialSupply = isExplicitMaterialSupplyWork(workId, {
     extraMaterialSupplyWorkIds: input.materialSupplyWorkIds,
   });
@@ -944,8 +964,10 @@ export function computeShadowPositionCostForOfferBoqLine(
   }
 
   // GO86: provisional LABOR_ONLY / seam materialSupply are estimate-only — not Finance BOM authority.
+  // LABOR_ONLY_AUTO_BOM_V1 is evidence-driven Finance authority (same as Owner allowlist).
   const laborOnly =
     explicitLaborOnly
+    || laborOnlyV1
     || (estimateMode
       && (isSeamProvisionalPricingStatus(provisionalLabor?.pricingStatus)
         || isProvisionalLaborOnlyPath(workId, estimatePlane ?? undefined)));
@@ -1069,6 +1091,10 @@ export type ComputeShadowBoqPositionCostsInput = {
   ensureOwnerQuestions?: boolean;
   /** Extra Owner-approved LABOR_ONLY workIds (explicit only). */
   laborOnlyWorkIds?: ReadonlySet<string> | readonly string[] | null;
+  /**
+   * LABOR_ONLY_AUTO_BOM_V1 — discovery evidence (default local; null disables).
+   */
+  discoveryStore?: KnrDiscoveryEvidenceStore | null;
   /** P5.16-B — extra Owner-approved MATERIAL_SUPPLY workIds (explicit only). */
   materialSupplyWorkIds?: ReadonlySet<string> | readonly string[] | null;
   /**
@@ -1116,6 +1142,10 @@ function resolveEphemeralCostBasisForLine(
 export function computeShadowPositionCostsForOfferBoq(
   input: ComputeShadowBoqPositionCostsInput,
 ): ShadowBoqPositionCostResult {
+  // Finance/BidCutover parity with Execution Expert: baseline packs when not injected.
+  if (input.packs === undefined) {
+    ensureBaselineTechnologyPacksRegistered();
+  }
   const runPacks = mergeEphemeralBomPacksIntoRunPacks(
     input.packs ?? listAllPacks(),
     input.ephemeralBomBasisByLineId ?? null,
@@ -1127,6 +1157,7 @@ export function computeShadowPositionCostsForOfferBoq(
       boqDependencyGraph: input.boqDependencyGraph ?? null,
       store: input.store,
       laborOnlyWorkIds: input.laborOnlyWorkIds,
+      discoveryStore: input.discoveryStore,
       materialSupplyWorkIds: input.materialSupplyWorkIds,
       nowMs: input.nowMs,
       paintCoats: input.paintCoats,

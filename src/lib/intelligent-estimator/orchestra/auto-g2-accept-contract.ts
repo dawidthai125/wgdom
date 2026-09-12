@@ -8,7 +8,8 @@
  *
  * Modes authorized now:
  *  - AUTO_RATE: REUSE catalog CURRENT only (no catalog write)
- *  - AUTO_BOM: TechnologyPack singleton OR explicit LABOR_ONLY allowlist
+ *  - AUTO_BOM: TechnologyPack singleton OR LABOR_ONLY
+ *    (Owner allowlist OR LABOR_ONLY_AUTO_BOM_V1 HARD evidence)
  */
 
 import type { OfferBoqLine } from "@/lib/tender-offer-boq";
@@ -28,6 +29,12 @@ import {
 import { isExplicitLaborOnlyWork } from "@/lib/tender-position-cost/labor-only-classification";
 import { isProvisionalLaborOnlyPath } from "@/lib/intelligent-estimator/ik-provisional-estimation";
 import type { TechnologyPack } from "@/lib/technology-foundation";
+import type { KnrDiscoveryEvidenceStore } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-types";
+import {
+  AUTO_BOM_RULE_LABOR_ONLY_AUTO_BOM_V1,
+  evaluateLaborOnlyAutoBomV1Contract,
+} from "@/lib/intelligent-estimator/orchestra/labor-only-auto-bom-v1-contract";
+import { loadKnrDiscoveryEvidenceStoreLocal } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-store";
 
 export const AUTO_RATE_DECISION_ID = "AUTO_RATE_ACCEPT" as const;
 export const AUTO_BOM_DECISION_ID = "AUTO_BOM_ACCEPT" as const;
@@ -36,6 +43,7 @@ export const AUTO_G2_UMBRELLA_ID = "AUTO_G2_ACCEPT" as const;
 export const AUTO_RATE_RULE_REUSE_CURRENT = "auto_rate.reuse_catalog_current_v1";
 export const AUTO_BOM_RULE_TECHNOLOGY_PACK = "auto_bom.technology_pack_singleton_v1";
 export const AUTO_BOM_RULE_LABOR_ONLY = "auto_bom.owner_labor_only_allowlist_v1";
+export { AUTO_BOM_RULE_LABOR_ONLY_AUTO_BOM_V1 };
 
 export type AutoRateDecision = "AUTO_RATE_ACCEPT" | "RATE_EXCEPTION";
 export type AutoBomDecision = "AUTO_BOM_ACCEPT" | "BOM_EXCEPTION";
@@ -58,7 +66,10 @@ export type AutoRateAcceptProvenance = {
 export type AutoBomAcceptProvenance = {
   decisionId: typeof AUTO_BOM_DECISION_ID;
   mode: "TECHNOLOGY_PACK" | "LABOR_ONLY";
-  ruleId: typeof AUTO_BOM_RULE_TECHNOLOGY_PACK | typeof AUTO_BOM_RULE_LABOR_ONLY;
+  ruleId:
+    | typeof AUTO_BOM_RULE_TECHNOLOGY_PACK
+    | typeof AUTO_BOM_RULE_LABOR_ONLY
+    | typeof AUTO_BOM_RULE_LABOR_ONLY_AUTO_BOM_V1;
   workId: string;
   unit: string;
   packId: string | null;
@@ -334,10 +345,16 @@ export type EvaluateAutoBomInput = {
   requireTrustedIdentity?: boolean;
   /** Optional pack registry override (tests / inject) · default listAllPacks via adapter. */
   packs?: readonly TechnologyPack[];
+  /**
+   * LABOR_ONLY_AUTO_BOM_V1 — discovery evidence store (kw-knr-discovery-evidence).
+   * Default: local store. Pass null to disable V1 path (tests).
+   */
+  discoveryStore?: KnrDiscoveryEvidenceStore | null;
 };
 
 /**
- * AUTO_BOM_ACCEPT — TechnologyPack singleton OR explicit LABOR_ONLY allowlist.
+ * AUTO_BOM_ACCEPT — TechnologyPack singleton OR LABOR_ONLY
+ * (Owner allowlist OR LABOR_ONLY_AUTO_BOM_V1 HARD evidence).
  * Provisional cc-w2-* alone = EXCEPTION (B1 CLOSED).
  * MISSING_BOM = EXCEPTION/HOLD.
  */
@@ -363,7 +380,7 @@ export function evaluateAutoBomContract(
   const qty = Number(input.positionQuantity ?? line.quantity ?? 0);
   const positionQuantity = Number.isFinite(qty) && qty >= 0 ? qty : 0;
 
-  // B — explicit Owner LABOR_ONLY allowlist (canonical)
+  // B — explicit Owner LABOR_ONLY allowlist (canonical legacy)
   if (isExplicitLaborOnlyWork(workId)) {
     const bom = resolveLaborOnlyBomForWork({
       workId,
@@ -402,6 +419,59 @@ export function evaluateAutoBomContract(
       idempotentNoop,
       overwriteBlocked: false,
     };
+  }
+
+  // B-V1 — LABOR_ONLY_AUTO_BOM_V1 (HARD labor + explicit NO_MATERIAL_NORM · no invent)
+  const discoveryStore =
+    input.discoveryStore === undefined
+      ? loadKnrDiscoveryEvidenceStoreLocal()
+      : input.discoveryStore;
+  if (discoveryStore) {
+    const v1 = evaluateLaborOnlyAutoBomV1Contract({
+      workId,
+      unit,
+      discoveryStore,
+      nowMs,
+    });
+    if (v1.decision === "LABOR_ONLY_AUTO_BOM_ACCEPT") {
+      const bom = resolveLaborOnlyBomForWork({
+        workId,
+        unit,
+        positionQuantity,
+      });
+      const provenance: AutoBomAcceptProvenance = {
+        decisionId: AUTO_BOM_DECISION_ID,
+        mode: "LABOR_ONLY",
+        ruleId: AUTO_BOM_RULE_LABOR_ONLY_AUTO_BOM_V1,
+        workId,
+        unit,
+        packId: null,
+        packVersion: null,
+        packNamePl: null,
+        evaluatedAtIso: isoNow(nowMs),
+      };
+      if (wouldOverwriteStrongerBomAttestation(line.autoG2Bom, provenance)) {
+        return exceptionBom(["OVERWRITE_BLOCKED_STRONGER_OR_FRESHER"], nowMs, "LABOR_ONLY", {
+          overwriteBlocked: true,
+        });
+      }
+      const idempotentNoop = sameBomProvenance(
+        line.autoG2Bom?.mode === "LABOR_ONLY" || line.autoG2Bom?.mode === "TECHNOLOGY_PACK"
+          ? (line.autoG2Bom as AutoBomAcceptProvenance)
+          : null,
+        provenance,
+      );
+      return {
+        decision: "AUTO_BOM_ACCEPT",
+        reasons: idempotentNoop
+          ? ["IDEMPOTENT_NOOP"]
+          : ["LABOR_ONLY_AUTO_BOM_V1", bom.status, v1.evidenceKeyV1 || ""].filter(Boolean),
+        provenance,
+        bomStatus: "LABOR_ONLY",
+        idempotentNoop,
+        overwriteBlocked: false,
+      };
+    }
   }
 
   // B1 CLOSED — provisional cc-w2-* alone is NOT AUTO_BOM authority

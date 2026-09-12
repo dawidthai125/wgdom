@@ -497,6 +497,7 @@ export {
 } from "@/lib/work-catalog/work-rate-research-cooldown";
 
 export {
+  EVIDENCE_REUSE_POLICY,
   WORK_RATE_RESEARCH_SOURCE_ORDER,
   getDefaultWorkRateLookupPort,
   getNullWorkRateLookupPort,
@@ -508,6 +509,237 @@ export {
   type WorkRateResearchTelemetryCode,
   type WorkRateResearchTelemetryRow,
 } from "@/lib/work-catalog/work-rate-research";
+
+export {
+  GO53_LABOR_EVIDENCE_SUFFICIENCY_ID,
+  OD52_EVIDENCE_FRESHNESS_MODE,
+  EVIDENCE_SUPPRESS_IDENTITY_METHODS,
+  evaluateLaborEvidenceReuseSufficiency,
+  type EvaluateLaborEvidenceReuseSufficiencyInput,
+  type EvaluateLaborEvidenceReuseSufficiencyResult,
+  type LaborEvidenceReuseSufficiencyStatus,
+} from "@/lib/work-catalog/labor-evidence-reuse-sufficiency";
+
+export {
+  KB02_EVIDENCE_HTTP_SUPPRESS_POLICY,
+  KB02_LABOR_EVIDENCE_SEAM_ID,
+  buildEvidenceFromQualifiedObservation,
+  lookupReusableLaborResearchEvidence,
+  persistMeaningfulLaborResearchEvidence,
+  type LookupReusableLaborResearchEvidenceResult,
+  type PersistMeaningfulLaborResearchEvidenceResult,
+} from "@/lib/work-catalog/work-rate-research-evidence-persist";
+
+export {
+  assessConfidence,
+  buildIndependenceKey,
+  buildRateCandidateFromClusters,
+  buildResearchQueries,
+  buildResearchWorkProfile,
+  classifyRateScopeFromContext,
+  clusterNormalizedObservations,
+  evaluateAutoRateEligibility,
+  evaluateAutonomousRateFromFixtures,
+  normalizeResearchObservation,
+  runAutonomousRateResearchEval,
+  type AutoRateEligibility,
+  type AutoRateEligibilityStatus,
+  type AutonomousRateEvalResult,
+  type ConfidenceAssessment,
+  type EvidenceCluster,
+  type InjectedRawObservation,
+  type NormalizedObservation,
+  type RateCandidate,
+  type RateScopeClass,
+  type ResearchObservation,
+  type ResearchQuery,
+  type ResearchQueryIntent,
+  type ResearchSource,
+  type ResearchWorkProfile,
+  type RunAutonomousRateEvalInput,
+} from "@/lib/work-catalog/autonomous-rate-research-eval";
+
+export {
+  GO29_CLASSIFICATION_BLOCK_SEAM,
+  GO30_RECOMMENDATION,
+  auditResearchMetadataFields,
+  deriveResearchClassification,
+  evaluateResearchGateOptions,
+  findCatalogWork,
+  simulateResearchGateUnlock,
+  type MetadataFieldAudit,
+  type ResearchClassification,
+  type ResearchClassificationDerivation,
+  type ResearchGateOption,
+  type ResearchGateSimulation,
+} from "@/lib/work-catalog/research-profile-classification";
+
+export {
+  GO31_NEGATIVE_INVARIANTS,
+  assertPackageLaborNegativeInvariants,
+  auditLegacyPackageLaborComponentControl,
+  auditPackageLaborComponentResearch,
+  listPackageLaborComponentProducersConsumers,
+  type ComponentAuthorityClass,
+  type PackageLaborComponentAuditResult,
+  type PackageLaborComponentCandidate,
+} from "@/lib/work-catalog/package-labor-component-research-audit";
+
+export {
+  GO32_LIFECYCLE_HELPERS,
+  auditGkTechnologyPackAuthority,
+  auditLegacyTechnologyPackPath,
+  documentDraftActiveTransition,
+  documentTechnologyPackRequiredFields,
+  listExistingPackSummaries,
+  listGkLaborLeafCandidates,
+  listOwnerDecisionsP1P7,
+  proposeGkPackReadOnly,
+  type GkPackRequiredField,
+  type LaborLeafCandidate,
+  type LeafCandidateAuthority,
+} from "@/lib/work-catalog/gk-technology-pack-authority-audit";
+
+export {
+  buildLaborLeafIdentityResearchProfile,
+  classifyWorkScopeForGkPartition,
+  discoverLaborLeafIdentities,
+  discoverLegacyLaborLeafControl,
+  evaluateAutoLaborLeafIdentityEligibility,
+  evaluateKnrG177IdentityMapping,
+  type AutoLaborLeafIdentityEligibility,
+  type LaborLeafIdentityCandidate,
+  type LaborLeafIdentityClass,
+  type LaborLeafIdentityResearchProfile,
+} from "@/lib/work-catalog/labor-leaf-identity-discovery";
+
+export {
+  GO34_RECOMMENDED_ARCHITECTURE,
+  GO34_SAFETY_INVARIANTS,
+  auditAutonomousWorkIdentityAcquisition,
+  auditLegacyIdentityAcquisitionHold,
+  documentIdentityLifecycleBoundaries,
+  listWorkCatalogCreationPaths,
+  type CreationPathRecord,
+  type IdentityLifecycleStage,
+  type SourceAuthorityClass,
+} from "@/lib/work-catalog/autonomous-work-identity-acquisition-audit";
+
+export {
+  GO35_DRAFT_POLICY,
+  GO35_PRODUCT_DIRECTION,
+  GO35_PROPOSED_WORK_ID_RECOMMENDATION,
+  GO35_SAFETY_INVARIANTS,
+  designGkLaborIdentityCandidateIllustration,
+  designIdentityCandidateContract,
+  type IdentityCandidateContract,
+  type IdentityCandidateLifecycleStatus,
+  type IdentityOwnerDecisionKind,
+} from "@/lib/work-catalog/identity-candidate-contract";
+
+export {
+  GO36_AUTHORITY_MATRIX,
+  GO36_FORBIDDEN_ACTIONS,
+  GO36_POLICY_VERSION,
+  GO36_P12_AMENDMENT_ID,
+  freezeIdentityCandidatePolicy,
+  freezePolicyP1P12,
+  go36MutationSanity,
+  type PolicyDecision,
+  type PolicyStatus,
+} from "@/lib/work-catalog/identity-candidate-policy";
+
+export {
+  GO37_AUDIT_VERSION,
+  auditIdentityCandidateTtlEvidence,
+  type EvidenceRecord,
+  type StateTtlAnalysis,
+  type TtlOutcome,
+} from "@/lib/work-catalog/identity-candidate-ttl-audit";
+
+export {
+  IDENTITY_CANDIDATE_STORAGE_KEY,
+  GO38_P2_PERSISTENCE_POLICY,
+  createIdentityCandidate,
+  queueIdentityCandidateForOwnerReview,
+  clearIdentityCandidateStoresForTests,
+  loadIdentityCandidateDurableStore,
+  findDurableById,
+  computeIdentityCandidateFingerprint,
+  submitOwnerReviewAction,
+  buildOwnerReviewReadModel,
+  acceptedCanonicalProvenanceSchemaExists,
+  isIdentityCandidateAllowedWriteKey,
+  assertIdentityCandidateDoesNotTouchWorkCatalog,
+  executeIdentityCandidateOwnerAccept,
+  listOwnerReviewAcceptableCandidates,
+  reportNoAcceptableCandidateIfEmpty,
+  mintCanonicalWorkIdFromFingerprint,
+  GO40_GENERATION_VERSION,
+  generateGkLaborIdentityCandidate,
+  runTpi729GkIdentityCandidateScan,
+  evaluateSafeCanonicalReuse,
+  buildGkLaborCreateInput,
+  isGkLaborCandidateConstructible,
+  executeExplicitGkLaborOwnerAcceptGo41,
+  GO41_ACCEPT_VERSION,
+} from "@/lib/work-catalog/identity-candidate-runtime";
+
+export {
+  COMPOUND_IDENTITY_ENGINE_VERSION,
+  isGo33ApplicableParent,
+  collectCompoundLeafEvidence,
+  buildGeneralCompoundCreateInput,
+  buildCompoundIdentityCandidate,
+  type CompoundIdentityStatus,
+  type CompoundIdentityDistinctions,
+  type CompoundLeafEvidenceHit,
+  type BuildCompoundIdentityCandidateInput,
+  type BuildCompoundIdentityCandidateResult,
+} from "@/lib/work-catalog/compound-identity-candidate-engine";
+
+export {
+  COMPOUND_IDENTITY_VALIDATION_VERSION,
+  discoverAdditionalCompoundIdentityEvidence,
+  validateCompoundIdentityCandidate,
+  type CompoundIdentityValidationStatus,
+  type ValidatedEvidenceRecord,
+  type ValidateCompoundIdentityInput,
+  type ValidateCompoundIdentityResult,
+} from "@/lib/work-catalog/compound-identity-candidate-validation";
+
+export {
+  AUTONOMOUS_IDENTITY_DECISION_VERSION,
+  AUTONOMOUS_IDENTITY_DECISION_KIND,
+  AUTONOMOUS_IDENTITY_CANONICAL_PERSIST_AUTHORIZED,
+  evaluateAutonomousIdentityDecision,
+  proposeMinimumAutonomousIdentityPolicyChange,
+  type AutonomousIdentityConfidenceTier,
+  type AutonomousIdentityAction,
+  type AutonomousIdentityDecisionResult,
+} from "@/lib/work-catalog/autonomous-identity-decision-contract";
+
+export {
+  AUTONOMOUS_IDENTITY_DISCOVERY_VERSION,
+  AUTONOMOUS_IDENTITY_DISCOVERY_KIND,
+  discoverIdentityLeafCandidates,
+  type IdentityDiscoveryCandidate,
+  type DiscoverIdentityLeafCandidatesInput,
+  type DiscoverIdentityLeafCandidatesResult,
+} from "@/lib/work-catalog/autonomous-identity-discovery-adapter";
+
+export {
+  AUTONOMOUS_IDENTITY_RESOLUTION_VERSION,
+  AIR_V2_BOUNDS,
+  AIR_RUNTIME,
+  mapToNextAutonomousStrategy,
+  remapOwnerRuntimeToAutonomous,
+  runBoundedAutonomousIdentityResolution,
+  isOwnerRuntimeDependencyCode,
+  type AutonomousResolutionStrategy,
+  type AutonomousResolutionQueueItem,
+  type AutonomousIdentityResolutionV2Result,
+} from "@/lib/work-catalog/autonomous-identity-resolution-v2";
 
 export {
   WORK_RATE_PASS2_CATEGORY_ALLOWLIST,
@@ -697,7 +929,6 @@ export {
   IE_LABOR_IR_WAVE1_FORBIDDEN_CANDIDATE_HOSTS,
   IE_LABOR_IR_WAVE1_KEEP4_SOURCE_IDS,
   IE_LABOR_IR_WAVE1_TARGETS,
-  buildEvidenceFromQualifiedObservation,
   isIeLaborIrWave1CandidateHostForbidden,
   isIeLaborIrWave1Keep4SourceId,
   preflightIeLaborIrWave1Target,
@@ -730,6 +961,13 @@ export {
   type TryAutR1AcceptInput,
   type TryAutR1AcceptResult,
 } from "@/lib/work-catalog/aut-r1-accept";
+
+export {
+  tryAutR1AcceptFromDurableEvidence,
+  AUT_R1_FROM_DURABLE_EVIDENCE_SEAM_ID,
+  type TryAutR1FromDurableEvidenceInput,
+  type TryAutR1FromDurableEvidenceResult,
+} from "@/lib/work-catalog/aut-r1-from-durable-evidence";
 
 export {
   computeProposedWorkRatePln,

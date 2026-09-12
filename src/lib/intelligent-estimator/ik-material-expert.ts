@@ -9,10 +9,13 @@
  *   → evaluateMaterialCache / lookupPriceMemory (HIT → reuse)
  *      · with product identity: materialKey + catalogWorkId
  *      · P5.13 demand path: catalogWorkId only (empty materialKey — no fabricate mat.*)
+ *   → TechnologyPack.materials[] leaf (COMPOSITE design freeze §5.3)
+ *      · demand-exact materialKey only · works for LABOR/COMPOUND BOQ parents
+ *      · ZERO invent · ZERO mat.min.* without market map
  *   → executeMaterialResearchPhase2 (MISS only · executeResearch === true only)
- *      · product identity key OR demand.work.<workId> coordination key
- *   → Candidate → AUT-MAT contract (optional) OR Owner Accept → Price Memory
- *      · attempt ≠ unconditional Accept · EXCEPTION → Owner path
+ *      · product identity key OR demand.work.<workId> OR BOM leaf mat.*
+ *   → Candidate → AUT-MAT contract (optional) OR terminal MATERIAL_EVIDENCE_GAP
+ *      · attempt ≠ unconditional Accept · BOM leaf NEVER Owner Accept marathon
  *
  * P0: executeResearch requires explicit `=== true` (never `!== false` / undefined).
  * ZERO invent product/SKU/price from namePl alone · ZERO Labor rewrite · ZERO F5/Bid.
@@ -61,7 +64,14 @@ import { tryAutMatAcceptMaterialCandidate } from "@/lib/price-intelligence/aut-m
 import type { CommitMarketQuotesDeps } from "@/lib/work-catalog/commit-market-quotes";
 import { saveWorkCatalogRouted } from "@/lib/catalog-write-router";
 import { isInvoicePurchaseMaterialKey } from "@/lib/price-intelligence/invoice-purchase-host";
-import { classifyEstimatorPricingPlane, IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL } from "./classification-gate";
+import {
+  ensureBaselineTechnologyPacksRegistered,
+  listAllPacks,
+  type TechnologyPack,
+} from "@/lib/technology-foundation";
+import { findActiveTechnologyPacksForWorkId } from "@/lib/tender-position-cost/bom-technology-adapter";
+import { IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL } from "./classification-gate";
+import { classifyEstimatorPricingPlaneWithDiscovery } from "./autonomous-unknown-plane-discovery";
 import type {
   EstimatorClassifyResult,
   EstimatorPricingPlane,
@@ -259,6 +269,131 @@ function demandResearchEligible(
   return plane === "MATERIAL" && bucket === "MATERIAL";
 }
 
+/**
+ * COMPOSITE design freeze §5.3 — TechnologyPack.materials[] → Material Expert leaf.
+ * Only legal demand-exact mat.* (never mat.min.* / mat.inv.* / invent from name).
+ */
+export function isBomLeafMaterialResearchEligible(materialKey: string): boolean {
+  const mk = String(materialKey || "").trim();
+  if (!mk.startsWith("mat.")) return false;
+  if (mk.startsWith("mat.min.") || mk.startsWith("mat.inv.")) return false;
+  if (isInvoicePurchaseMaterialKey(mk)) return false;
+  return true;
+}
+
+/**
+ * Collect BOM leaf research jobs from active TechnologyPacks for OfferBoQ workIds.
+ * Fail-closed: unmapped / mat.min keys skipped (no generic substitute).
+ */
+export function collectBomLeafMaterialResearchJobs(input: {
+  lines: ReadonlyArray<{
+    lineId: string;
+    dwellingId: string;
+    catalogWorkId: string | null;
+  }>;
+  packs?: readonly TechnologyPack[] | null;
+  region: string;
+  worksById: Map<string, CatalogWork>;
+  nowMs: number;
+  executeResearch: boolean;
+}): {
+  pending: Map<
+    string,
+    {
+      materialKey: string;
+      catalogWorkId: string;
+      namePl: string;
+      unit: string;
+      lineIds: string[];
+      dwellingId: string;
+      source: "BOM_LEAF";
+    }
+  >;
+  skippedUnmapped: number;
+  hitCurrent: number;
+} {
+  ensureBaselineTechnologyPacksRegistered();
+  const packs = input.packs?.length ? input.packs : listAllPacks();
+  const pending = new Map<
+    string,
+    {
+      materialKey: string;
+      catalogWorkId: string;
+      namePl: string;
+      unit: string;
+      lineIds: string[];
+      dwellingId: string;
+      source: "BOM_LEAF";
+    }
+  >();
+  let skippedUnmapped = 0;
+  let hitCurrent = 0;
+  const seenMat = new Set<string>();
+
+  for (const row of input.lines) {
+    const workId = String(row.catalogWorkId || "").trim();
+    if (!workId) continue;
+    const packsFor = findActiveTechnologyPacksForWorkId(workId, packs);
+    for (const pack of packsFor) {
+      for (const mat of pack.materials || []) {
+        const rawKey = String(mat.materialKey || "").trim();
+        if (!isBomLeafMaterialResearchEligible(rawKey)) {
+          skippedUnmapped += 1;
+          continue;
+        }
+        const exact = resolveDemandProductIdentityExact({
+          materialKey: rawKey,
+          namePl: mat.namePl,
+          unit: mat.unit,
+        });
+        if (!exact) {
+          skippedUnmapped += 1;
+          continue;
+        }
+        const dedupe = `${exact.materialKey}|${input.region}`;
+        if (seenMat.has(dedupe) && pending.has(dedupe)) {
+          const ex = pending.get(dedupe)!;
+          if (!ex.lineIds.includes(row.lineId)) ex.lineIds.push(row.lineId);
+          continue;
+        }
+        seenMat.add(dedupe);
+        const cache = evaluateMaterialCache({
+          materialKey: exact.materialKey,
+          catalogWorkId: exact.catalogWorkId,
+          region: input.region,
+          worksById: input.worksById,
+          nowMs: input.nowMs,
+        });
+        if (cache.usability === "CURRENT") {
+          hitCurrent += 1;
+          continue;
+        }
+        if (!input.executeResearch) continue;
+        const productWork = input.worksById.get(exact.catalogWorkId);
+        const unit =
+          String(productWork?.unit || "").trim()
+          || String(mat.unit || "").trim()
+          || "kg";
+        const existing = pending.get(dedupe);
+        if (existing) {
+          if (!existing.lineIds.includes(row.lineId)) existing.lineIds.push(row.lineId);
+        } else {
+          pending.set(dedupe, {
+            materialKey: exact.materialKey,
+            catalogWorkId: exact.catalogWorkId,
+            namePl: exact.labelPl || mat.namePl || exact.materialKey,
+            unit,
+            lineIds: [row.lineId],
+            dwellingId: row.dwellingId,
+            source: "BOM_LEAF",
+          });
+        }
+      }
+    }
+  }
+  return { pending, skippedUnmapped, hitCurrent };
+}
+
 function emptyCounts(input: number): IkMaterialExpertCounts {
   return {
     inputLineCount: input,
@@ -338,6 +473,11 @@ export async function runIkMasterBoqMaterialExpert(opts: {
   autMatPersist?: boolean;
   /** Test injection — in-memory commit deps (same shape as Owner Accept tests). */
   autMatCommitDeps?: Partial<CommitMarketQuotesDeps>;
+  /**
+   * TechnologyPacks for COMPOSITE §5.3 BOM leaf research.
+   * Default: in-memory registry (ATESD may have registered ATA packs).
+   */
+  packs?: readonly TechnologyPack[] | null;
   lease?: MaterialResearchLeasePort;
   provider?: MaterialResearchProvider;
   mockPriceNet?: number;
@@ -416,6 +556,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     unit: string;
     lineIds: string[];
     dwellingId: string;
+    source: "PRIMARY_IDENTITY" | "P513_DEMAND" | "BOM_LEAF";
   };
   const pendingByKey = new Map<string, PendingResearch>();
   const lines: IkMaterialExpertLineResult[] = [];
@@ -425,12 +566,13 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     const mapped = mapOfferBoqLine(structural, mapCtx);
     const workIdentity = resolveWorkIdentityFromOfferBoqLine(mapped);
     const workId = workIdentity.workId;
-    const classify = classifyEstimatorPricingPlane({
+    const classify = classifyEstimatorPricingPlaneWithDiscovery({
       workId,
       materialKey: null,
       namePl: structural.description,
       unit: structural.unit,
       lineKindHint: mapped.workCategory,
+      store,
     });
     const bucket = bucketFrom(workIdentity, classify.plane);
     const branch =
@@ -487,6 +629,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
               unit: structural.unit,
               lineIds: [structural.lineId],
               dwellingId: ref.dwellingId,
+              source: "PRIMARY_IDENTITY",
             });
           }
         } else {
@@ -526,6 +669,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
               unit: structural.unit,
               lineIds: [structural.lineId],
               dwellingId: ref.dwellingId,
+              source: "P513_DEMAND",
             });
           }
         } else {
@@ -578,11 +722,46 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     });
   }
 
+  // COMPOSITE §5.3 — TechnologyPack.materials[] → P6 leaf research (LEGAL mat.* only).
+  const bomLeaf = collectBomLeafMaterialResearchJobs({
+    lines: lines.map((l) => ({
+      lineId: l.lineId,
+      dwellingId: l.dwellingId,
+      catalogWorkId: l.catalogWorkId,
+    })),
+    packs: opts.packs,
+    region,
+    worksById,
+    nowMs,
+    executeResearch,
+  });
+  if (bomLeaf.skippedUnmapped > 0) {
+    reasons.push(`BOM_LEAF_SKIP_UNMAPPED count=${bomLeaf.skippedUnmapped}`);
+  }
+  if (bomLeaf.hitCurrent > 0) {
+    reasons.push(`BOM_LEAF_PRICE_MEMORY_HIT count=${bomLeaf.hitCurrent}`);
+  }
+  for (const [key, job] of bomLeaf.pending) {
+    if (pendingByKey.has(key)) {
+      const ex = pendingByKey.get(key)!;
+      for (const id of job.lineIds) {
+        if (!ex.lineIds.includes(id)) ex.lineIds.push(id);
+      }
+      continue;
+    }
+    pendingByKey.set(key, job);
+  }
+
   const researchKeys: string[] = [];
   const researchByKey = new Map<string, Phase2ExecuteResult>();
   let researchBoundaryOk = true;
   const lease = opts.lease ?? createEdgeResearchLeasePort();
   const budget = new IkP6MaterialBudget();
+  const bomLeafKeys = new Set(
+    [...pendingByKey.entries()]
+      .filter(([, j]) => j.source === "BOM_LEAF")
+      .map(([k]) => k),
+  );
 
   for (const [key, job] of pendingByKey) {
     researchKeys.push(key);
@@ -624,6 +803,7 @@ export async function runIkMasterBoqMaterialExpert(opts: {
 
   for (const row of lines) {
     if (!row.researchKey) continue;
+    if (bomLeafKeys.has(row.researchKey)) continue; // handled in BOM_LEAF pass
     const res = researchByKey.get(row.researchKey);
     if (!res) continue;
     row.researchError = res.error ?? null;
@@ -694,7 +874,6 @@ export async function runIkMasterBoqMaterialExpert(opts: {
         });
 
         if (aut.ok && aut.accepted) {
-          // Refresh worksById from commit deps when possible
           try {
             const after =
               typeof commitDeps.loadLocal === "function"
@@ -738,8 +917,125 @@ export async function runIkMasterBoqMaterialExpert(opts: {
     row.priceStatus = "RESEARCH_GAP";
   }
 
+  // BOM leaf pass — AUT-MAT with material unit; NEVER Owner Accept marathon
+  for (const [key, job] of pendingByKey) {
+    if (job.source !== "BOM_LEAF") continue;
+    const res = researchByKey.get(key);
+    if (!res) continue;
+    const touchLines = lines.filter((l) => job.lineIds.includes(l.lineId));
+    const annotate = (msg: string, status?: IkMaterialPriceStatus) => {
+      for (const row of touchLines) {
+        if (!row.researchError) row.researchError = msg;
+        else if (!row.researchError.includes(msg)) {
+          row.researchError = `${row.researchError} · ${msg}`;
+        }
+        if (status && (row.priceStatus === "NONE" || row.priceStatus === "RESEARCH_SKIPPED")) {
+          row.priceStatus = status;
+        }
+      }
+    };
+
+    if (res.error === "current_reuse_no_research") {
+      annotate("BOM_LEAF · PRICE_MEMORY_HIT");
+      continue;
+    }
+    if (res.error) {
+      annotate(
+        `BOM_LEAF · MATERIAL_EVIDENCE_GAP · ${res.error}`,
+        "RESEARCH_GAP",
+      );
+      continue;
+    }
+    if (!(res.ok && res.candidate)) {
+      annotate("BOM_LEAF · MATERIAL_EVIDENCE_GAP · NO_CANDIDATE", "RESEARCH_GAP");
+      continue;
+    }
+
+    if (executeResearch && enableAutMatAccept) {
+      const commitDeps: Partial<CommitMarketQuotesDeps> =
+        opts.autMatCommitDeps
+        ?? (autMatPersist
+          ? {
+              load: loadWorkCatalogStore,
+              save: saveWorkCatalogRouted,
+              loadLocal: loadWorkCatalogStoreLocal,
+              saveLocal: saveWorkCatalogStoreLocal,
+            }
+          : {
+              load: async () => liveStore,
+              save: async (next) => {
+                liveStore = next;
+                worksById = new Map(
+                  listActiveWorksForRegion(next, next.activeRegion).map((w) => [
+                    w.id,
+                    w,
+                  ]),
+                );
+                return { ok: true, saved: true };
+              },
+              loadLocal: () => liveStore,
+              saveLocal: (next) => {
+                liveStore = next;
+              },
+            });
+
+      const aut = await tryAutMatAcceptMaterialCandidate({
+        worksById,
+        store: liveStore,
+        candidate: res.candidate,
+        expectedUnit: job.unit,
+        identityTrusted: true,
+        commitDeps,
+        nowMs,
+        region,
+      });
+
+      if (aut.ok && (aut.accepted || aut.idempotentNoop)) {
+        try {
+          const after =
+            typeof commitDeps.loadLocal === "function"
+              ? commitDeps.loadLocal()
+              : liveStore;
+          liveStore = after;
+          worksById = new Map(
+            listActiveWorksForRegion(after, after.activeRegion).map((w) => [
+              w.id,
+              w,
+            ]),
+          );
+        } catch {
+          /* keep */
+        }
+        if (aut.accepted) autoAcceptExecuted = true;
+        annotate(
+          aut.idempotentNoop
+            ? `BOM_LEAF · AUT-MAT IDEMPOTENT_NOOP · ${job.materialKey}`
+            : `BOM_LEAF · AUT-MAT ACCEPT · ${job.materialKey}`,
+        );
+        reasons.push(
+          `BOM_LEAF_AUT_MAT ${aut.idempotentNoop ? "NOOP" : "ACCEPT"} key=${job.materialKey}`,
+        );
+        continue;
+      }
+      annotate(
+        `BOM_LEAF · AUTONOMOUS_RESOLUTION_QUEUE · MATERIAL_EVIDENCE_GAP · ${
+          aut.ok === false ? aut.reason : "AUT_MAT_EXCEPTION"
+        }`,
+        "RESEARCH_GAP",
+      );
+      reasons.push(
+        `BOM_LEAF_AUT_MAT_GAP key=${job.materialKey} reason=${
+          aut.ok === false ? aut.reason : "EXCEPTION"
+        }`,
+      );
+      continue;
+    }
+    annotate("BOM_LEAF · MATERIAL_EVIDENCE_GAP · RESEARCH_SKIPPED", "RESEARCH_GAP");
+  }
+
   // Boundary: product-identity research OR P5.13 demand.work research on MATERIAL only.
   // Forbid LABOR research · forbid UNKNOWN invent · forbid non-demand research without identity.
+  // BOM_LEAF keys are legal mat.* product research (COMPOSITE §5.3) — not LABOR invent.
   for (const row of lines) {
     if (
       !row.materialIdentity

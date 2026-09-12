@@ -14,6 +14,48 @@ export const OWNER_APPROVED_LABOR_ONLY_WORK_IDS: ReadonlySet<string> = new Set([
   "cc-w2-mocowanie-aparatow",
   /** P5.16-B / P5.11 closeout — LABOR only · no TechnologyPack / mat.* / BOM. */
   "cc-p0c-w1-zaprawianie-bruzd",
+  /**
+   * CHROBREGO STEP 1 Owner GO 2026-08-30 — G2 Labor m² F5 unlock.
+   * OUR RATE 22.90 already accepted · no TechnologyPack · ≠ LP48 mb.
+   */
+  "legacy-malowanie-m2",
+  /**
+   * CHROBREGO OWNER_GO_LABOR_ONLY_BOM_4_ELECTRICAL 2026-08-30.
+   * OUR RATE Accept BASE already CURRENT · CR labor-only rows · no TechnologyPack / mat.*.
+   * BOM status = LABOR_ONLY (empty materials) — ≠ MISSING_BOM invent.
+   */
+  "p2b-montaz-wylacznikow-szt",
+  "p2b-montaz-gniazd-lacznikow-szt",
+  "p2b-montaz-opraw-oswietleniowych-szt",
+  "p2b-podlaczenie-kuchenki-elektrycznej-szt",
+  /**
+   * CHROBREGO OWNER_GO_LABOR_ONLY_BOM_HYDRAULIC_DEMONTAGE 2026-08-30.
+   * OUR RATE Accept BASE 49 CURRENT · LP28/31 only · CR labor-only · no TechnologyPack.
+   */
+  "p2b-demontaz-baterii-armatury-szt",
+  /**
+   * CHROBREGO OWNER_GO_BATCH_SAFE 2026-08-30.
+   * Montaż zlewozmywaka · LP42 only · after Accept BASE · CR white_install · no TechnologyPack.
+   */
+  "p2b-montaz-zlewozmywaka-szt",
+  /**
+   * CHROBREGO OWNER_GO_LABOR_ONLY_BOM_LP48 2026-08-30.
+   * Malowanie rur mb · LP48 · OUR RATE Accept BASE 31.25 CURRENT · sccot labor-only · ≠ paint m².
+   * BOM status = LABOR_ONLY (empty materials) — ≠ MISSING_BOM invent · ≠ TechnologyPack.
+   */
+  "legacy-malowanie-rur-mb",
+  /**
+   * CHROBREGO OWNER_GO_RESOLVE_LP30_UNIT_AND_CLOSE_IF_LEGAL 2026-08-30.
+   * Demontaż wanny kpl · OUR RATE Accept BASE 200 · Owner unit policy kpl↔szt 1:1 · kb_pl labor-only.
+   * BOM status = LABOR_ONLY (empty materials) — ≠ MISSING_BOM invent · ≠ TechnologyPack.
+   */
+  "p2b-demontaz-wanny-kpl",
+  /**
+   * CHROBREGO OWNER_GO_LABOR_ONLY_BOM_LP20 2026-08-31.
+   * Listwa wykańczająca prog/płytki mb · LP20 · OUR RATE Accept BASE 80 CURRENT · APM remonty_apm labor-only.
+   * BOM status = LABOR_ONLY (empty materials) — ≠ MISSING_BOM invent · ≠ TechnologyPack.
+   */
+  "p2b-listwa-wykonczajaca-prog-plytki-mb",
 ]);
 
 /**

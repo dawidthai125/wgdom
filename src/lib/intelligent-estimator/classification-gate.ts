@@ -11,7 +11,11 @@ import type {
   EstimatorClassifyResult,
   EstimatorPricingPlane,
 } from "./classification-types";
-import { getOwnerClassificationPlane } from "./owner-classification-map";
+import { classifyEstimatorPricingPlaneA1 } from "./classification-a1-core";
+import {
+  classifyEstimatorPricingPlaneWithDiscovery,
+  type ResolveUnknownPricingPlaneInput,
+} from "./autonomous-unknown-plane-discovery";
 import { isInvoicePurchaseMaterialKey } from "@/lib/price-intelligence/invoice-purchase-host";
 import type { TechnologyPack } from "@/lib/technology-foundation";
 import { LEAF_RESEARCH_PACK_LIFECYCLES } from "@/lib/tender-position-cost/bom-technology-adapter";
@@ -28,145 +32,23 @@ function trimOrNull(v: unknown): string | null {
   return s ? s : null;
 }
 
-function flagsFor(plane: EstimatorPricingPlane): Pick<
-  EstimatorClassifyResult,
-  | "allowLaborCatalogLookup"
-  | "allowLaborResearch"
-  | "allowMaterialCatalogLookup"
-  | "allowMaterialResearch"
-  | "hold"
-  | "holdKind"
-> {
-  switch (plane) {
-    case "LABOR":
-      return {
-        allowLaborCatalogLookup: true,
-        allowLaborResearch: true,
-        allowMaterialCatalogLookup: false,
-        allowMaterialResearch: false,
-        hold: false,
-        holdKind: "NONE",
-      };
-    case "MATERIAL":
-      return {
-        allowLaborCatalogLookup: false,
-        allowLaborResearch: false,
-        allowMaterialCatalogLookup: true,
-        allowMaterialResearch: true,
-        hold: false,
-        holdKind: "NONE",
-      };
-    case "COMPOUND":
-      return {
-        allowLaborCatalogLookup: false,
-        allowLaborResearch: false,
-        allowMaterialCatalogLookup: false,
-        allowMaterialResearch: false,
-        hold: true,
-        holdKind: "COMPOUND",
-      };
-    case "UNKNOWN":
-    default:
-      return {
-        allowLaborCatalogLookup: false,
-        allowLaborResearch: false,
-        allowMaterialCatalogLookup: false,
-        allowMaterialResearch: false,
-        hold: true,
-        holdKind: "UNKNOWN",
-      };
-  }
-}
-
-function buildResult(
-  plane: EstimatorPricingPlane,
-  partial: Omit<
-    EstimatorClassifyResult,
-    | "plane"
-    | "allowLaborCatalogLookup"
-    | "allowLaborResearch"
-    | "allowMaterialCatalogLookup"
-    | "allowMaterialResearch"
-    | "hold"
-    | "holdKind"
-    | "schemaVersion"
-  >,
-): EstimatorClassifyResult {
-  return {
-    plane,
-    schemaVersion: 1,
-    ...partial,
-    ...flagsFor(plane),
-  };
-}
-
 /**
- * Central Classification Gate (Design Freeze).
- * Authority: Owner seed by workId → else mat.* materialKey → else UNKNOWN.
- * Never uses source availability. Never invents LABOR/MATERIAL from namePl.
+ * Central Classification Gate — A1 Owner map / mat.* (pure).
+ * For Orchestra / research gating with autonomous discovery, use
+ * classifyEstimatorPricingPlaneWithDiscovery / assert* (discovery-aware).
  */
 export function classifyEstimatorPricingPlane(
   input: EstimatorClassifyInput,
 ): EstimatorClassifyResult {
-  const workId = trimOrNull(input.workId);
-  const materialKey = trimOrNull(input.materialKey);
-  const namePl = trimOrNull(input.namePl);
-  const unit = trimOrNull(input.unit);
-
-  if (workId) {
-    const seeded = getOwnerClassificationPlane(workId);
-    if (seeded) {
-      return buildResult(seeded, {
-        reasonCode: "OWNER_SEED",
-        reasonPl: `Owner seed map → ${seeded}`,
-        workId,
-        materialKey,
-        namePl,
-        unit,
-        classifiedBy: "owner_seed",
-      });
-    }
-    return buildResult("UNKNOWN", {
-      reasonCode: "NO_SAFE_CLASS",
-      reasonPl: "Brak wpisu w Owner map — UNKNOWN (A1, bez heurystyk)",
-      workId,
-      materialKey,
-      namePl,
-      unit,
-      classifiedBy: "fallback_unknown",
-    });
-  }
-
-  // Pure material-key research (BOM / Price Memory) — MATERIAL plane without inventing workId.
-  if (materialKey && materialKey.startsWith("mat.")) {
-    return buildResult("MATERIAL", {
-      reasonCode: "MATERIAL_KEY",
-      reasonPl: "materialKey mat.* → MATERIAL plane (Price Memory / DIY)",
-      workId: null,
-      materialKey,
-      namePl,
-      unit,
-      classifiedBy: "material_key",
-    });
-  }
-
-  return buildResult("UNKNOWN", {
-    reasonCode: workId || materialKey || namePl ? "NO_SAFE_CLASS" : "MISSING_IDENTITY",
-    reasonPl: "Brak bezpiecznej tożsamości — UNKNOWN (bez invent)",
-    workId,
-    materialKey,
-    namePl,
-    unit,
-    classifiedBy: "fallback_unknown",
-  });
+  return classifyEstimatorPricingPlaneA1(input);
 }
 
 export function assertLaborResearchAllowed(
-  input: EstimatorClassifyInput,
+  input: ResolveUnknownPricingPlaneInput,
 ):
   | { ok: true; classify: EstimatorClassifyResult }
   | { ok: false; classify: EstimatorClassifyResult; blockReason: "CLASSIFICATION_GATE" } {
-  const classify = classifyEstimatorPricingPlane(input);
+  const classify = classifyEstimatorPricingPlaneWithDiscovery(input);
   if (!classify.allowLaborResearch || classify.plane !== "LABOR") {
     return { ok: false, classify, blockReason: "CLASSIFICATION_GATE" };
   }
@@ -212,7 +94,7 @@ export function assertMaterialResearchAllowed(input: {
     return { ok: true, classify };
   }
 
-  const classify = classifyEstimatorPricingPlane({
+  const classify = classifyEstimatorPricingPlaneWithDiscovery({
     workId,
     materialKey,
     namePl: input.namePl,
@@ -225,7 +107,7 @@ export function assertMaterialResearchAllowed(input: {
 }
 
 export function isLaborGapJobAllowed(workId: string): boolean {
-  const c = classifyEstimatorPricingPlane({ workId });
+  const c = classifyEstimatorPricingPlaneWithDiscovery({ workId });
   return c.plane === "LABOR" && c.allowLaborResearch;
 }
 
@@ -304,10 +186,11 @@ export function assertLeafLaborResearchAllowed(input: {
     } {
   const leafWorkId = trimOrNull(input.leafWorkId) || "";
   const parentWorkId = trimOrNull(input.parentWorkId) || "";
-  const classify = classifyEstimatorPricingPlane({
+  const classify = classifyEstimatorPricingPlaneWithDiscovery({
     workId: parentWorkId || leafWorkId || null,
     namePl: input.namePl,
     unit: input.unit,
+    packs: [input.pack],
   });
 
   if (input.callSite !== IK_LEAF_RESEARCH_CALL_SITE) {
@@ -374,10 +257,11 @@ export function assertLeafMaterialResearchAllowed(input: {
     } {
   const materialKey = trimOrNull(input.materialKey) || "";
   const parentWorkId = trimOrNull(input.parentWorkId) || "";
-  const parentClassify = classifyEstimatorPricingPlane({
+  const parentClassify = classifyEstimatorPricingPlaneWithDiscovery({
     workId: parentWorkId,
     namePl: input.namePl,
     unit: input.unit,
+    packs: [input.pack],
   });
 
   if (input.callSite !== IK_LEAF_RESEARCH_CALL_SITE) {

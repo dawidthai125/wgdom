@@ -10,8 +10,9 @@
  *   → lookupWorkRate (CURRENT / MISS)
  *   → lookupInternalFirst (MISS · P5.26-E REUSE)
  *   → runIkLaborGapResearch (MISS + NO_INTERNAL_MATCH · executeResearch === true only)
+ *   → CANDIDATE | EVIDENCE_REUSE → AUT-R1 (§0.2) → Catalog OUR RATE (no Owner UI)
  *
- * ZERO auto-Accept · ZERO Material · ZERO F5/Bid · ZERO invent identity from namePl alone.
+ * ZERO invent identity from namePl alone · ZERO Material · ZERO F5/Bid.
  * P0: executeResearch requires explicit `=== true` (never `!== false` / undefined).
  */
 
@@ -40,9 +41,9 @@ import {
 import { buildIkLaborDedupeKey } from "@/lib/ik-pricing-orchestrator/types";
 import { isCenyMaterialow01Enabled } from "@/lib/ceny-materialow-01-flag";
 import {
-  classifyEstimatorPricingPlane,
   IK_RESEARCH_HELD_COMPOUND_MESSAGE_PL,
 } from "./classification-gate";
+import { classifyEstimatorPricingPlaneWithDiscovery } from "./autonomous-unknown-plane-discovery";
 import type {
   EstimatorClassifyResult,
   EstimatorPricingPlane,
@@ -70,6 +71,7 @@ import {
 } from "@/lib/tender-position-cost/autonomous-pricing-fallback";
 import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
 import { tryAutR1AcceptLaborCandidate } from "@/lib/work-catalog/aut-r1-accept";
+import { tryAutR1AcceptFromDurableEvidence } from "@/lib/work-catalog/aut-r1-from-durable-evidence";
 
 export type IkLaborBucket =
   | "LABOR"
@@ -87,6 +89,11 @@ export type IkLaborRateStatus =
   | "INTERNAL_SEMANTIC_HIT"
   | "INTERNAL_REVIEW"
   | "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+  /**
+   * AUT-R1 contract EXCEPTION after research candidate — autonomous terminal / data gap.
+   * ≠ Owner runtime stop (Owner remains exception UI authority only).
+   */
+  | "AUT_R1_EXCEPTION"
   | "RESEARCH_GAP"
   | "RESEARCH_BLOCKED"
   | "RESEARCH_COOLDOWN"
@@ -186,6 +193,12 @@ export type IkLaborExpertReport = {
   /** Unique workId|unit research keys attempted. */
   researchKeys: string[];
   reasons: string[];
+  /**
+   * Work Catalog after Catalog First / research / AUT-R1 Accept (in-memory).
+   * Callers that need downstream Position Cost MUST use this store when
+   * autR1Persist=false or when routed save is deferred.
+   */
+  store: WorkCatalogStore;
 };
 
 function bucketFrom(
@@ -340,6 +353,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
       lines: [],
       researchKeys: [],
       reasons: ["MASTER_BOQ_NOT_READY", ...expert.reasons.slice(0, 4)],
+      store,
     };
   }
 
@@ -382,12 +396,13 @@ export async function runIkMasterBoqLaborExpert(opts: {
     const mapped = mapOfferBoqLine(structural, mapCtx);
     const identity = resolveWorkIdentityFromOfferBoqLine(mapped);
     const workId = identity.workId;
-    const classify = classifyEstimatorPricingPlane({
+    const classify = classifyEstimatorPricingPlaneWithDiscovery({
       workId,
       materialKey: null,
       namePl: structural.description,
       unit: structural.unit,
       lineKindHint: mapped.workCategory,
+      store,
     });
     const bucket = bucketFrom(identity, classify.plane);
     const branch =
@@ -632,8 +647,56 @@ export async function runIkMasterBoqLaborExpert(opts: {
       continue;
     }
     if (res.status === "EVIDENCE_REUSE") {
-      // GO53 — HTTP suppressed; Evidence ≠ OUR RATE (do not copy price into ourRatePln).
-      // AUT-R1 requires WorkRateResearchCandidate — Evidence-only path stays Owner Exception.
+      // GO53 — HTTP suppressed. Evidence ≠ OUR RATE by itself.
+      // Generic AUT-R1 runtime: Evidence → Candidate → §0.2 → Autonomous Accept.
+      // Do NOT leave a §0.2-eligible Candidate stuck as Owner Exception.
+      const identityTrusted = row.identity.status === "OK" && Boolean(row.identity.workId);
+      if (executeResearch && enableAutR1Accept && identityTrusted) {
+        const built = await tryAutR1AcceptFromDurableEvidence({
+          store,
+          workId: String(row.identity.workId),
+          workNamePl: row.description || String(row.identity.workId),
+          unit: row.unit,
+          observations: res.observations,
+          identityTrusted: true,
+          matchMethod: row.identity.matchMethod,
+          nowMs,
+          persist: autR1Persist,
+        });
+        if (!built.candidateBuilt) {
+          row.rateStatus = "EVIDENCE_REUSE_HTTP_SUPPRESSED";
+          row.ourRatePln = null;
+          row.researchMessagePl =
+            `${res.messagePl} · AUT-R1 blocked · ${built.reason}`;
+          continue;
+        }
+        const aut = built.accept;
+        row.candidate = null;
+        if (aut.ok && aut.accepted) {
+          store = aut.store;
+          row.rateStatus = "CURRENT_HIT";
+          row.ourRatePln = aut.contract.marketBaseRatePln;
+          row.researchMessagePl = `AUT-R1 ACCEPT · ${aut.contract.ruleId} · EVIDENCE_REUSE`;
+          autoAcceptExecuted = true;
+          continue;
+        }
+        if (aut.ok && aut.idempotentNoop) {
+          row.rateStatus = "CURRENT_HIT";
+          row.ourRatePln = aut.contract.marketBaseRatePln;
+          row.researchMessagePl = "AUT-R1 IDEMPOTENT_NOOP · EVIDENCE_REUSE";
+          continue;
+        }
+        reasons.push(
+          `AUT_R1_EXCEPTION line=${row.lineId} reason=${aut.ok === false ? aut.reason : "UNKNOWN"} source=EVIDENCE_REUSE`,
+        );
+        row.rateStatus = "AUT_R1_EXCEPTION";
+        row.ourRatePln = null;
+        row.researchMessagePl =
+          aut.ok === false
+            ? `AUT-R1 EXCEPTION · ${aut.reason} · EVIDENCE_REUSE`
+            : "AUT-R1 EXCEPTION · contract fail-closed · EVIDENCE_REUSE";
+        continue;
+      }
       row.rateStatus = "EVIDENCE_REUSE_HTTP_SUPPRESSED";
       row.ourRatePln = null;
       row.researchMessagePl = res.messagePl;
@@ -672,7 +735,15 @@ export async function runIkMasterBoqLaborExpert(opts: {
         reasons.push(
           `AUT_R1_EXCEPTION line=${row.lineId} reason=${aut.ok === false ? aut.reason : "UNKNOWN"}`,
         );
+        row.rateStatus = "AUT_R1_EXCEPTION";
+        row.researchMessagePl =
+          aut.ok === false
+            ? `AUT-R1 EXCEPTION · ${aut.reason}`
+            : "AUT-R1 EXCEPTION · contract fail-closed";
+        continue;
       }
+      // AUT-R1 disabled or identity untrusted — fail-closed hold (not silent Accept).
+      // Owner UI Accept remains available for explicit Owner Exception flows only.
       row.rateStatus = "CANDIDATE_OWNER_ACCEPT_REQUIRED";
       continue;
     }
@@ -749,6 +820,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
       row.rateStatus === "MISS"
       || row.rateStatus === "STALE_TREATED_AS_MISS"
       || row.rateStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+      || row.rateStatus === "AUT_R1_EXCEPTION"
       || row.rateStatus === "RESEARCH_GAP"
       || row.rateStatus === "RESEARCH_BLOCKED"
       || row.rateStatus === "RESEARCH_COOLDOWN"
@@ -760,6 +832,10 @@ export async function runIkMasterBoqLaborExpert(opts: {
     if (row.rateStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED" && row.candidate) {
       counts.evidenceCandidates += 1;
       counts.ownerAcceptRequired += 1;
+    }
+    if (row.rateStatus === "AUT_R1_EXCEPTION" && row.candidate) {
+      counts.evidenceCandidates += 1;
+      // ownerAcceptRequired unchanged — Zero Owner runtime
     }
   }
   counts.researchCalls = researchKeys.length;
@@ -867,6 +943,7 @@ export async function runIkMasterBoqLaborExpert(opts: {
     lines,
     researchKeys,
     reasons,
+    store,
   };
 }
 
@@ -930,6 +1007,7 @@ export function summarizeIkLaborForTrustedWorkLines(
       row.rateStatus === "MISS"
       || row.rateStatus === "STALE_TREATED_AS_MISS"
       || row.rateStatus === "CANDIDATE_OWNER_ACCEPT_REQUIRED"
+      || row.rateStatus === "AUT_R1_EXCEPTION"
       || row.rateStatus === "RESEARCH_GAP"
       || row.rateStatus === "RESEARCH_BLOCKED"
       || row.rateStatus === "RESEARCH_COOLDOWN"

@@ -9,7 +9,10 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { DwellingLineProvenance } from "@/lib/multi-boq/types";
-import { classifyEstimatorPricingPlane } from "./classification-gate";
+import {
+  resolveUnknownPricingPlane,
+  type ResolveUnknownPricingPlaneResult,
+} from "./autonomous-unknown-plane-discovery";
 import type {
   EstimatorClassifyResult,
   EstimatorPricingPlane,
@@ -56,6 +59,10 @@ export type IkClassifiedMasterLine = {
   classify: EstimatorClassifyResult;
   handoff: IkClassificationHandoff;
   identityStatus: IkIdentityStatus;
+  /** Orchestra wiring — full unknown-plane discovery (ephemeral). */
+  discoveryOutcome: ResolveUnknownPricingPlaneResult["outcome"] | null;
+  discoveryDownstreamRoute: ResolveUnknownPricingPlaneResult["downstreamRoute"] | null;
+  discoveryRan: boolean;
 };
 
 export type IkClassificationCounts = {
@@ -112,7 +119,10 @@ function identityStatusOf(
   }
   if (catalogWorkId || classify.workId) {
     if (classify.reasonCode === "OWNER_SEED") return "HAS_WORK_ID";
-    if (classify.reasonCode === "NO_SAFE_CLASS") return "WORK_ID_NO_OWNER_SEED";
+    if (classify.reasonCode === "DISCOVERY_RESOLVED") return "HAS_WORK_ID";
+    if (classify.reasonCode === "NO_SAFE_CLASS" || classify.reasonCode === "DISCOVERY_HELD") {
+      return "WORK_ID_NO_OWNER_SEED";
+    }
     return "HAS_WORK_ID";
   }
   return "MISSING_IDENTITY";
@@ -127,13 +137,15 @@ function classifyOneLine(opts: {
   const prov = ref.provenance;
   const catalogWorkId = line.catalogWorkId?.trim() || null;
   const materialKey = null; // Master BOQ compose does not carry mat.* — no invent
-  const classify = classifyEstimatorPricingPlane({
+  // Canonical UNKNOWN→discovery — Orchestra consumes outcome/route for re-evaluation.
+  const discovery = resolveUnknownPricingPlane({
     workId: catalogWorkId,
     materialKey,
     namePl: line.description,
     unit: line.unit,
     lineKindHint: line.workCategory,
   });
+  const classify = discovery.classify;
   const branch =
     (prov?.branchHint && prov.branchHint !== "unknown" ? prov.branchHint : null)
     ?? (line.workCategory && String(line.workCategory).trim()
@@ -159,6 +171,9 @@ function classifyOneLine(opts: {
     classify,
     handoff: handoffFromPlane(classify.plane),
     identityStatus: identityStatusOf(classify, catalogWorkId, materialKey),
+    discoveryOutcome: discovery.outcome,
+    discoveryDownstreamRoute: discovery.downstreamRoute,
+    discoveryRan: discovery.discoveryRan === true,
   };
 }
 

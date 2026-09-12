@@ -23,6 +23,11 @@ import {
   saveWorkCatalogStoreLocal,
   WORK_CATALOG_STORAGE_KEY,
 } from "../src/lib/work-catalog/index.ts";
+import {
+  buildLaborSourceEvidenceObservation,
+  clearLaborSourceEvidenceStoreLocalForTests,
+  upsertLaborSourceEvidenceObservations,
+} from "../src/lib/labor-source-evidence/index.ts";
 import { CATALOG_WAVE2_PRODUCT_IDS } from "../src/lib/catalog-coverage/alias-pack-wave2.ts";
 import { acceptWorkRateResearchCandidate } from "../src/lib/work-catalog/work-rate-accept.ts";
 
@@ -421,6 +426,103 @@ const item = {
   const rate = owner.ok ? owner.store.catalogs.wroclaw.works[0].ourWorkRate : null;
   assert("C2 sourceType ACCEPT", rate?.sourceType === "ACCEPT", rate?.sourceType);
   assert("C3 no autR1 block", !rate?.autR1);
+}
+
+// ─── D EVIDENCE_REUSE → Candidate → AUT-R1 (generic runtime closure) ─────────
+{
+  clearWorkRateResearchAntiStormState();
+  clearLaborSourceEvidenceStoreLocalForTests();
+  mem.clear();
+  liveFetch = 0;
+  const works = [makeWork()];
+  const store = makeStore(works);
+  saveWorkCatalogStoreLocal(store, { updatedAtIso: T_FRESH });
+
+  // Seed durable Evidence (same rate) — GO53 SUFFICIENT → HTTP suppress → AUT-R1.
+  const evidenceUrl = "https://kb.pl/cenniki/uslugi/fixture-aut-r1-evidence-reuse/";
+  upsertLaborSourceEvidenceObservations({
+    observations: [
+      buildLaborSourceEvidenceObservation({
+        workId: WORK_ID,
+        workNamePl: NAME,
+        sourceId: "kb_pl",
+        sourceUrl: evidenceUrl,
+        observedName: NAME,
+        unit: UNIT,
+        pricePoint: RATE,
+        priceMin: null,
+        priceMax: null,
+        priceKind: "point",
+        region: "WROCLAW",
+        laborOnly: true,
+        includesMaterial: false,
+        observedAt: T_FRESH,
+        retrievedAt: T_FRESH,
+        identityMatched: true,
+        identityMethod: "exact_name",
+      }),
+    ],
+    nowIso: T_FRESH,
+  });
+
+  // Empty lookup port — must not need HTTP when Evidence REUSE is sufficient.
+  const emptyPort = createFixtureWorkRateSelectiveLookup({
+    kb_pl: { html: "<html></html>" },
+    cennikremontow_pl: { html: "<html></html>" },
+    sccot: { html: "<html></html>" },
+    extradom: { html: "<html></html>" },
+  });
+
+  const report = await runIkMasterBoqLaborExpert({
+    item,
+    expert: readyExpert(synthetic),
+    store,
+    works,
+    executeResearch: true,
+    enableAutR1Accept: true,
+    autR1Persist: true,
+    lookupPort: emptyPort,
+    nowMs: NOW,
+    bypassCooldown: true,
+  });
+
+  const row = report.lines.find((l) => l.lineId === "L-miss");
+  assert("D1 CURRENT_HIT after Evidence REUSE AUT-R1", row?.rateStatus === "CURRENT_HIT", row?.rateStatus);
+  assert(
+    "D2 AUT-R1 EVIDENCE_REUSE message",
+    typeof row?.researchMessagePl === "string"
+      && row.researchMessagePl.includes("AUT-R1")
+      && row.researchMessagePl.includes("EVIDENCE_REUSE"),
+    row?.researchMessagePl,
+  );
+  assert("D3 rate applied", row?.ourRatePln === RATE, row?.ourRatePln);
+  assert("D4 autoAcceptExecuted", report.autoAcceptExecuted === true);
+  assert("D5 not Owner Exception", row?.rateStatus !== "CANDIDATE_OWNER_ACCEPT_REQUIRED");
+  assert("D6 not stuck HTTP suppressed", row?.rateStatus !== "EVIDENCE_REUSE_HTTP_SUPPRESSED");
+
+  const loaded = loadWorkCatalogStoreLocal();
+  const hit = lookupWorkRate(loaded, WORK_ID, UNIT, NOW);
+  assert("D7 lookup CURRENT", hit.status === "CURRENT", hit);
+  assert("D8 lookup rate", hit.ourRatePln === RATE, hit);
+  assert("D9 sourceType AUTO_R1", hit.sourceType === "AUTO_R1", hit.sourceType);
+
+  // Idempotent second pass
+  const report2 = await runIkMasterBoqLaborExpert({
+    item,
+    expert: readyExpert(synthetic),
+    store: loaded,
+    works: loaded.catalogs.wroclaw.works,
+    executeResearch: true,
+    enableAutR1Accept: true,
+    autR1Persist: true,
+    lookupPort: emptyPort,
+    nowMs: NOW + 1000,
+    bypassCooldown: true,
+  });
+  const row2 = report2.lines.find((l) => l.lineId === "L-miss");
+  assert("D10 second pass CURRENT_HIT", row2?.rateStatus === "CURRENT_HIT", row2?.rateStatus);
+  const hit2 = lookupWorkRate(loadWorkCatalogStoreLocal(), WORK_ID, UNIT, NOW + 1000);
+  assert("D11 rate unchanged", hit2.ourRatePln === RATE, hit2);
 }
 
 console.log(`\nAUT-R1 orchestra wire: ${pass} PASS / ${fail} FAIL`);

@@ -24,6 +24,7 @@ import type { HistoricalExecutedIndex } from "@/lib/intelligent-estimator/histor
 import type { TenderItemUpdateOpts } from "@/lib/tender-pipeline/tender-item-persist";
 import type { TenderPackage } from "@/lib/multi-dwelling/types";
 import type { IkAutoG2PhaseResult } from "./ik-auto-g2-phase";
+import type { IkAtesdTechnologyPhaseResult } from "./ik-atesd-technology-phase";
 import type { IkIdentityCoverageOpsView } from "./ik-identity-coverage-ops";
 import type { IkOwnerActionQueueReport } from "./ik-owner-action-queue";
 import type { IkPackageBlockerReport } from "./ik-package-blocker-report";
@@ -46,6 +47,9 @@ export type IkOrchestraFlags = {
   identityCoverageOn: boolean;
   p5LaborOn: boolean;
   p5ResearchOn: boolean;
+  /** ATESD/ATHED technology CONNECT (after G2 / before P6). Optional for legacy test flags. */
+  atesdTechnologyOn?: boolean;
+  atesdExecuteFetchOn?: boolean;
   p6MaterialOn: boolean;
   p6ResearchOn: boolean;
   p7F5On: boolean;
@@ -116,6 +120,12 @@ export type IkOrchestraSyncSnapshot = {
   /** GO24 — AUTO_RATE / AUTO_BOM phase (null when deferred / not proceeded). */
   autoG2Phase: IkAutoG2PhaseResult | null;
   classification: IkClassificationReport;
+  /** Compound CIE+CIV phase (null when skipped/deferred). */
+  compoundIdentityPhase: import("./ik-compound-identity-phase").IkCompoundIdentityPhaseResult | null;
+  /** Deterministic next legal transaction after re-evaluation (no GPT/Cursor). */
+  nextLegalTransaction: string;
+  nextLegalSource: string;
+  nextLegalOwnerBoundary: boolean;
   identityCoverage: IkIdentityCoverageReport | null;
   composite: IkCompositeBothHoldReport | null;
   positionCostBid: IkP7PositionCostBidReport | null;
@@ -203,6 +213,8 @@ export type IkOrchestraSnapshot = IkOrchestraSyncSnapshot & {
   bridgeBusy: boolean;
   labor: IkLaborExpertReport | null;
   material: IkMaterialExpertReport | null;
+  /** ATESD/ATHED technology phase (null when off / not yet settled). */
+  atesdTechnology: IkAtesdTechnologyPhaseResult | null;
   flags: IkOrchestraFlags;
   /** W4-2 — per-line package gate blockers (read-only). */
   packageBlockers: IkPackageBlockerReport | null;

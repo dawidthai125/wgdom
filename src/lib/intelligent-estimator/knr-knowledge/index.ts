@@ -72,6 +72,9 @@ export * from "./knr-discovery-orch";
 /** Phase 2 — on-demand Discovery learning loop (fail-closed · Owner sources required). */
 export * from "./knr-discovery-source-selection";
 export * from "./knr-discovery-source-candidates";
+export * from "./autonomous-knr-source-selection";
+export * from "./chatgpt-knr-research-knowledge";
+export * from "./chatgpt-knr-research-knowledge-data";
 export * from "./knr-discovery-l3-document-resolver";
 export * from "./knr-discovery-fact-extract";
 export * from "./knr-discovery-catalog-stage";
@@ -104,6 +107,10 @@ export * from "./knr-norm-application";
 export * from "./knr-pricing-identity";
 export * from "./knr-pricing-bridge";
 export * from "./knr-owner-identity-seed";
+
+/** CORPUS CONFLICT RESOLUTION v1 — identity may proceed; ATH denylist preserved. */
+export * from "./knr-corpus-conflict-resolution-v1";
+export * from "./knr-corpus-ready-selection";
 
 /** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B / APP-1 / APP-2-ID / APP-2 / Host KL-3 markers from modules). */
 export const KNR_KNOWLEDGE_KL0_IMPLEMENTED = true as const;

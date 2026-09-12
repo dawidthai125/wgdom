@@ -1,6 +1,7 @@
 /**
- * IK-KNR-WC-IDENTITY-BRIDGE P3 — Owner-gated CatalogWork CREATE.
- * REUSE P5.26 insert + saveWorkCatalogRouted only · zero A1/map/pricing/HTTP.
+ * IK-KNR-WC-IDENTITY-BRIDGE P3 — CatalogWork CREATE.
+ * OWNER_CREATE (ownerDecision=CREATE_NEW + P3) OR AUTONOMOUS_CREATE_V1 (ACLC evidence PASS).
+ * REUSE P5.26 insert + saveWorkCatalogRouted · zero A1/map/pricing/HTTP invent.
  */
 
 import {
@@ -24,7 +25,7 @@ import type {
   KnrWcOwnerDecision,
 } from "./knr-wc-identity-bridge-types";
 
-export const KNR_WC_HOLD_UNIT_TABLE_CODES = new Set(["1305-01", "1305-02"]);
+export const KNR_WC_HOLD_UNIT_TABLE_CODES = new Set<string>([]);
 
 export type KnrWcCreateBlockReason =
   | "p3_runtime_off"
@@ -37,7 +38,18 @@ export type KnrWcCreateBlockReason =
   | "work_id_invalid"
   | "name_missing"
   | "confirm_duplicate_high_required"
-  | "confirm_stale_evidence_required";
+  | "confirm_stale_evidence_required"
+  | "autonomous_auth_invalid"
+  | "autonomous_duplicate_high"
+  | "autonomous_stale_evidence";
+
+/** ACLC-v1 — evidence-gated CREATE without Owner runtime. */
+export type KnrWcAutonomousCreateAuthorization = {
+  version: "ACLC-v1";
+  pass: true;
+  auditWhy: string;
+  policyVersion: string;
+};
 
 export type KnrWcCreateAssertInput = {
   proposal: KnrWcIdentityProposal;
@@ -48,6 +60,11 @@ export type KnrWcCreateAssertInput = {
   settings?: AppSettings;
   confirmDuplicateHigh?: boolean;
   confirmStaleEvidence?: boolean;
+  /**
+   * When ACLC-v1 PASS: authorizes CREATE without ownerDecision=CREATE_NEW
+   * and without P3 UI runtime gate. Evidence controls remain fail-closed.
+   */
+  autonomousAuthorization?: KnrWcAutonomousCreateAuthorization | null;
 };
 
 export type KnrWcCreateAssertResult =
@@ -56,6 +73,11 @@ export type KnrWcCreateAssertResult =
 
 export type KnrWcCreateExecuteInput = KnrWcCreateAssertInput & {
   nowIso?: string;
+  /**
+   * `memory_only` — insert into returned store only (dry-run / Orchestra in-memory).
+   * Never calls saveWorkCatalogRouted. Default `routed` preserves Owner P3 path.
+   */
+  persistMode?: "routed" | "memory_only";
 };
 
 export type KnrWcCreateExecuteResult =
@@ -64,12 +86,16 @@ export type KnrWcCreateExecuteResult =
       saved: true;
       workId: string;
       catalogWorksCreated: 1;
+      store?: WorkCatalogStore;
+      persistMode: "routed" | "memory_only";
     }
   | {
       ok: true;
       saved: false;
       blocked: CatalogWriteBlockReason;
       workId: string;
+      store?: WorkCatalogStore;
+      persistMode: "routed" | "memory_only";
     }
   | {
       ok: false;
@@ -113,12 +139,36 @@ function resolveTradeId(proposal: KnrWcIdentityProposal): TradeId {
   return "POZOSTALE";
 }
 
+function isValidAutonomousAuthorization(
+  auth: KnrWcAutonomousCreateAuthorization | null | undefined,
+): auth is KnrWcAutonomousCreateAuthorization {
+  return (
+    !!auth
+    && auth.version === "ACLC-v1"
+    && auth.pass === true
+    && typeof auth.auditWhy === "string"
+    && auth.auditWhy.trim().length >= 12
+    && typeof auth.policyVersion === "string"
+    && auth.policyVersion.trim().length > 0
+  );
+}
+
 export function assertKnrWcCreateAllowed(input: KnrWcCreateAssertInput): KnrWcCreateAssertResult {
+  const autonomousOk = isValidAutonomousAuthorization(input.autonomousAuthorization);
+  if (input.autonomousAuthorization != null && !autonomousOk) {
+    return {
+      ok: false,
+      reason: "autonomous_auth_invalid",
+      message: "AUTONOMOUS_CREATE_V1 authorization invalid — fail-closed.",
+    };
+  }
+
   const runtimeOk =
     typeof input.runtimeP3Enabled === "boolean"
       ? input.runtimeP3Enabled
       : isKnrWcIdentityBridgeP3CreateRuntimeEnabled();
-  if (!runtimeOk) {
+  // OWNER path: P3 runtime required. AUTONOMOUS_CREATE_V1: evidence contract replaces P3 UI gate.
+  if (!runtimeOk && !autonomousOk) {
     return {
       ok: false,
       reason: "p3_runtime_off",
@@ -126,11 +176,12 @@ export function assertKnrWcCreateAllowed(input: KnrWcCreateAssertInput): KnrWcCr
     };
   }
 
-  if (input.ownerDecision !== "CREATE_NEW") {
+  // OWNER_CREATE OR AUTONOMOUS_CREATE_V1
+  if (input.ownerDecision !== "CREATE_NEW" && !autonomousOk) {
     return {
       ok: false,
       reason: "owner_decision_not_create",
-      message: "CREATE wymaga ownerDecision=CREATE_NEW.",
+      message: "CREATE wymaga ownerDecision=CREATE_NEW lub AUTONOMOUS_CREATE_V1 PASS.",
     };
   }
 
@@ -197,20 +248,38 @@ export function assertKnrWcCreateAllowed(input: KnrWcCreateAssertInput): KnrWcCr
     };
   }
 
-  if (input.proposal.duplicateRisk === "HIGH" && input.confirmDuplicateHigh !== true) {
-    return {
-      ok: false,
-      reason: "confirm_duplicate_high_required",
-      message: "duplicateRisk=HIGH — wymagane jawne potwierdzenie Ownera.",
-    };
+  if (input.proposal.duplicateRisk === "HIGH") {
+    if (autonomousOk) {
+      return {
+        ok: false,
+        reason: "autonomous_duplicate_high",
+        message: "duplicateRisk=HIGH — AUTONOMOUS_CREATE fail-closed (no Owner confirm).",
+      };
+    }
+    if (input.confirmDuplicateHigh !== true) {
+      return {
+        ok: false,
+        reason: "confirm_duplicate_high_required",
+        message: "duplicateRisk=HIGH — wymagane jawne potwierdzenie Ownera.",
+      };
+    }
   }
 
-  if (input.proposal.staleEvidence === true && input.confirmStaleEvidence !== true) {
-    return {
-      ok: false,
-      reason: "confirm_stale_evidence_required",
-      message: "staleEvidence — wymagane jawne potwierdzenie Ownera.",
-    };
+  if (input.proposal.staleEvidence === true) {
+    if (autonomousOk) {
+      return {
+        ok: false,
+        reason: "autonomous_stale_evidence",
+        message: "staleEvidence — AUTONOMOUS_CREATE fail-closed (no Owner confirm).",
+      };
+    }
+    if (input.confirmStaleEvidence !== true) {
+      return {
+        ok: false,
+        reason: "confirm_stale_evidence_required",
+        message: "staleEvidence — wymagane jawne potwierdzenie Ownera.",
+      };
+    }
   }
 
   return { ok: true };
@@ -268,6 +337,7 @@ export async function executeKnrWcCatalogWorkCreate(
 
   const workId = String(input.workId).trim();
   const nowIso = input.nowIso ?? new Date().toISOString();
+  const persistMode = input.persistMode ?? "routed";
 
   let nextStore: WorkCatalogStore;
   try {
@@ -292,7 +362,20 @@ export async function executeKnrWcCatalogWorkCreate(
     normalizedKey: input.proposal.normalizedKey,
     workId,
     tenderId: input.proposal.tenderId,
+    persistMode,
+    autonomous: Boolean(input.autonomousAuthorization?.pass),
   });
+
+  if (persistMode === "memory_only") {
+    return {
+      ok: true,
+      saved: true,
+      workId,
+      catalogWorksCreated: 1,
+      store: nextStore,
+      persistMode: "memory_only",
+    };
+  }
 
   const saveResult = await saveWorkCatalogRouted(
     nextStore,
@@ -314,6 +397,7 @@ export async function executeKnrWcCatalogWorkCreate(
       saved: false,
       blocked: saveResult.blocked,
       workId,
+      persistMode: "routed",
     };
   }
 
@@ -322,5 +406,6 @@ export async function executeKnrWcCatalogWorkCreate(
     saved: true,
     workId,
     catalogWorksCreated: 1,
+    persistMode: "routed",
   };
 }

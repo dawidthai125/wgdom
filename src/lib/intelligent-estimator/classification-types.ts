@@ -9,7 +9,11 @@ export type EstimatorClassifyReasonCode =
   | "OWNER_SEED"
   | "MATERIAL_KEY"
   | "NO_SAFE_CLASS"
-  | "MISSING_IDENTITY";
+  | "MISSING_IDENTITY"
+  /** Autonomous discovery seam resolved plane (trusted sources only). */
+  | "DISCOVERY_RESOLVED"
+  /** Autonomous discovery ran but remained UNKNOWN (fail-closed). */
+  | "DISCOVERY_HELD";
 
 export type EstimatorClassifyInput = {
   workId?: string | null;
@@ -34,6 +38,10 @@ export type EstimatorClassifyResult = {
   allowMaterialResearch: boolean;
   hold: boolean;
   holdKind: "NONE" | "COMPOUND" | "UNKNOWN";
-  classifiedBy: "owner_seed" | "material_key" | "fallback_unknown";
+  classifiedBy:
+    | "owner_seed"
+    | "material_key"
+    | "fallback_unknown"
+    | "autonomous_discovery";
   schemaVersion: 1;
 };

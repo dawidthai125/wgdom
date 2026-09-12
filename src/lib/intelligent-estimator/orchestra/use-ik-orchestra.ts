@@ -37,11 +37,14 @@ import {
   isIkIdentityCoverageEnabled,
   isIkP5LaborE2eActive,
   isIkP5LaborExecuteResearchActive,
+  isIkAtesdTechnologyE2eActive,
+  isIkAtesdExecuteFetchActive,
   isIkP6MaterialE2eActive,
   isIkP6MaterialExecuteResearchActive,
   isIkP7F5E2eActive,
   isIkP8RiskDecisionE2eActive,
 } from "@/lib/intelligent-estimator/ik-entry-flag";
+import type { IkAtesdTechnologyPhaseResult } from "./ik-atesd-technology-phase";
 import { evaluateAllDwellingsInPackage } from "@/lib/multi-dwelling/orchestration";
 import { getTenderPackage, upsertTenderPackage } from "@/lib/multi-dwelling/store";
 import { loadWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
@@ -65,9 +68,11 @@ import {
   shouldSkipP5LaborRestart,
 } from "./ik-p5-labor-settle-latch";
 import {
+  buildAtesdAttemptKey,
   buildKl3KnowledgeKey,
   buildLaborAttemptKey,
   buildMaterialAttemptKey,
+  executeAtesdTechnologyPhase,
   executeKl3KnowledgeLookup,
   executeP2IngestBridge,
   executeP5LaborExpert,
@@ -116,6 +121,8 @@ export function useIkOrchestra({
       identityCoverageOn: isIkIdentityCoverageEnabled() === true,
       p5LaborOn: isIkP5LaborE2eActive() === true,
       p5ResearchOn: isIkP5LaborExecuteResearchActive() === true,
+      atesdTechnologyOn: isIkAtesdTechnologyE2eActive() === true,
+      atesdExecuteFetchOn: isIkAtesdExecuteFetchActive() === true,
       p6MaterialOn: isIkP6MaterialE2eActive() === true,
       p6ResearchOn: isIkP6MaterialExecuteResearchActive() === true,
       p7F5On: isIkP7F5E2eActive() === true,
@@ -127,6 +134,8 @@ export function useIkOrchestra({
     p2DocumentsBoqOn,
     p5LaborOn,
     p5ResearchOn,
+    atesdTechnologyOn,
+    atesdExecuteFetchOn,
     p6MaterialOn,
     p6ResearchOn,
   } = flags;
@@ -140,6 +149,8 @@ export function useIkOrchestra({
   const [bridgeBusy, setBridgeBusy] = useState(false);
   const [labor, setLabor] = useState<IkLaborExpertReport | null>(null);
   const [material, setMaterial] = useState<IkMaterialExpertReport | null>(null);
+  const [atesdTechnology, setAtesdTechnology] =
+    useState<IkAtesdTechnologyPhaseResult | null>(null);
   const [identityPersistOutcome, setIdentityPersistOutcome] = useState<
     import("./ik-identity-persist-glue").IkIdentityPersistOutcome | null
   >(null);
@@ -205,8 +216,11 @@ export function useIkOrchestra({
   const laborAttemptedRef = useRef<string | null>(null);
   const laborRunGenerationRef = useRef(0);
   const materialAttemptedRef = useRef<string | null>(null);
+  const atesdAttemptedRef = useRef<string | null>(null);
   const laborSettledRef = useRef(false);
+  const atesdSettledRef = useRef(false);
   const [laborSettleTick, setLaborSettleTick] = useState(0);
+  const [atesdSettleTick, setAtesdSettleTick] = useState(0);
   const [knrKnowledge, setKnrKnowledge] = useState<KnrKnowledgeEnvelope | null>(null);
   const [knowledgeBusy, setKnowledgeBusy] = useState(false);
   const [knrReanalysisSignal, setKnrReanalysisSignal] =
@@ -745,6 +759,59 @@ export function useIkOrchestra({
     };
   }, [effectiveItem, pkg, postIdentityExpert, p5LaborOn, p5ResearchOn, laborRecalcEpoch, knrDownstreamDeferred]);
 
+  // ATESD / ATHED CONNECT — after P5 settle (OUR RATE), before P6
+  useEffect(() => {
+    if (!atesdTechnologyOn) {
+      atesdSettledRef.current = true;
+      atesdAttemptedRef.current = null;
+      setAtesdTechnology(null);
+      return;
+    }
+    if (knrDownstreamDeferred) {
+      atesdSettledRef.current = false;
+      setAtesdTechnology(null);
+      return;
+    }
+    const key = effectiveItem.id || effectiveItem.tenderId || "";
+    if (!key || !expertChainMayProceedFromReport(postIdentityExpert)) {
+      atesdSettledRef.current = false;
+      setAtesdTechnology(null);
+      return;
+    }
+    if (p5LaborOn && laborSettledRef.current !== true) return;
+    const atesdKey = `${buildAtesdAttemptKey(key, postIdentityExpert, atesdExecuteFetchOn)}|ar${laborRecalcEpoch}|${catalogReloadEpoch}`;
+    if (atesdAttemptedRef.current === atesdKey) return;
+    atesdAttemptedRef.current = atesdKey;
+    atesdSettledRef.current = false;
+    let cancelled = false;
+    void executeAtesdTechnologyPhase({
+      effectiveItem,
+      pkg,
+      expert: postIdentityExpert,
+      executeAthedFetch: atesdExecuteFetchOn,
+      isCancelled: () => cancelled,
+      setAtesd: setAtesdTechnology,
+      onSettled: () => {
+        atesdSettledRef.current = true;
+        setAtesdSettleTick((n) => n + 1);
+      },
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    effectiveItem,
+    pkg,
+    postIdentityExpert,
+    atesdTechnologyOn,
+    atesdExecuteFetchOn,
+    p5LaborOn,
+    laborSettleTick,
+    laborRecalcEpoch,
+    catalogReloadEpoch,
+    knrDownstreamDeferred,
+  ]);
+
   // P6 Material E2E
   useEffect(() => {
     if (!p6MaterialOn) {
@@ -761,6 +828,7 @@ export function useIkOrchestra({
       return;
     }
     if (p5LaborOn && laborSettledRef.current !== true) return;
+    if (atesdTechnologyOn && atesdSettledRef.current !== true) return;
     const materialKey = `${buildMaterialAttemptKey(key, postIdentityExpert, p6ResearchOn)}|mr${materialRecalcEpoch}`;
     if (materialAttemptedRef.current === materialKey) return;
     materialAttemptedRef.current = materialKey;
@@ -780,10 +848,12 @@ export function useIkOrchestra({
     effectiveItem,
     pkg,
     postIdentityExpert,
-    p5LaborOn,
     p6MaterialOn,
     p6ResearchOn,
+    p5LaborOn,
+    atesdTechnologyOn,
     laborSettleTick,
+    atesdSettleTick,
     materialRecalcEpoch,
     knrDownstreamDeferred,
   ]);
@@ -1015,6 +1085,7 @@ export function useIkOrchestra({
       bridgeBusy,
       labor,
       material,
+      atesdTechnology,
       flags,
       ...fullSnapshot,
       positionCostBid,
@@ -1035,6 +1106,7 @@ export function useIkOrchestra({
       bridgeBusy,
       labor,
       material,
+      atesdTechnology,
       flags,
       fullSnapshot,
       positionCostBid,
