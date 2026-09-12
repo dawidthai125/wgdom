@@ -2551,7 +2551,14 @@ FORBIDDEN shortcuts:
 | Finance / P7 / P8 | Bid prepare · risk | `runIkP7PositionCostBid` · `runIkP8RiskDecision` | P7→P8 | F5 results | bid CALC prepare | none | G3 / READY_TO_BID |
 | G3 | Final bid boundary | Owner Gates / bid persist | G3 | CALC ready | `ikFinalBid` persist | dossier/bid | Submission (out of scope) |
 | Corpus conflict | CCR-v1 | `knr-corpus-conflict-resolution-v1.ts` | KNR/Knowledge | conflicting corpus | resolved leaf/bind or FAIL_CLOSED | catalog/knowledge | Identity/P5 |
-| Labor leaf rebind | CLLR-v1.1 | `compound-to-labor-leaf-rebind-contract.ts` · `selectCllrRelevantTechnologyPacks` | COMPOUND→LABOR | compound hold | labor leaf bind | OfferBoq/Catalog | P5 · **GLOBAL baseline packs ≠ CLLR relevant context** · `NO_RELEVANT_PACK_CONTEXT` ≠ `ALLB_BLOCK` · relevant pack → ALLB REQUIRED |
+| Labor leaf rebind | CLLR-v1.1 | `compound-to-labor-leaf-rebind-contract.ts` · `selectCllrRelevantTechnologyPacks` · **IdentityPhase always runs (not KL-3-deferred)** · durable only via `runGatedIdentityPersist` | COMPOUND→LABOR | compound hold | labor leaf bind (`auto_contract`) | OfferBoq **after gated persist** | Finance reads **durable package** (not standalone CLLR evaluate) · **GLOBAL baseline packs ≠ CLLR relevant context** · `NO_RELEVANT_PACK_CONTEXT` ≠ `ALLB_BLOCK` · relevant pack → ALLB REQUIRED |
+
+**CLLR durable contract (2026-09-13):**
+- evaluate/apply = ephemeral inside `runIkIdentityPhase`
+- `persistPlans` carries accepted rebinding (`cw.knr…` + `auto_contract`)
+- durable identity exists **only** after `useEffect → runGatedIdentityPersist → attachOfferBoqToDwelling`
+- Finance / BidCutover consumes `getTenderPackage` overlay — **A does not auto-feed B** until gated write
+- IdentityPhase **must** execute in normal Orchestra lifecycle even while `knrDownstreamDeferred` (KL-3 pending); AutoG2/P7/P5–P6 remain deferred
 
 **Rule:** if a row exists → **REUSE → CONNECT → VERIFY**. `NEW` only with Owner architecture GO.
 

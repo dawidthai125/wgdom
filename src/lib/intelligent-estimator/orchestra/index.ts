@@ -26,6 +26,8 @@ export { runIkIdentityPhase } from "./ik-identity-phase";
 export {
   computeOfferBoqIdentityPayloadHash,
   runGatedIdentityPersist,
+  shouldLatchIdentityPersistAttempt,
+  IDENTITY_PERSIST_RETRYABLE_SKIP_REASONS,
 } from "./ik-identity-persist-glue";
 export {
   hasCompleteTrustedIdentityTuple,

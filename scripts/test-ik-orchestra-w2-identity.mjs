@@ -131,9 +131,10 @@ ok("W2-8 Labor runtime uses expert param", /expert:\s*opts\.expert/.test(runtime
 ok("W2-9 Material runtime uses expert param", runtimeSrc.includes("runIkMasterBoqMaterialExpert"));
 ok("W2-8 Hook P5 uses postIdentityExpert", /expert:\s*postIdentityExpert/.test(hookSrc));
 ok("W2-9 Hook P6 uses postIdentityExpert", hookSrc.includes("executeP6MaterialExpert"));
-ok("W2-11 P7 uses postIdentityExpert", /runIkP7PositionCostBid\([\s\S]*expert:\s*postIdentityExpert/.test(engineSrc));
-ok("W2 Classification uses postIdentityExpert", /runIkMasterBoqClassification\([\s\S]*expert:\s*postIdentityExpert/.test(engineSrc));
-ok("W2 Composite uses postIdentityExpert", /runIkCompositeBothHold\([\s\S]*expert:\s*postIdentityExpert/.test(engineSrc));
+ok("W2-11 P7 uses expertForDownstream (post-Identity / post-G2)", /runIkP7PositionCostBid\([\s\S]*expert:\s*expertForDownstream/.test(engineSrc));
+ok("W2 Classification uses expertForDownstream", /runIkMasterBoqClassification\([\s\S]*expert:\s*expertForDownstream/.test(engineSrc));
+ok("W2 Composite uses expertForDownstream", /runIkCompositeBothHold\([\s\S]*expert:\s*expertForDownstream/.test(engineSrc));
+ok("W2 expertForDownstream seeded from postIdentityExpert", engineSrc.includes("let expertForDownstream = postIdentityExpert"));
 ok("W2 persist NOT in sync useMemo", !engineBody.includes("attachOfferBoqToDwelling"));
 ok("W2 gated persist in useEffect", hookSrc.includes("runGatedIdentityPersist"));
 ok("W2 mapper imports trusted preserve", mappingSrc.includes("preserveOfferBoqLineIfTrusted"));
@@ -146,6 +147,14 @@ ok("W3 hook f5EvalAttemptKeyRef guard", hookSrc.includes("f5EvalAttemptKeyRef"))
 ok(
   "W3 hook F5 effect deps exclude pkgEpoch",
   hookSrc.includes("[identityPersistOutcome, identityPersistPlanKey, effectiveItem]"),
+);
+ok(
+  "W2 persist effect deps include pkg (retry when package arrives)",
+  /\[identityPersistPlanKey, identityContext, effectiveItem, pkg\]/.test(hookSrc),
+);
+ok(
+  "W2 persist latches only via shouldLatchIdentityPersistAttempt",
+  hookSrc.includes("shouldLatchIdentityPersistAttempt"),
 );
 ok(
   "W3 hook F5 trigger identityPersistOutcome writes",

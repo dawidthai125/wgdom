@@ -1,7 +1,8 @@
 /**
  * W1/W2 Orchestra — sync pipeline.
- * Order: Document → KNR → KL-3 → Slice D → P4 → Identity(G1) → AUTO G2 → Classification
- *   → CompoundIdentity(CIE+CIV) → IdentityCoverage → Composite → P7 → P8.
+ * Order: Document → KNR → (KL-3 async) → Slice D → P4 → Identity(G1+CLLR) →
+ *   [if !knrDownstreamDeferred] AUTO G2 → Classification → CompoundIdentity → Coverage → Composite → P7 → P8.
+ * Identity runs even while KL-3 pending so gated persist / CLLR are not session-blocked.
  * Async runtime (use-ik-orchestra): P5 Labor → ATESD/ATHED → P6 Material.
  */
 
@@ -22,7 +23,6 @@ import {
   type IkCompoundIdentityPhaseResult,
 } from "@/lib/intelligent-estimator/orchestra/ik-compound-identity-phase";
 import {
-  buildDeferredIdentityBlockedContext,
   buildKnrReanalysisDiag,
   shouldDeferIkDownstreamUntilKnrKnowledge,
 } from "@/lib/intelligent-estimator/orchestra/ik-knr-reanalysis-seam";
@@ -240,21 +240,16 @@ export function computeIkOrchestraSyncSnapshot(
   // P4 — thin trust seam (Owner Enable GO / ENABLED). Slice D remains mapping authority; Identity Phase stays generic.
   const sliceDTrusted = promoteSliceDHitToTrustedTuple({ sliceD: knrMapped });
 
-  let identityPhase;
-  if (knrDownstreamDeferred) {
-    identityPhase = {
-      postIdentityExpert: report,
-      context: buildDeferredIdentityBlockedContext(report.masterBoq.lineCount),
-    };
-  } else {
-    identityPhase = runIkIdentityPhase({
-      structuralReport: report,
-      sliceDExpert: sliceDTrusted.expert,
-      item: effectiveItem,
-      package: pkg,
-      manualOverrides,
-    });
-  }
+  // Identity + gated persist MUST run even while KL-3 knowledge is pending.
+  // CLLR / OfferBoq rebind only need Document admission + Work Catalog — not knrKnowledge.
+  // knrDownstreamDeferred still gates AutoG2 / Coverage / Composite / P7 / P8 / P5–P6 effects.
+  const identityPhase = runIkIdentityPhase({
+    structuralReport: report,
+    sliceDExpert: sliceDTrusted.expert,
+    item: effectiveItem,
+    package: pkg,
+    manualOverrides,
+  });
   const postIdentityExpert = identityPhase.postIdentityExpert;
   const identityContext = identityPhase.context;
   const postMayProceed = expertChainMayProceedFromReport(postIdentityExpert);

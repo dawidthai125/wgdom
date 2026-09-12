@@ -29,6 +29,30 @@ export type IkIdentityPersistOutcome = {
 
 export type IkIdentityPersistSessionGate = Map<string, string>;
 
+/** Soft failures — allow useEffect to retry when package/mapping appears later. */
+export const IDENTITY_PERSIST_RETRYABLE_SKIP_REASONS = new Set<string>([
+  "PACKAGE_NOT_FOUND",
+  "DOCUMENT_MAPPING_REQUIRED",
+  "STORAGE_UNAVAILABLE",
+  "DWELLING_NOT_FOUND",
+  "MISSING_TENDER_ID",
+]);
+
+/**
+ * Latch persistAttemptKeyRef only after a terminal outcome.
+ * Retryable skips must NOT latch — otherwise IdentityPhase plans never re-attach
+ * when the package/mapping arrives on a later render (same identityPersistPlanKey).
+ */
+export function shouldLatchIdentityPersistAttempt(
+  outcome: IkIdentityPersistOutcome,
+): boolean {
+  if (outcome.writes.length > 0) return true;
+  if (outcome.skips.length === 0) return false;
+  return !outcome.skips.some((s) =>
+    IDENTITY_PERSIST_RETRYABLE_SKIP_REASONS.has(s.reason),
+  );
+}
+
 function foldHash(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
@@ -51,6 +75,8 @@ function stableCandidateKey(
 
 /**
  * Stable hash of identity-relevant OfferBoq line fields (per dwelling payload).
+ * Includes Admission noise tags — `isNoise` / `noiseKind` must trigger persist
+ * when organizational headers flip to NOISE_SKIP without catalogWorkId change.
  */
 export function computeOfferBoqIdentityPayloadHash(
   lines: readonly OfferBoqLine[],
@@ -61,6 +87,8 @@ export function computeOfferBoqIdentityPayloadHash(
       catalogWorkId: line.catalogWorkId ?? null,
       matchMethod: line.matchMethod,
       matchConfidence: line.matchConfidence,
+      isNoise: line.isNoise === true,
+      noiseKind: line.noiseKind ?? null,
       candidates: [...(line.candidateMatches ?? [])]
         .map(stableCandidateKey)
         .sort(),

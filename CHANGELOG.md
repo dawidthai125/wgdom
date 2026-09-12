@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.195 — IdentityPhase persist not blocked by KL-3 defer (2026-09-13)
+
+- IdentityPhase + CLLR + persistPlans run even while `knrDownstreamDeferred` (KL-3 pending).
+- AutoG2 / P7 / P5–P6 remain deferred until KNR knowledge ready.
+- Gated persist: latch only on terminal outcome; effect deps include `pkg` for retry.
+- Test: `test-ik-identity-persist-execution-seam.mjs`.
+
 ## 2.66.194 — CLLR-v1.1 relevant TechnologyPack context (2026-09-12)
 
 - CLLR: global baseline packs ≠ relevant pack context for ALLB.

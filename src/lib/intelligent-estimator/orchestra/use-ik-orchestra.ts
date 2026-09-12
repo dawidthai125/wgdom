@@ -60,6 +60,7 @@ import type { KnrKnowledgeEnvelope } from "@/lib/intelligent-estimator/knr-knowl
 import { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 import {
   runGatedIdentityPersist,
+  shouldLatchIdentityPersistAttempt,
   type IkIdentityPersistSessionGate,
 } from "./ik-identity-persist-glue";
 import {
@@ -547,6 +548,7 @@ export function useIkOrchestra({
   }, [manualOverrides]);
 
   // W2 — gated identity persist (NEVER inside sync useMemo).
+  // Latch only on terminal outcomes; retry when package/mapping appears (pkg dep).
   useEffect(() => {
     if (!identityPersistPlanKey || !identityContext?.persistPlans?.length) {
       return;
@@ -554,19 +556,21 @@ export function useIkOrchestra({
     const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
     if (!tenderId) return;
     if (persistAttemptKeyRef.current === identityPersistPlanKey) return;
-    persistAttemptKeyRef.current = identityPersistPlanKey;
 
     const outcome = runGatedIdentityPersist({
       tenderId,
-      package: getTenderPackage(tenderId),
+      package: pkg ?? getTenderPackage(tenderId),
       plans: identityContext.persistPlans,
       sessionGate: persistSessionGateRef.current,
     });
+    if (shouldLatchIdentityPersistAttempt(outcome)) {
+      persistAttemptKeyRef.current = identityPersistPlanKey;
+    }
     setIdentityPersistOutcome(outcome);
     if (outcome.writes.length > 0) {
       setPkgEpoch((n) => n + 1);
     }
-  }, [identityPersistPlanKey, identityContext, effectiveItem]);
+  }, [identityPersistPlanKey, identityContext, effectiveItem, pkg]);
 
   // W3 — materialize F5 f5Gate/subtotals on LS after identity persist writes.
   useEffect(() => {

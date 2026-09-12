@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-13",
+    version: "2.66.195",
+    label: "IdentityPhase persist — not blocked by KL-3 defer",
+    items: [
+      {
+        type: "fix",
+        text: "Orchestra: IdentityPhase+CLLR+persistPlans biegną mimo knrDownstreamDeferred (KL-3 pending). AutoG2/P7/P5–P6 nadal deferred. Gated persist: latch tylko po wyniku terminalnym + dep pkg. Test: test-ik-identity-persist-execution-seam.mjs.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-12",
     version: "2.66.194",
     label: "CLLR-v1.1 — relevant TechnologyPack context (≠ baseline ALLB)",
