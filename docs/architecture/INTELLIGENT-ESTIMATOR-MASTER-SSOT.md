@@ -8,7 +8,7 @@
 > **Rola:** jedyny Master SSOT / cold-start dla IK · **Decision Tree = PRIMARY CONTINUITY CONTRACT** · **★★ FULL IK AUTONOMY = Product North Star**
 > **Zakaz:** drugi Orchestra / Chief / Research / Catalog / Decision Tree / Master SSOT · TPI-specific parallel runtime
 > **Zasada:** **SEARCH → REUSE → CONNECT → RESEARCH → EVIDENCE → VALIDATE → AUTONOMOUS RESOLUTION → PERSIST → REUSE** · SEARCH BEFORE CREATE · **NO REBUILD**
-> **HARD:** Live tip **`2.66.193` @ `a4d3dc8`** · F5/B1/B2 **PV on TPI/729** · AUT-R1+AUT-MAT **IMPLEMENTED on tip** · GO86 provisional≠finance **PV** · **≠** Global IK PV · **CURRENT OPEN NODE (bid path) = `OWNER_FINANCE_NOT_OK`** · **TPI FULL89 residual = capability evidence (≠ architecture)** · **ownerRuntimeDependency target = 0** (routine)
+> **HARD:** Live tip **`2.66.193`** (fetch `/version.json`) · CODE MAIN **`36401b6b`** cold-start lock · F5/B1/B2 **PV on TPI/729** · AUT-R1+AUT-MAT+ACLC+LABOR_ONLY+CCR+CLLR **IMPLEMENTED on tip** · GO86 provisional≠finance **PV** · **≠** Global IK PV · **CURRENT OPEN NODE (bid path) = `OWNER_FINANCE_NOT_OK`** · **TPI FULL89 residual = capability evidence (≠ architecture)** · **ownerRuntimeDependency target = 0** (routine)
 
 ---
 
@@ -141,7 +141,7 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 
 | ID | Gap | Class |
 |----|-----|-------|
-| **AUT-R1** | Research/Evidence → Candidate → `evaluateAutR1LaborAcceptContract` → `acceptWorkRateResearchCandidate` → Work Catalog OUR RATE | **IMPLEMENTED / MAIN VERIFIED** @ `a8c1cadb` (on tip `a4d3dc8`) · Evidence→AUT-R1 Orchestra wire `aut-r1-from-durable-evidence` = **WIP local** until Owner commit · **≠** invent · **≠** unit auto-convert |
+| **AUT-R1** | Research/Evidence → Candidate → `evaluateAutR1LaborAcceptContract` → `acceptWorkRateResearchCandidate` → Work Catalog OUR RATE | **IMPLEMENTED / MAIN VERIFIED** · accept @ `a8c1cadb` · Evidence→AUT-R1 Orchestra wire `aut-r1-from-durable-evidence` **ON TIP** @ `36401b6b` · **≠** invent · **≠** unit auto-convert |
 | **AUT-MAT** | Material Evidence → `aut-mat-accept-contract` → PM Accept | **IMPLEMENTED / MAIN VERIFIED / ON TIP** @ `a4d3dc83` · **≠** labor routing · **≠** multi-source invent |
 | **AUT-BOM** | Provisional / missing BOM → autonomous close tylko gdy contract (AUTO_BOM / `LABOR_ONLY_AUTO_BOM_V1`) | **PARTIAL** · TPI BOM first blockers still heavy · **DATA + POLICY** residual |
 | **AUT-FIN** | Finance / BidCutover residual → READY_TO_BID path | **CURRENT OPEN** (`OWNER_FINANCE_NOT_OK`) — bid path · **≠** permission to invent rates |
@@ -158,9 +158,9 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | Pole | Wartość |
 |------|---------|
 | **LIVE `/version.json`** | **runtime authority** · fetch `https://www.wgdom.fun/version.json` przy każdym audycie |
-| **LIVE PRODUCTION (odczyt 2026-09-12 · cold-start reconcile)** | **version `2.66.193`** · **commit `a4d3dc8`** · full SHA **`a4d3dc834c762c599a827bb336d988ae6599d901`** · prior GO86 tip `201f66c` = **HISTORY tip** (same version label) |
-| **HEAD / origin/main** | **`a4d3dc834c…`** (matches live short) |
-| **HEAD message** | `feat(ik): enable autonomous material our-price accept` (AUT-MAT on tip) |
+| **LIVE PRODUCTION (odczyt 2026-09-12 · cold-start reconcile)** | **version `2.66.193`** · tip may lag · **CODE MAIN after cold-start lock = `36401b6b`** · prior tip `a4d3dc8` (AUT-MAT) · prior GO86 `201f66c` = **HISTORY tip** |
+| **HEAD / origin/main** | **`36401b6b0297…`** (cold-start architecture lock) |
+| **HEAD message** | `chore(ik): lock autonomous cold-start architecture` |
 | **MAIN source tip (changelog)** | **`2.66.193`** (label; tip distinguished by commit **`a4d3dc8`**) |
 | **Documentary tip** | może lagować względem live · **lag EXPECTED / NOT FAIL** · tip [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) |
 | **PRODUCT NORTH STAR** | **FULL IK AUTONOMY** — §0 · routine auto · Owner = exception · `ownerRuntimeDependency = 0` |
@@ -169,7 +169,7 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | **CURRENT FIRST OPEN BLOCKER / CURRENT OPEN NODE (bid path)** | **`OWNER_FINANCE_NOT_OK`** · **UNCHANGED** — Finance/READY_TO_BID |
 | **CURRENT CAPABILITY RESIDUAL (TPI FULL89 · ops evidence)** | COMPLETE **46** / C-COV **28** / OUR_RATE first **11** / LABOR_LEAF **16** / UNIT **1** / MATERIAL_* **0** · ownerRuntime **0** — see **§34** · **≠** Decision Tree CASE rewrite |
 | **CURRENT NEXT LEGAL** | **Owner GO** — residual classes A–E (§34) via REUSE/CONNECT/RESEARCH · finance AUDIT · **≠** „ręcznie Accept 87 stawek” · **≠** G3 persist this session · **≠** rebuild engines |
-| **AUT-R1** | **IMPLEMENTED** · `src/lib/work-catalog/aut-r1-accept-contract.ts` + `aut-r1-accept.ts` · tip includes · Evidence Orchestra wire may be WIP |
+| **AUT-R1** | **IMPLEMENTED** · `aut-r1-accept*` + Evidence wire `aut-r1-from-durable-evidence.ts` · tip `36401b6b` |
 | **AUT-MAT** | **IMPLEMENTED** · `src/lib/price-intelligence/aut-mat-accept-contract.ts` + `aut-mat-accept.ts` · tip `a4d3dc8` |
 | **F5 CLOUD-LEAN MASTER BOQ** | **PRODUCTION VERIFIED** @ **`4e9f7593`** (GO76–GO79) · **≠** Position Cost F5 (`computePositionCost`) |
 | **AUTO G1 (B1)** | **PRODUCTION VERIFIED** (TPI/729) · code @ **`42a82b08`** |
@@ -1290,7 +1290,7 @@ LABOR plane
 | Evidence | `kw-wgdom-labor-source-evidence` |
 | AUT-R1 contract | `src/lib/work-catalog/aut-r1-accept-contract.ts` |
 | AUT-R1 writer | `src/lib/work-catalog/aut-r1-accept.ts` → `acceptWorkRateResearchCandidate` |
-| Evidence→AUT-R1 seam | `aut-r1-from-durable-evidence.ts` (Labor Expert) — may be WIP local until Owner commit |
+| Evidence→AUT-R1 seam | `aut-r1-from-durable-evidence.ts` (Labor Expert) — **IMPLEMENTED on tip** `36401b6b` |
 | Accept (exception) | `acceptWorkRateResearchCandidate` — Owner Exception when §0.2 FAIL |
 | Policy | [`AUTO-G2-ACCEPT-DECISION-FRAMEWORK.md`](./AUTO-G2-ACCEPT-DECISION-FRAMEWORK.md) §4 · Master §0.2 |
 
@@ -1862,7 +1862,7 @@ Knowledge reuse **MUST** reduce: Supabase reads/writes · external research · d
 | KB-07 | Process-memory-only research cooldown/dedup | MEDIUM | **OPEN** |
 | AG-01 | AUTO G1 main Orchestra / IdentityPhase integration | HIGH | **PRODUCTION VERIFIED** (TPI/729 · GO79) · code @ `42a82b08` · auto_contract=**6** · manual=**0** |
 | AG-02 | AUTO G2 main Orchestra RATE∥BOM integration | HIGH | **PRODUCTION VERIFIED** (TPI/729 · GO79 · policy) · code @ `923ea4b3` · RATE 2/89 ACC · BOM 0/89 ACC |
-| AUT-R1 | Research/Evidence → OUR RATE under §0.2 Autonomous Accept | HIGH | **IMPLEMENTED** on tip (`aut-r1-accept*`) · residual = DATA/UNIT/IDENTITY · **≠** invent · Evidence Orchestra wire may be WIP_LOCAL |
+| AUT-R1 | Research/Evidence → OUR RATE under §0.2 Autonomous Accept | HIGH | **IMPLEMENTED** on tip (`aut-r1-accept*` + `aut-r1-from-durable-evidence`) @ `36401b6b` · residual = DATA/UNIT/IDENTITY · **≠** invent |
 | AUT-MAT | Material Evidence + autonomous PM Accept | HIGH | **IMPLEMENTED** on tip `a4d3dc8` (`aut-mat-accept*`) · TPI MATERIAL_* = DATA residual |
 | AUT-G3-PERSIST | `ikFinalBid` autonomous vs Owner persist | HIGH | **ARCHITECTURE GAP** — design GO · no impl this session |
 
@@ -2454,13 +2454,14 @@ CURRENT OPEN NODE (bid) … OWNER_FINANCE_NOT_OK
 CURRENT CAPABILITY RESIDUAL … FULL89 §10.3c / §34 (46/28/11/40 · Owner 0)
 CHROBREGO ……………… CLOSED — do not reopen
 GLOBAL IK PV …………… NO
-LIVE PRODUCTION ……… fetch /version.json → 2.66.193 @ a4d3dc8
-CODE MAIN ……………… a4d3dc834c… (AUT-MAT on tip · AUT-R1 on tip)
+LIVE PRODUCTION ……… fetch /version.json → tip may lag (2.66.193)
+CODE MAIN ……………… 36401b6b (cold-start architecture lock)
   F5 CLOUD-LEAN ……… PRODUCTION VERIFIED @ 4e9f7593 (GO79)
   B1 AUTO G1 ………… PRODUCTION VERIFIED (TPI/729) · 42a82b08
   B2 AUTO G2 ………… PRODUCTION VERIFIED (TPI/729 · policy) · 923ea4b3
-  AUT-R1 ……………… IMPLEMENTED (aut-r1-accept*) · ≠ invent · ≠ unit auto-convert
-  AUT-MAT …………… IMPLEMENTED (aut-mat-accept*) @ tip
+  AUT-R1 ……………… IMPLEMENTED (aut-r1-accept* + Evidence wire) · ≠ invent · ≠ unit auto-convert
+  AUT-MAT …………… IMPLEMENTED (aut-mat-accept*)
+  ACLC / CCR / CLLR / LABOR_ONLY_AUTO_BOM_V1 · ATESD path · ON TIP
   Orchestra …………… Doc→C2→OfferBoq→Knowledge→KNR/P4→G1→G2→Class→P5/P6→F5→P7→P8→Finance→G3
   P5 ………………… lookupWorkRate · AUT-R1 on MISS under §0.2
   O1 / KL HTTP ……… NOT_OBSERVABLE (GO79)
