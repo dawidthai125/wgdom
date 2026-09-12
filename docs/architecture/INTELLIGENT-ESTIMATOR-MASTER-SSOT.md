@@ -2568,6 +2568,14 @@ FORBIDDEN shortcuts:
 - **NOT** LABOR_ONLY / allowlist / painting reuse / 0815-04·06 qty copy
 - Finance consumes resolved BOM; next residual after six 0815-05 lines complete is primarily `BRAK_STAWKI_ROBOT` elsewhere
 
+**COMPOUND parent rate-gap policy (2026-09-13 · TPI/729 ×27 GO):**
+- SSOT knowledge: [`COMPOUND-PARENT-LABOR-LEAF-RESOLUTION-V1.md`](./COMPOUND-PARENT-LABOR-LEAF-RESOLUTION-V1.md)
+- **Rules:** `COMPOUND_PARENT_RATE_GAP → RESOLVE_CANONICAL_LABOR_LEAF_FIRST` · `KNR_LABOR_NORM != OUR_RATE_PLN`
+- **Forbidden:** OUR RATE on compound parent · invent PLN · r-g→PLN · auto-CLLR without leaf∈WC+CURRENT · Finance gap rewrite
+- **TPI/729 residual 27:** implementedConfirmed **0** · RESEARCH_REQUIRED **22** · OWNER_DECISION_REQUIRED **5** (foam underlay family · 0411-08 multi-family) · Finance unchanged **74/22/52**
+- Character split required on shared parents (`legacy-podlogi-m2` = panels / foam / demontage / stone tiles — never one leaf)
+- Package parents (`cc-w2-scianki-…-pakiet`) hosting **2006-04** GK ceiling lines ≠ labor leaf authority
+
 **Rule:** if a row exists → **REUSE → CONNECT → VERIFY**. `NEW` only with Owner architecture GO.
 
 ---
