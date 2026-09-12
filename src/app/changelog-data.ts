@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.196",
+    label: "KNR 2-02 0815-05 — TechnologyPack gładź sufitowa",
+    items: [
+      {
+        type: "new",
+        text: "Baseline TechnologyPack pack.gypsum_skim.ceiling_0815_05_v1 — exact bind cw.knr.knr-2-02.0815-05.m2 · mat.gladz_gipsowa 2.5 kg/m² (BIP Kraków zid=134490 · Owner GO · qty PROVISIONAL). NORMAL_TECHNOLOGY_PACK ≠ LABOR_ONLY. Test: test-gypsum-skim-ceiling-0815-05-v1.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.195",
     label: "IdentityPhase persist — not blocked by KL-3 defer",
     items: [

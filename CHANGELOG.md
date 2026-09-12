@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.196 — KNR 2-02 0815-05 TechnologyPack gładź sufitowa (2026-09-13)
+
+- Baseline pack `pack.gypsum_skim.ceiling_0815_05_v1` — exact bind `cw.knr.knr-2-02.0815-05.m2`.
+- Material `mat.gladz_gipsowa` 2.5 kg/m² (BIP Kraków zid=134490 · Owner GO · qty PROVISIONAL).
+- NORMAL_TECHNOLOGY_PACK — not LABOR_ONLY / painting / 0815-04·06 reuse.
+- Test: `test-gypsum-skim-ceiling-0815-05-v1.mjs`.
+
 ## 2.66.195 — IdentityPhase persist not blocked by KL-3 defer (2026-09-13)
 
 - IdentityPhase + CLLR + persistPlans run even while `knrDownstreamDeferred` (KL-3 pending).

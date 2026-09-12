@@ -2560,6 +2560,14 @@ FORBIDDEN shortcuts:
 - Finance / BidCutover consumes `getTenderPackage` overlay — **A does not auto-feed B** until gated write
 - IdentityPhase **must** execute in normal Orchestra lifecycle even while `knrDownstreamDeferred` (KL-3 pending); AutoG2/P7/P5–P6 remain deferred
 
+**KNR 2-02 0815-05 BOM authority (2026-09-13 · tip 2.66.196):**
+- Canonical work: `cw.knr.knr-2-02.0815-05.m2` (ceiling single-layer gypsum skim)
+- **CLLR** = identity only (compound `legacy-gladzie_tynki-m2` → labor leaf) · Orchestra IdentityPhase passes `packs=undefined` (ALLB optional skip)
+- **TechnologyPack** = BOM/technology: `pack.gypsum_skim.ceiling_0815_05_v1` · leaf-exact `steps[].catalogWorkId` · `mat.gladz_gipsowa` · qtyFactor **2.5 kg/m²** (BIP Kraków zid=134490 · Owner GO) · **PROVISIONAL** pending licensed KNR confirm · BIP labour hours in `labour[]` (≠ OUR RATE PLN)
+- Leaf-only pack intentionally **omits** parent compound from `steps[]` (would mis-BOM non-ceiling lines on parent) · injecting full baseline into CLLR → ALLB_BLOCK (documented) · Finance uses `ensureBaselineTechnologyPacksRegistered` separately
+- **NOT** LABOR_ONLY / allowlist / painting reuse / 0815-04·06 qty copy
+- Finance consumes resolved BOM; next residual after six 0815-05 lines complete is primarily `BRAK_STAWKI_ROBOT` elsewhere
+
 **Rule:** if a row exists → **REUSE → CONNECT → VERIFY**. `NEW` only with Owner architecture GO.
 
 ---

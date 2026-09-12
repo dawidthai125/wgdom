@@ -165,5 +165,16 @@ export {
   seedScreedEconomyWetCementV1,
 } from "./screed-economy-wet-cement-v1";
 
+export {
+  FIXTURE_GYPSUM_SKIM_CEILING_0815_05_PACK_ID,
+  GYPSUM_SKIM_CEILING_0815_05_MATERIAL_KEY,
+  GYPSUM_SKIM_CEILING_0815_05_QTY_FACTOR_KG_PER_M2,
+  GYPSUM_SKIM_CEILING_0815_05_V1_APPROVED_AT,
+  GYPSUM_SKIM_CEILING_0815_05_V1_SOURCE_REF,
+  GYPSUM_SKIM_CEILING_0815_05_WORK_ID,
+  gypsumSkimCeiling081505PackV1,
+  seedGypsumSkimCeiling081505V1,
+} from "./gypsum-skim-ceiling-0815-05-v1";
+
 export { runTechnologyFoundationPipeline } from "./pipeline";
 export type { TechnologyFoundationPipelineResult } from "./pipeline";

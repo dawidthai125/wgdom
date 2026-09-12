@@ -13,6 +13,8 @@ import { normalizeWorkCatalogStore } from "../src/lib/work-catalog/work-catalog-
 import { normalizeTechnologyPack } from "../src/lib/technology-foundation/pack-schema.ts";
 import {
   clearPackRegistryForTests,
+  clearDefinitionRegistryForTests,
+  clearCapabilityRegistryForTests,
   listAllPacks,
   seedB0Fixtures,
   seedScreedEconomyWetCementV1,
@@ -266,23 +268,24 @@ assert(withAllb.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "ACCEPT with ALLB pa
 assert(withAllb.allbPass === true, "allbPass true");
 assert(withAllb.relevantPackCount === 1, "relevant pack count 1");
 
-// TEST A — unrelated baseline packs → NO_RELEVANT_PACK_CONTEXT (≠ ALLB_BLOCK)
+// TEST A — unrelated baseline packs (without 0815-05 gypsum) → NO_RELEVANT_PACK_CONTEXT
 clearPackRegistryForTests();
-ensureBaselineTechnologyPacksRegistered();
+clearDefinitionRegistryForTests();
+clearCapabilityRegistryForTests();
 seedB0Fixtures();
 seedScreedEconomyWetCementV1();
-const baselinePacks = listAllPacks();
-assert(baselinePacks.length === 6, "baseline pack count 6");
-const relevantBaseline = selectCllrRelevantTechnologyPacks({
-  packs: baselinePacks,
+const unrelatedBaselinePacks = listAllPacks();
+assert(unrelatedBaselinePacks.length === 6, "unrelated baseline pack count 6");
+const relevantUnrelated = selectCllrRelevantTechnologyPacks({
+  packs: unrelatedBaselinePacks,
   parentWorkId: PARENT,
   leafWorkId: LEAF,
 });
-assert(relevantBaseline.length === 0, "TEST A relevantPacks=0");
+assert(relevantUnrelated.length === 0, "TEST A relevantPacks=0");
 const unrelated = evaluateCompoundToLaborLeafRebind({
   line: ceilingLine,
   store: storeOk,
-  packs: baselinePacks,
+  packs: unrelatedBaselinePacks,
   nowMs: NOW,
 });
 assert(unrelated.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "TEST A ACCEPT");
@@ -292,6 +295,52 @@ assert(
 );
 assert(!unrelated.reasons.includes("ALLB_BLOCK"), "TEST A no ALLB_BLOCK");
 assert(unrelated.relevantPackCount === 0, "TEST A relevantPackCount=0");
+
+// TEST A2 — full baseline includes leaf-only gypsum BOM pack
+// Pack is CLLR-relevant (leaf in steps) but ALLB requires packBoundToParent(parent)
+// which leaf-only Finance packs intentionally omit (avoid mis-BOM on compound parent).
+// Production IdentityPhase passes packs=undefined → CLLR skips ALLB (TEST A2b).
+clearPackRegistryForTests();
+clearDefinitionRegistryForTests();
+clearCapabilityRegistryForTests();
+ensureBaselineTechnologyPacksRegistered();
+const fullBaseline = listAllPacks();
+assert(fullBaseline.length === 7, "full baseline pack count 7 (incl. gypsum 0815-05)");
+const relevantFull = selectCllrRelevantTechnologyPacks({
+  packs: fullBaseline,
+  parentWorkId: PARENT,
+  leafWorkId: LEAF,
+});
+assert(relevantFull.length === 1, "TEST A2 relevantPacks=1 (gypsum leaf bind)");
+assert(
+  relevantFull[0]?.packId === "pack.gypsum_skim.ceiling_0815_05_v1",
+  "TEST A2 gypsum packId",
+);
+const withGypsumBaseline = evaluateCompoundToLaborLeafRebind({
+  line: ceilingLine,
+  store: storeOk,
+  packs: fullBaseline,
+  nowMs: NOW,
+});
+assert(
+  withGypsumBaseline.decision === "COMPOUND_LEAF_REBIND_EXCEPTION",
+  "TEST A2 EXCEPTION when leaf-only BOM injected into CLLR",
+);
+assert(withGypsumBaseline.reasons.includes("ALLB_BLOCK"), "TEST A2 ALLB_BLOCK");
+assert(withGypsumBaseline.relevantPackCount === 1, "TEST A2 relevantPackCount=1");
+
+// TEST A2b — production IdentityPhase contract: packs omitted → ACCEPT
+const orchestraStyle = evaluateCompoundToLaborLeafRebind({
+  line: ceilingLine,
+  store: storeOk,
+  packs: undefined,
+  nowMs: NOW,
+});
+assert(orchestraStyle.decision === "COMPOUND_LEAF_REBIND_ACCEPT", "TEST A2b ACCEPT packs=undefined");
+assert(
+  orchestraStyle.reasons.includes("ALLB_OPTIONAL_SKIPPED_NO_PACK"),
+  "TEST A2b ALLB skipped without pack injection",
+);
 
 // TEST B — empty packs (regression)
 const emptyPacks = evaluateCompoundToLaborLeafRebind({
