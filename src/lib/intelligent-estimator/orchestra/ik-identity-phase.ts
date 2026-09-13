@@ -43,7 +43,7 @@ import {
 } from "./auto-g1-accept-contract";
 import {
   applyCompoundLaborLeafRebindToLine,
-  evaluateCompoundToLaborLeafRebind,
+  evaluateCanonicalLaborLeafRebind,
 } from "./compound-to-labor-leaf-rebind-contract";
 import type { TechnologyPack } from "@/lib/technology-foundation/types";
 
@@ -369,10 +369,10 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
       }
     }
 
-    // CLLR-v1 — Compound parent → canonical labor leaf (exact scope · leaf OUR RATE CURRENT).
-    // May upgrade an already-trusted COMPOUND bind; never invent; never fuzzy; no Owner queue.
+    // Canonical labor leaf rebind — umbrella (COMPOUND adapter + LABOR→canonical).
+    // May upgrade trusted wrong-parent binds; never invent; never fuzzy; no Owner queue.
     {
-      const rebind = evaluateCompoundToLaborLeafRebind({
+      const rebind = evaluateCanonicalLaborLeafRebind({
         line: lineForOut,
         store,
         packs: input.packs,
@@ -385,12 +385,18 @@ export function runIkIdentityPhase(input: IkIdentityPhaseInput): IkIdentityPhase
     }
 
     if (isIkProvisionalEstimationEnabled()) {
-      for (let pass = 0; pass < 3; pass += 1) {
-        const patch = resolveProvisionalMapperLinePatch(lineForOut, identity, works);
-        if (!patch) break;
-        lineForOut = { ...lineForOut, ...patch };
-        hadProvisionalPatch = true;
-        identity = resolveWorkIdentityFromOfferBoqLine(lineForOut);
+      // Canonical/CLLR ACCEPT must not be overwritten by provisional alias/desc binds.
+      const rebindLocked = /COMPOUND_LEAF_REBIND|CANONICAL_LEAF_REBIND/.test(
+        String(lineForOut.aiRationale || ""),
+      );
+      if (!rebindLocked) {
+        for (let pass = 0; pass < 3; pass += 1) {
+          const patch = resolveProvisionalMapperLinePatch(lineForOut, identity, works);
+          if (!patch) break;
+          lineForOut = { ...lineForOut, ...patch };
+          hadProvisionalPatch = true;
+          identity = resolveWorkIdentityFromOfferBoqLine(lineForOut);
+        }
       }
     }
 

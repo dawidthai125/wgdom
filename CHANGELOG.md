@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.208 — Canonical labor leaf rebind paint/prime (2026-09-13)
+
+- Umbrella: exact primitive + COMPOUND CLLR + LABOR→canonical (1134-01/02)
+- MOPS 08def932: 12 exact lines rebound · no OUR RATE invent · 0815-05 unchanged
+- Test: `test-canonical-labor-leaf-rebind-paint-prime-go.mjs` · ops `ops-canonical-labor-leaf-rebind-paint-prime.mjs`
+
 ## 2.66.207 — AUT-R1 paint/prime P1 verified labor PLN Evidence (2026-09-13)
 
 - Owner routes: Bozków 1204-02 R=3.721 · Cypisek 1505-01 R=1.182 · LOK Łuków 1134-01/02 R=1.044/1.392

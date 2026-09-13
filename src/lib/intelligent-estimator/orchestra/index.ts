@@ -51,7 +51,9 @@ export {
 export type { AutoG1ContractResult, AutoG1Decision } from "./auto-g1-accept-contract";
 
 export {
+  evaluateCanonicalLaborLeafRebind,
   evaluateCompoundToLaborLeafRebind,
+  evaluateLaborToCanonicalLeafRebind,
   applyCompoundLaborLeafRebindToLine,
   isCeilingSingleLayerGypsumSkimActivity,
   selectCllrRelevantTechnologyPacks,
@@ -59,11 +61,26 @@ export {
   COMPOUND_LABOR_LEAF_REBIND_POLICY_VERSION,
   CLLR_RULE_CEILING_SINGLE_GYPSUM_SKIM,
   CLLR_LEAF_0815_05,
+  CLLR_LEAF_1204_02,
+  CLLR_LEAF_1505_01,
+  CLLR_LEAF_1134_01,
+  CLLR_LEAF_1134_02,
 } from "./compound-to-labor-leaf-rebind-contract";
 export type {
   CompoundLaborLeafRebindResult,
   CompoundLaborLeafRebindDecision,
 } from "./compound-to-labor-leaf-rebind-contract";
+
+export {
+  evaluateExactCanonicalLaborLeafRebind,
+  applyCanonicalLaborLeafRebindToLine,
+  rawIdentityDescription,
+  CANONICAL_LABOR_LEAF_REBIND_DECISION_ID,
+} from "./canonical-labor-leaf-rebind-contract";
+export type {
+  ExactCanonicalLaborLeafRebindResult,
+  ExactCanonicalLaborLeafRebindInput,
+} from "./canonical-labor-leaf-rebind-contract";
 
 export {
   evaluateAutoRateContract,

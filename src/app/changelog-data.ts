@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.208",
+    label: "Canonical labor leaf rebind — paint/prime exact identity",
+    items: [
+      {
+        type: "new",
+        text: "Umbrella CANONICAL_LABOR_LEAF_REBIND: common evaluateExactCanonicalLaborLeafRebind + COMPOUND CLLR adapter + LABOR→canonical (legacy-malowanie→1134-01/02). Exact raw KNR tokens only · 1204-02/1505-01 on gladzie · mutual exclusion 1134 · no OUR RATE invent · IdentityPhase seam · provisional lock after ACCEPT. Test: test-canonical-labor-leaf-rebind-paint-prime-go · ops-canonical-labor-leaf-rebind-paint-prime.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.207",
     label: "AUT-R1 paint/prime P1 — verified labor PLN Evidence",
     items: [
