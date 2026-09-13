@@ -233,12 +233,12 @@ import {
   mergeIdentityCandidateDataKey,
   normalizeIdentityCandidateDurableStore,
 } from "@/lib/work-catalog/identity-candidate-store";
+import { MULTI_DWELLING_PACKAGE_LS_KEY } from "@/lib/multi-dwelling/constants";
 import {
-  MULTI_DWELLING_PACKAGE_LS_KEY,
   emptyMultiDwellingPackageStore,
   mergeMultiDwellingPackageDataKey,
   normalizeMultiDwellingPackageStore,
-} from "@/lib/multi-dwelling";
+} from "@/lib/multi-dwelling/store";
 import {
   OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY,
   defaultCompanyKnowledgeStoreForPersist,
