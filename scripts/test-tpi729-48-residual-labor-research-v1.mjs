@@ -40,8 +40,10 @@ const r0401 = TPI729_48_RESIDUAL_RESEARCH_ROWS.find((r) => r.tableCode === "0401
 
 ok("1118 CURRENT", r1118?.status === "AUT_R1_CURRENT" && r1118.claimedDirectLaborPln === 48.201);
 ok("0829 CURRENT", r0829?.status === "AUT_R1_CURRENT" && r0829.claimedDirectLaborPln === 61.12);
-ok("0815 HOLD", r0815?.status === "EVIDENCE_ONLY_HOLD" && r0815.autR1SufficientPlnEvidence === false);
-ok("2006 HOLD", r2006?.status === "EVIDENCE_ONLY_HOLD");
+ok("0815 CURRENT", r0815?.status === "AUT_R1_CURRENT" && r0815.claimedDirectLaborPln === 13.15013);
+ok("0815 URL resolved", r0815?.sources.some((s) => s.urlResolved && /powiatobornicki/.test(s.sourceUrl || "")));
+ok("2006 CURRENT", r2006?.status === "AUT_R1_CURRENT" && r2006.claimedDirectLaborPln === 9.62);
+ok("2006 URL resolved", r2006?.sources.some((s) => s.urlResolved && /winbud/.test(s.sourceUrl || "")));
 ok(
   "1205 live knnr-2",
   r1205?.liveWorkId === "cw.knr.knnr-2.1205-09.m2" &&
@@ -62,7 +64,7 @@ ok("transport excluded", transport?.status === "EXCLUDED");
 ok("etics excluded", etics?.status === "EXCLUDED");
 ok("p31 excluded", p31?.status === "EXCLUDED");
 
-// No row may claim AUT_R1_READY without sufficient PLN + resolved URL
+// Claimed PLN that is not yet CURRENT must stay HOLD (not silent invent)
 for (const row of TPI729_48_RESIDUAL_RESEARCH_ROWS) {
   if (row.status === "AUT_R1_READY" || row.status === "AUT_R1_CURRENT") {
     ok(
@@ -70,7 +72,11 @@ for (const row of TPI729_48_RESIDUAL_RESEARCH_ROWS) {
       row.sources.some((s) => s.urlResolved && s.sourceUrl) && row.autR1SufficientPlnEvidence,
     );
   }
-  if (row.claimedDirectLaborPln != null && !row.autR1SufficientPlnEvidence) {
+  if (
+    row.claimedDirectLaborPln != null &&
+    !row.autR1SufficientPlnEvidence &&
+    row.status !== "AUT_R1_CURRENT"
+  ) {
     ok(
       `claimed PLN not auto-ready ${row.tableCode || row.liveWorkId}`,
       row.status === "EVIDENCE_ONLY_HOLD" || row.status === "IDENTITY_HOLD",

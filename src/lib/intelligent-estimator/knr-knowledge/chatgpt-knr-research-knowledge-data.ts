@@ -53,7 +53,7 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
         },
       ]),
       notes:
-        "TPI729-48-RESIDUALS-V1: labor norm 0.5093 r-g/m2 corroborated (ChatGPT) · claimed historical labor 13.15013 PLN/m2 (Obornicki 0.5093×25.82) ≠ OUR RATE · SOURCE_URL_NOT_RESOLVED_FOR_HOST_LOCK → EVIDENCE_ONLY_HOLD · ≠ 0815-05 · no r-g×national rate",
+        "TPI729-48-RESIDUALS-V1: labor norm 0.5093 r-g/m2 · BIP Obornicki Evidence 13.15013 PLN/m2 → AUT-R1 CURRENT 13.15 AUTO_R1 (2.66.200) · historical estimate PLN = Evidence only via contract · ≠ 0815-05 · no r-g×national rate",
     },
     {
       tableCode: "0815-05",
@@ -302,7 +302,7 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
         },
       ]),
       notes:
-        "MASTER_EVIDENCE_SPRINT — external HARD corroborates corpus hash 77025d79 (na rusztach); competing 673a4ce5 NOT deleted; corpus CONFLICT_DENYLIST has no auto-promote resolver → FAIL_CLOSED until Owner resolves frozen conflict · TPI729-48-RESIDUALS-V1: labor norm 0.7039 r-g/m2 · claimed historical 9.622 PLN/m2 (TYT×13.67) ≠ OUR RATE · SOURCE_URL_NOT_RESOLVED_FOR_HOST_LOCK → EVIDENCE_ONLY_HOLD · no 0.7039×52.30",
+        "MASTER_EVIDENCE_SPRINT — external HARD corroborates corpus hash 77025d79 (na rusztach); competing 673a4ce5 NOT deleted; corpus CONFLICT_DENYLIST has no auto-promote resolver → FAIL_CLOSED until Owner resolves frozen conflict · TPI729-48-RESIDUALS-V1: labor norm 0.7039 r-g/m2 · winbud Szczegolowy.pdf Evidence 9.62 PLN/m2 → AUT-R1 CURRENT 9.62 AUTO_R1 (2.66.200) · historical estimate PLN = Evidence only via contract · no 0.7039×52.30",
     },
     {
       tableCode: "1118-09",

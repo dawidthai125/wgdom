@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.200",
+    label: "AUT-R1 0815-04 + 2006-04 exact HTTPS Evidence",
+    items: [
+      {
+        type: "new",
+        text: "Owner Evidence routes: BIP Obornicki 13.15013 PLN/m² → 0815-04 CURRENT 13.15 AUTO_R1 · winbud Szczegolowy.pdf 9.62 PLN/m² → 2006-04 CURRENT 9.62 AUTO_R1. Historical estimate = Evidence only via AUT-R1. 0815-05/1118/0829 immutable. Test: test-labor-source-evidence-01 · test-tpi729-48-residual-labor-research-v1 · ops catalog-aut-r1-0815-04-2006-04-ops.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.199",
     label: "TPI/729 48 residual labor research SSOT",
     items: [

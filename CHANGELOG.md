@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.200 — AUT-R1 0815-04 + 2006-04 exact HTTPS Evidence (2026-09-13)
+
+- BIP Obornicki → 0815-04 CURRENT 13.15 AUTO_R1 · winbud Szczegolowy.pdf → 2006-04 CURRENT 9.62 AUTO_R1
+- Historical estimate PLN = Evidence only via existing AUT-R1 · 0815-05/1118/0829 immutable
+
 ## 2.66.199 — TPI/729 48 residual labor research SSOT (2026-09-13)
 
 - Durable register 27 COMPOUND / 12 KNR / 9 excluded · live identity verify · 0 new AUT-R1 (no invent)

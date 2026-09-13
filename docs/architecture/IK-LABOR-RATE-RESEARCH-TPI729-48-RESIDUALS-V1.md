@@ -56,17 +56,22 @@ Prior closed (not in the 48 as MISSING leaves, but keep immutable):
 
 ## 3. Research rows (summary)
 
-### 3.1 AUT_R1_CURRENT (immutable)
+### 3.1 AUT_R1_CURRENT (immutable unless Owner GO)
 
-- **1118-09** — 48.201 → CURRENT 48.20 · URL resolved · host-locked route
-- **0829-03** — 61.12 → CURRENT 61.12 · URL resolved · host-locked route
+| Leaf | OUR RATE | Evidence source |
+|------|----------|-----------------|
+| 1118-09 | **48.20 AUTO_R1** | BIP Olecko PDF |
+| 0829-03 | **61.12 AUTO_R1** | fliphtml5 estimate |
+| 0815-05 | **22.88 AUTO_R1** | prior TechnologyPack GO |
+| **0815-04** | **13.15 AUTO_R1** (2.66.200) | BIP Obornicki `…/3924/kosztorys-inwestorski-branza-budowlana.pdf` · 0.5093×25.82=13.15013 Evidence |
+| **2006-04** | **9.62 AUTO_R1** (2.66.200) | `https://www.winbud.pl/images/Szczegolowy.pdf` · 0.7039×13.67=9.62 Evidence |
 
-### 3.2 EVIDENCE_ONLY_HOLD (norm / claimed PLN · no AUT-R1)
+**Rule:** Historical cost-estimate labor price is valid Evidence only; it becomes OUR RATE only through existing AUT-R1 contract.
+
+### 3.2 EVIDENCE_ONLY_HOLD (norm / no AUT-R1 PLN yet)
 
 | Leaf | Norm | Claimed PLN | Why HOLD |
 |------|------|-------------|----------|
-| 0815-04 | 0.5093 r-g/m² | 13.15013 (Obornicki ×25.82) | Exact BIP/OPZ **URL not resolved** → no host-lock · historical PLN ≠ auto OUR RATE |
-| 2006-04 | 0.7039 r-g/m² | 9.622 (TYT ×13.67) | budhelp / MZGM **URL not resolved** |
 | 1205-09 | 0.96 r-g/m² | — | No labor-only PLN/m² · **no** 0.96×hourly · keep `knnr-2` ID |
 | 1205-05 | identity OK | — | No trusted PLN/pomiar · no unit convert |
 
@@ -93,27 +98,25 @@ Rules: exact scope · leaf CURRENT · relevant TechnologyPack/ALLB when required
 
 ---
 
-## 4. AUT-R1 execution result (this GO)
+## 4. AUT-R1 execution result
 
-| Candidate | Durable PLN Evidence ingested? | AUT-R1 |
-|-----------|--------------------------------|--------|
-| 0815-04 | **NO** (URL unresolved) | **HOLD** |
-| 2006-04 | **NO** (URL unresolved) | **HOLD** |
-| 1205-09 | **NO** (no PLN) | **HOLD** |
-| others | **NO** (identity/excluded) | **HOLD / EXCLUDED** |
+| Candidate | Durable PLN Evidence | AUT-R1 | Final OUR RATE |
+|-----------|----------------------|--------|----------------|
+| 0815-04 | YES · Obornicki BIP exact URL | **ACCEPT** (2.66.200) | **13.15 CURRENT AUTO_R1** |
+| 2006-04 | YES · winbud Szczegolowy.pdf | **ACCEPT** (2.66.200) | **9.62 CURRENT AUTO_R1** |
+| 1205-09 | NO (no PLN) | HOLD | — |
+| identity conflicts | NO | IDENTITY_HOLD | — |
 
-**Newly CURRENT rates this GO:** **0** (maximum safe closure).  
-Prior CURRENT 1118-09 / 0829-03 / 0815-05 **unchanged**.
+Finance after 0815-04+2006-04 ACCEPT (ops IdentityPhase): `BRAK_STAWKI_ROBOT` **48→35** · complete often still 22 (BOM next) · see tip ops report.
 
 ---
 
 ## 5. Next Owner actions (not this GO)
 
-1. Attest **exact HTTPS URLs** for Obornicki BIP + Baza Konkurencyjności OPZ (0815-04) → Owner Evidence route → re-run AUT-R1.
-2. Attest **exact HTTPS URLs** for TYT kamienica + MZGM Wrocławska 22 (2006-04).
-3. Find **labor-only PLN/m²** for KNNR 2 1205-09 (or Owner Accept GO).
-4. Resolve identity for 0135-01 / 0602-01 / 0216-10 / 0401-11 with live Catalog truth.
-5. Transport / ETICS / P31 / UNIT — separate plane GOs.
+1. Find **labor-only PLN/m²** for KNNR 2 1205-09 (or Owner Accept GO).
+2. Resolve identity for 0135-01 / 0602-01 / 0216-10 / 0401-11 with live Catalog truth.
+3. Transport / ETICS / P31 / UNIT — separate plane GOs.
+4. BOM / TechnologyPack for compounds now unblocked on labor (0815-04 / 2006-04 leaves CURRENT).
 
 ---
 

@@ -2574,8 +2574,9 @@ FORBIDDEN shortcuts:
 - **CLLR exact-scope rules (tip 2.66.197):** 0815-04 walls · 2006-04 GK · 1205-09 panels · 1118-09 stone · 0829-03 glazura — **never** parent-global; foam/0411-08/demolition **HOLD**
 - **ACLC:** CREATE missing leaves · **refuse** semantic REUSE across different table codes (0815-04 ↛ 0815-05)
 - **Forbidden:** OUR RATE on compound parent · invent PLN · r-g→PLN · Finance gap rewrite · reopen 0815-05 pack
-- **×22 + durable PLN wave (2.66.198):** 1118-09 **48.20 CURRENT** · 0829-03 **61.12 CURRENT** · 0815-04/2006-04/1205-09 still `LEAF_RATE_MISSING` until host-locked PLN
-- **48 residual research register (2.66.199):** [`IK-LABOR-RATE-RESEARCH-TPI729-48-RESIDUALS-V1.md`](./IK-LABOR-RATE-RESEARCH-TPI729-48-RESIDUALS-V1.md) · machine `tpi729-48-residual-labor-research-v1.ts` · buckets 27 COMPOUND / 12 canonical / 9 excluded · **0 new AUT-R1** this GO (URL unresolved / identity HOLD / no invent)
+- **×22 + durable PLN wave (2.66.198):** 1118-09 **48.20 CURRENT** · 0829-03 **61.12 CURRENT**
+- **Exact HTTPS Evidence routes (2.66.200):** 0815-04 **13.15 CURRENT** (BIP Obornicki) · 2006-04 **9.62 CURRENT** (winbud.pl) · Historical estimate PLN = Evidence → AUT-R1 only
+- **48 residual research register:** [`IK-LABOR-RATE-RESEARCH-TPI729-48-RESIDUALS-V1.md`](./IK-LABOR-RATE-RESEARCH-TPI729-48-RESIDUALS-V1.md) · machine `tpi729-48-residual-labor-research-v1.ts`
 - Package parents (`cc-w2-scianki-…-pakiet`) hosting **2006-04** ≠ labor leaf authority
 
 **Rule:** if a row exists → **REUSE → CONNECT → VERIFY**. `NEW` only with Owner architecture GO.
@@ -2591,9 +2592,10 @@ FORBIDDEN shortcuts:
 | F5 cloud-lean · B1 · B2 | **PRODUCTION VERIFIED** (capability) | GO79 · ≠ Global IK PV |
 | AUT-R1 / AUT-MAT | **IMPLEMENTED** on tip | residual = data/unit/identity/plane |
 | FULL89 counters §10.3c | **CURRENT** ops evidence | 46 COMPLETE · 28 C-COV · 11 OUR_RATE first · 40 CURRENT · Owner 0 |
-| BRAK_STAWKI_ROBOT residual | **48** @ baseline `7cb6d9fb` | 27 COMPOUND · 12 canonical · 9 excluded — see **48-residual V1** |
-| 1118-09 / 0829-03 OUR RATE | **CURRENT AUTO_R1** | 48.20 / 61.12 · durable Evidence · 2.66.198 |
-| 0815-04 / 2006-04 / 1205-09 | **EVIDENCE_ONLY_HOLD** | norms known · PLN host-lock URL pending / no invent |
+| BRAK_STAWKI_ROBOT residual | **35** after 0815-04+2006-04 ACCEPT (ops) | was 48 @ `7cb6d9fb`/`738ea4fb` · see **48-residual V1** |
+| 1118-09 / 0829-03 OUR RATE | **CURRENT AUTO_R1** | 48.20 / 61.12 · 2.66.198 |
+| 0815-04 / 2006-04 OUR RATE | **CURRENT AUTO_R1** | 13.15 / 9.62 · BIP Obornicki + winbud · 2.66.200 |
+| 1205-09 | **EVIDENCE_ONLY_HOLD** | norm 0.96 · no PLN · knnr-2 ID |
 | GO79 G2 2/89 ACCEPT | **HISTORY attestation snapshot** | do not overwrite §10.3c CURRENT |
 | OWNER_FINANCE_NOT_OK | **CURRENT OPEN** (bid path) | parallel to FULL89 residual |
 | Global IK PV | **NO** | LOCKED |

@@ -133,35 +133,29 @@ export const TPI729_48_RESIDUAL_RESEARCH_ROWS: readonly Tpi729ResidualResearchRo
       laborNormRgPerUnit: 0.5093,
       claimedDirectLaborPln: 13.15013,
       claimedPlnNotePl:
-        "ChatGPT: BIP Obornicki estimate 0.5093 r-g × 25.82 PLN/r-g = 13.15013 PLN/m2 — historical estimate labor component.",
+        "BIP Obornicki: 0.5093 r-g × 25.82 PLN/r-g = 13.15013 PLN/m2 labor-only (Evidence → AUT-R1 → CURRENT 13.15).",
       sources: Object.freeze([
         {
-          label: "BIP Powiat Obornicki — RUKS KAJTEK Starostwo_BUD_INW.kst",
-          sourceUrl: null,
-          urlResolved: false,
-          notePl:
-            "Document named in Owner GO; exact public URL not resolved this session — no host-lock ingest.",
-        },
-        {
-          label: "Baza Konkurencyjności — OPZ część 3 remont mieszkań (0.5093 r-g + materials)",
-          sourceUrl: null,
-          urlResolved: false,
-          notePl: "Norm corroboration claimed; exact file URL not resolved — no invent PLN.",
-        },
-        {
-          label: "Prior verified identity source (UW Poznań przedmiar)",
+          label: "BIP Powiat Obornicki — kosztorys inwestorski branża budowlana",
           sourceUrl:
-            "https://www.poznan.uw.gov.pl/system/files/przetargi/zalacznik_nr_4.2_przedmiar_14.pdf",
+            "https://bip.powiatobornicki.pl/pliki/powiatobornicki/zalaczniki/3924/kosztorys-inwestorski-branza-budowlana.pdf",
           urlResolved: true,
-          notePl: "Identity corroboration only — not used as AUT-R1 PLN Evidence.",
+          notePl:
+            "Owner exact Evidence route bip_powiat_obornicki_0815_04 · host bip.powiatobornicki.pl · AUT-R1 ACCEPT · CURRENT 13.15 AUTO_R1",
+        },
+        {
+          label: "Alternate same-source PDF (discovered; NOT host-authorized)",
+          sourceUrl:
+            "https://bip.powiatobornicki.pl/pliki/powiatobornicki/zalaczniki/3800/01_07_2022_14_23_54_kosztorys-inwestorski.pdf",
+          urlResolved: true,
+          notePl: "Corroboration only — not in Owner Evidence routes (exact primary URL only).",
         },
       ]),
-      autR1SufficientPlnEvidence: false,
-      status: "EVIDENCE_ONLY_HOLD",
-      holdReason:
-        "SOURCE_URL_NOT_RESOLVED_FOR_HOST_LOCK + historical PLN not auto-OUR-RATE without durable Evidence route",
+      autR1SufficientPlnEvidence: true,
+      status: "AUT_R1_CURRENT",
+      holdReason: null,
       notesPl:
-        "≠ 0815-05 · do not copy 22.88 · do not r-g×national rate · CLLR walls leaf ready when CURRENT.",
+        "Historical cost-estimate labor price is valid Evidence only; OUR RATE via AUT-R1 · ≠ 0815-05 · no transfer",
     },
     {
       class: "CANONICAL_KNR",
@@ -174,28 +168,23 @@ export const TPI729_48_RESIDUAL_RESEARCH_ROWS: readonly Tpi729ResidualResearchRo
       descriptionPl:
         "Okładziny z płyt gipsowo-kartonowych (suche tynki gipsowe) pojedyncze na stropach na rusztach",
       laborNormRgPerUnit: 0.7039,
-      claimedDirectLaborPln: 9.622,
+      claimedDirectLaborPln: 9.62,
       claimedPlnNotePl:
-        "ChatGPT: TYT kamienica 0.7039 r-g × 13.67 PLN/r-g = 9.622 PLN/m2 — historical estimate labor.",
+        "winbud Szczegolowy.pdf: 0.7039 r-g × 13.67 PLN/r-g = 9.62 PLN/m2 labor-only (Evidence → AUT-R1 → CURRENT 9.62).",
       sources: Object.freeze([
         {
-          label: "budhelp.pl — TYT kamienica",
-          sourceUrl: null,
-          urlResolved: false,
-          notePl: "Named in Owner GO; exact URL not resolved — no host-lock ingest.",
-        },
-        {
-          label: "BIP MZGM — Wrocławska_22_klatka_schodowa_slepy",
-          sourceUrl: null,
-          urlResolved: false,
-          notePl: "Norm 0.7039 claimed; exact URL not resolved.",
+          label: "winbud.pl — Szczegolowy.pdf",
+          sourceUrl: "https://www.winbud.pl/images/Szczegolowy.pdf",
+          urlResolved: true,
+          notePl:
+            "Owner exact Evidence route winbud_szczegolowy_2006_04 · host winbud.pl · AUT-R1 ACCEPT · CURRENT 9.62 AUTO_R1",
         },
       ]),
-      autR1SufficientPlnEvidence: false,
-      status: "EVIDENCE_ONLY_HOLD",
-      holdReason:
-        "SOURCE_URL_NOT_RESOLVED_FOR_HOST_LOCK + historical PLN not auto-OUR-RATE",
-      notesPl: "Do not invent from 0.7039×52.30 · CLLR GK ceiling leaf when CURRENT.",
+      autR1SufficientPlnEvidence: true,
+      status: "AUT_R1_CURRENT",
+      holdReason: null,
+      notesPl:
+        "Historical cost-estimate labor price is valid Evidence only; OUR RATE via AUT-R1 · no 0.7039×52.30 invent",
     },
     {
       class: "CANONICAL_KNR",
@@ -388,8 +377,8 @@ export const TPI729_48_RESIDUAL_RESEARCH_ROWS: readonly Tpi729ResidualResearchRo
       sources: Object.freeze([]),
       autR1SufficientPlnEvidence: false,
       status: "COMPOUND_CLLR_DEPENDENT",
-      holdReason: "CLLR needs leaf OUR RATE CURRENT (0815-04 still HOLD)",
-      notesPl: "Never set OUR RATE on parent.",
+      holdReason: "CLLR leaf CURRENT (0815-04=13.15) — Finance may still block on BOM/TechnologyPack",
+      notesPl: "Never set OUR RATE on parent · walls leaf CLOSED AUT-R1 2.66.200",
     },
     {
       class: "COMPOUND_LABOR_LEAF",
@@ -406,8 +395,8 @@ export const TPI729_48_RESIDUAL_RESEARCH_ROWS: readonly Tpi729ResidualResearchRo
       sources: Object.freeze([]),
       autR1SufficientPlnEvidence: false,
       status: "COMPOUND_CLLR_DEPENDENT",
-      holdReason: "CLLR needs leaf OUR RATE CURRENT (2006-04 still HOLD) + exact scope",
-      notesPl: "Do not assume every package line is 2006-04.",
+      holdReason: "CLLR leaf CURRENT (2006-04=9.62) when exact scope — BOM/pack may still block",
+      notesPl: "Do not assume every package line is 2006-04 · leaf CLOSED AUT-R1 2.66.200",
     },
     {
       class: "COMPOUND_LABOR_LEAF",

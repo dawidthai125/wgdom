@@ -107,5 +107,7 @@ export function listLaborSourceEvidenceOwnerRouteSourceIds(): readonly string[] 
   return [
     "bip_staro_olecko_1118_09",
     "public_cost_estimate_0829_03",
+    "bip_powiat_obornicki_0815_04",
+    "winbud_szczegolowy_2006_04",
   ] as const;
 }

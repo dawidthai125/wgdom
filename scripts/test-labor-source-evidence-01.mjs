@@ -373,6 +373,31 @@ function saveSeed(store) {
     sourceUrl: "https://fliphtml5.com/wnzvl/ndtc/RB-_ca%C5%82o%C5%9B%C4%87-_po_inwent/",
   });
   ok("E13b Owner cross-route rejected", !ownerMix.ok);
+
+  const oborniki = resolveOwnerAuthorizedLaborEvidenceRoute("bip_powiat_obornicki_0815_04");
+  ok("E13c Owner Obornicki 0815 route present", Boolean(oborniki?.url));
+  ok(
+    "E13c Obornicki host lock",
+    assertLaborSourceEvidenceHostLock({
+      sourceId: "bip_powiat_obornicki_0815_04",
+      sourceUrl: oborniki.url,
+    }).ok,
+  );
+  const winbud = resolveOwnerAuthorizedLaborEvidenceRoute("winbud_szczegolowy_2006_04");
+  ok("E13c Owner winbud 2006 route present", Boolean(winbud?.url));
+  ok(
+    "E13c winbud host lock",
+    assertLaborSourceEvidenceHostLock({
+      sourceId: "winbud_szczegolowy_2006_04",
+      sourceUrl: winbud.url,
+    }).ok,
+  );
+  const wildPdf = assertLaborSourceEvidenceHostLock({
+    sourceId: "bip_powiat_obornicki_0815_04",
+    sourceUrl:
+      "https://bip.powiatobornicki.pl/pliki/powiatobornicki/zalaczniki/3800/01_07_2022_14_23_54_kosztorys-inwestorski.pdf",
+  });
+  ok("E13c alternate Obornicki PDF not auto-authorized", !wildPdf.ok);
 }
 
 // ——— E14 Work Catalog isolation ———
