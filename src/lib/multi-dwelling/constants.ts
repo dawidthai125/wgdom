@@ -1,5 +1,5 @@
 /**
- * MULTI-DWELLING-01 — shared constants (local-only · no Cloud).
+ * MULTI-DWELLING-01 — shared constants (LS + cloud DATA_KEY).
  */
 
 /** Legacy / absent dwellingId normalizes to this stable unit id. */

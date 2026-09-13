@@ -1,6 +1,6 @@
 /**
- * MULTI-DWELLING-01 — localStorage package store (mapping + units).
- * Cloud Sync / DATA_KEYS / Edge = OUT.
+ * MULTI-DWELLING-01 — package store (mapping + units).
+ * Cloud: kw-multi-dwelling-package-v1 in DATA_KEYS (merge by tenderId).
  */
 
 import {
@@ -100,14 +100,7 @@ export function loadMultiDwellingPackageStore(): MultiDwellingPackageStore {
     if (parsed.version !== MULTI_DWELLING_PACKAGE_SCHEMA_VERSION) {
       return emptyMultiDwellingPackageStore();
     }
-    const byTenderId: Record<string, TenderPackage> = {};
-    if (parsed.byTenderId && typeof parsed.byTenderId === "object") {
-      for (const [tid, pkg] of Object.entries(parsed.byTenderId)) {
-        const n = normalizePackage(pkg);
-        if (n) byTenderId[String(tid).trim()] = n;
-      }
-    }
-    return { version: MULTI_DWELLING_PACKAGE_SCHEMA_VERSION, byTenderId };
+    return normalizeMultiDwellingPackageStore(parsed);
   } catch {
     return emptyMultiDwellingPackageStore();
   }
@@ -119,9 +112,68 @@ export function saveMultiDwellingPackageStore(
   try {
     if (typeof localStorage === "undefined") return false;
     localStorage.setItem(MULTI_DWELLING_PACKAGE_LS_KEY, JSON.stringify(store));
+    void pushMultiDwellingPackageStoreToCloudSafe(store);
     return true;
   } catch {
     return false;
+  }
+}
+
+/** Union by tenderId — empty never wipes non-empty. */
+export function mergeMultiDwellingPackageStore(
+  local: unknown,
+  cloud: unknown,
+): MultiDwellingPackageStore {
+  const a = normalizeMultiDwellingPackageStore(local);
+  const b = normalizeMultiDwellingPackageStore(cloud);
+  const aN = Object.keys(a.byTenderId).length;
+  const bN = Object.keys(b.byTenderId).length;
+  if (aN > 0 && bN === 0) return a;
+  if (aN === 0 && bN > 0) return b;
+  const byTenderId: Record<string, TenderPackage> = { ...a.byTenderId };
+  for (const [tid, pkg] of Object.entries(b.byTenderId)) {
+    const existing = byTenderId[tid];
+    if (!existing) {
+      byTenderId[tid] = pkg;
+      continue;
+    }
+    // Prefer side with more dwellings / offerBoq attestations
+    const score = (p: TenderPackage) =>
+      p.dwellings.length
+      + p.dwellings.filter((d) => d.offerBoq != null).length * 10;
+    byTenderId[tid] = score(pkg) >= score(existing) ? pkg : existing;
+  }
+  return { version: MULTI_DWELLING_PACKAGE_SCHEMA_VERSION, byTenderId };
+}
+
+export function normalizeMultiDwellingPackageStore(
+  raw: unknown,
+): MultiDwellingPackageStore {
+  if (!raw || typeof raw !== "object") return emptyMultiDwellingPackageStore();
+  const parsed = raw as Partial<MultiDwellingPackageStore>;
+  const byTenderId: Record<string, TenderPackage> = {};
+  if (parsed.byTenderId && typeof parsed.byTenderId === "object") {
+    for (const [tid, pkg] of Object.entries(parsed.byTenderId)) {
+      const n = normalizePackage(pkg);
+      if (n) byTenderId[String(tid).trim()] = n;
+    }
+  }
+  return { version: MULTI_DWELLING_PACKAGE_SCHEMA_VERSION, byTenderId };
+}
+
+export function mergeMultiDwellingPackageDataKey(local: unknown, cloud: unknown): unknown {
+  return mergeMultiDwellingPackageStore(local, cloud);
+}
+
+async function pushMultiDwellingPackageStoreToCloudSafe(
+  store: MultiDwellingPackageStore,
+): Promise<void> {
+  try {
+    const { persistKey, isSupabaseConfigured } = await import("@/lib/cloud-sync");
+    if (!isSupabaseConfigured()) return;
+    await persistKey(MULTI_DWELLING_PACKAGE_LS_KEY, store);
+  } catch {
+    /* offline / test */
   }
 }
 

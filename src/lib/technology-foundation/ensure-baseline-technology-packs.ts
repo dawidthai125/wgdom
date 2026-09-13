@@ -11,14 +11,17 @@
 
 import { seedB0Fixtures } from "./fixtures";
 import { seedGypsumSkimCeiling081505V1 } from "./gypsum-skim-ceiling-0815-05-v1";
+import { hydratePackRegistryFromDurable } from "./pack-registry";
 import { seedScreedEconomyWetCementV1 } from "./screed-economy-wet-cement-v1";
 
 /**
  * Ensures baseline ACTIVE packs are registered (ETICS, paving, painting,
  * priming, electrical cable, screed, gypsum skim 0815-05). Safe to call repeatedly.
+ * Also hydrates durable cloud/LS packs (cold start).
  */
 export function ensureBaselineTechnologyPacksRegistered(): void {
   seedB0Fixtures();
   seedScreedEconomyWetCementV1();
   seedGypsumSkimCeiling081505V1();
+  hydratePackRegistryFromDurable();
 }

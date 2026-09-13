@@ -10,6 +10,7 @@
 import {
   assertKnrWcCreateAllowed,
   buildCatalogWorkDraftFromProposal,
+  executeKnrWcCatalogWorkCreate,
   type KnrWcAutonomousCreateAuthorization,
 } from "@/lib/intelligent-estimator/knr-wc-identity-bridge-create";
 import { insertWorkBothRegions, CatalogWorkDuplicateIdError } from "@/lib/work-catalog/work-catalog-insert";
@@ -460,7 +461,8 @@ export type AutonomousCanonicalLeafCreateExecuteResult = {
   store: WorkCatalogStore;
   assertOk: boolean;
   assertReason?: string;
-  productionMutation: false;
+  /** true only after saveWorkCatalogRouted / routed CREATE succeeded */
+  productionMutation: boolean;
   ownerRuntimeDependency: 0;
 };
 
@@ -583,6 +585,96 @@ export async function executeAutonomousCanonicalLeafCreate(input: {
 }): Promise<AutonomousCanonicalLeafCreateExecuteResult> {
   // Prefer sync memory path — identical outcome, no await on routed save.
   return executeAutonomousCanonicalLeafCreateMemorySync(input);
+}
+
+/**
+ * Durable ACLC — evaluate → executeKnrWcCatalogWorkCreate(persistMode=routed)
+ * → kw-wgdom-work-catalog. productionMutation true only when saved.
+ */
+export async function executeAutonomousCanonicalLeafCreateRouted(input: {
+  record: ChatgptKnrVerifiedRecord;
+  store: WorkCatalogStore;
+  knrCatalogStore?: KnrCatalogStore | null;
+  nowIso: string;
+  pendingOnlyWithoutVerifiedPack?: boolean;
+  companyPricePln?: number | null;
+  priceAsIdentity?: boolean;
+}): Promise<AutonomousCanonicalLeafCreateExecuteResult> {
+  const evaluation = evaluateAutonomousCanonicalLeafCreate({
+    record: input.record,
+    store: input.store,
+    knrCatalogStore: input.knrCatalogStore,
+    nowIso: input.nowIso,
+    pendingOnlyWithoutVerifiedPack: input.pendingOnlyWithoutVerifiedPack,
+    companyPricePln: input.companyPricePln,
+    priceAsIdentity: input.priceAsIdentity,
+  });
+
+  if (evaluation.autonomousCreateDecision === "IDEMPOTENT_NOOP") {
+    return {
+      evaluation,
+      executed: false,
+      decision: "IDEMPOTENT_NOOP",
+      workId: evaluation.proposedCatalogWorkId,
+      store: input.store,
+      assertOk: true,
+      productionMutation: false,
+      ownerRuntimeDependency: 0,
+    };
+  }
+
+  if (evaluation.autonomousCreateDecision !== "CREATE" || !evaluation.proposedCatalogWorkId) {
+    return {
+      evaluation,
+      executed: false,
+      decision: evaluation.autonomousCreateDecision,
+      workId: null,
+      store: input.store,
+      assertOk: false,
+      assertReason: evaluation.rejectionReason || evaluation.autonomousCreateDecision,
+      productionMutation: false,
+      ownerRuntimeDependency: 0,
+    };
+  }
+
+  const auth = authorizationFromEvaluation(evaluation)!;
+  const proposal = buildProposalFromVerifiedRecord(input.record, evaluation);
+  const result = await executeKnrWcCatalogWorkCreate({
+    proposal,
+    ownerDecision: "unset",
+    workId: evaluation.proposedCatalogWorkId,
+    store: input.store,
+    autonomousAuthorization: auth,
+    nowIso: input.nowIso,
+    persistMode: "routed",
+  });
+
+  if (!result.ok) {
+    return {
+      evaluation,
+      executed: false,
+      decision: "REJECT",
+      workId: null,
+      store: input.store,
+      assertOk: false,
+      assertReason: result.reason,
+      productionMutation: false,
+      ownerRuntimeDependency: 0,
+    };
+  }
+
+  const nextStore = result.store ?? input.store;
+  const saved = result.saved === true;
+  return {
+    evaluation,
+    executed: true,
+    decision: "CREATE",
+    workId: result.workId,
+    store: nextStore,
+    assertOk: true,
+    productionMutation: saved,
+    ownerRuntimeDependency: 0,
+  };
 }
 
 export type AutonomousLeafCreateBatchResult = {

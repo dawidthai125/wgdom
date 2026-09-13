@@ -1,6 +1,6 @@
 /**
  * MULTI-DWELLING-01 — package of dwellings → per-unit OfferBoq → PackageGate → one Bid.
- * Local-only · COST-MULTI orthogonal · OfferBoq schema UNCHANGED.
+ * Local + cloud DATA_KEY kw-multi-dwelling-package-v1 · COST-MULTI orthogonal · OfferBoq schema UNCHANGED.
  */
 
 export {
@@ -44,6 +44,9 @@ export {
   confirmDwelling,
   mapDocumentToDwelling,
   attachOfferBoqToDwelling,
+  mergeMultiDwellingPackageStore,
+  mergeMultiDwellingPackageDataKey,
+  normalizeMultiDwellingPackageStore,
 } from "@/lib/multi-dwelling/store";
 
 export {

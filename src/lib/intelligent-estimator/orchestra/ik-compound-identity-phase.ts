@@ -2,7 +2,8 @@
  * Orchestra compound/identity phase — CIE-v1 + CIV-v1 + AIR-v2 (+ AIDISC discovery).
  *
  * Runs AFTER Classification for COMPOUND / UNKNOWN / selected legacy LABOR·MATERIAL parents.
- * Does NOT: Accept · WC write · GO39 · Pack · Rate · Finance · G3.
+ * Does NOT: Accept · GO39 · Pack · Rate · Finance · G3.
+ * ACLC CREATE may persist Work Catalog (durable) when verified evidence matches — productionMutation then true.
  * Does NOT bypass GO33 applicability (CIE routes GO33 vs general).
  *
  * Identity Bridge + AIDISC-v1 are consumed inside CIV deepen (read-only candidates).
@@ -30,6 +31,8 @@ import {
 } from "@/lib/work-catalog/autonomous-identity-resolution-v2";
 import { executeAutonomousCanonicalLeafCreateMemorySync } from "@/lib/work-catalog/autonomous-canonical-leaf-create";
 import { normalizeWorkRateUnitToken } from "@/lib/work-catalog/work-rate-qualify";
+import { saveWorkCatalogStoreLocal } from "@/lib/work-catalog/work-catalog-store";
+import { pushWorkCatalogStoreToCloudSafe } from "@/lib/work-catalog/work-catalog-cloud-push";
 
 function unitCompatibleLoose(a: string, b: string): boolean {
   const x = normalizeWorkRateUnitToken(a);
@@ -58,7 +61,8 @@ export type IkCompoundIdentityParentResult = {
   autonomousIdentityDecision: import("@/lib/work-catalog/autonomous-identity-decision-contract").AutonomousIdentityDecisionResult | null;
   airV2: import("@/lib/work-catalog/autonomous-identity-resolution-v2").AutonomousIdentityResolutionV2Result | null;
   queueItem: AutonomousResolutionQueueItem | null;
-  productionMutation: false;
+  /** true when ACLC leaf was persisted to Work Catalog (LS + cloud push) */
+  productionMutation: boolean;
 };
 
 export type IkCompoundIdentityPhaseResult = {
@@ -76,7 +80,7 @@ export type IkCompoundIdentityPhaseResult = {
   unresolvedCount: number;
   exhaustedCount: number;
   reasons: string[];
-  productionMutation: false;
+  productionMutation: boolean;
   parallelOrchestra: false;
   microSequencingRequired: false;
 };
@@ -258,6 +262,7 @@ export function runIkCompoundIdentityPhase(
   const queue: AutonomousResolutionQueueItem[] = [];
 
   for (const p of parentsIn) {
+    let parentAclcPersisted = false;
     let cie = buildCompoundIdentityCandidate({
       workId: p.parentWorkId,
       store,
@@ -280,7 +285,7 @@ export function runIkCompoundIdentityPhase(
       cie,
     });
 
-    // After AIR exhaust: ACLC-v1 memory CREATE when verified evidence matches KNR tokens
+    // After AIR exhaust: ACLC-v1 CREATE + durable WC persist when verified evidence matches KNR tokens
     if (
       allowCreate
       && evidencePack
@@ -301,6 +306,15 @@ export function runIkCompoundIdentityPhase(
           nowIso,
         });
         store = created.store;
+        if (created.executed && created.decision === "CREATE") {
+          try {
+            saveWorkCatalogStoreLocal(store, { updatedAtIso: nowIso });
+            void pushWorkCatalogStoreToCloudSafe(store, { mode: "intent" });
+            parentAclcPersisted = true;
+          } catch {
+            parentAclcPersisted = false;
+          }
+        }
         if (created.executed || created.decision === "IDEMPOTENT_NOOP") {
           cie = buildCompoundIdentityCandidate({
             workId: p.parentWorkId,
@@ -351,7 +365,7 @@ export function runIkCompoundIdentityPhase(
       autonomousIdentityDecision: aid ?? null,
       airV2: air,
       queueItem: air.queueItem,
-      productionMutation: false,
+      productionMutation: parentAclcPersisted,
     });
   }
 
@@ -382,7 +396,7 @@ export function runIkCompoundIdentityPhase(
       `exhausted=${ranked.exhaustedCount}`,
       ...parents.map((p) => `${p.parentWorkId}:${p.validationResult}:${p.trusted ? "TRUSTED" : "QUEUE"}`),
     ],
-    productionMutation: false,
+    productionMutation: parents.some((x) => x.productionMutation),
     parallelOrchestra: false,
     microSequencingRequired: false,
   };

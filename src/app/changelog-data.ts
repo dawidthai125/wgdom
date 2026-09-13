@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.201",
+    label: "IK Full Autonomy GO#1–4 durable persistence",
+    items: [
+      {
+        type: "new",
+        text: "Cloud DATA_KEYS: kw-technology-packs · kw-identity-candidates · kw-multi-dwelling-package-v1 (+ deferred bootstrap/merge). Pack registry hydrate cold-start. ACLC durable WC persist on CREATE. IdentityCandidate + multi-dwelling package push when Supabase configured. Test: test-ik-full-autonomy-durability-01.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.200",
     label: "AUT-R1 0815-04 + 2006-04 exact HTTPS Evidence",
     items: [

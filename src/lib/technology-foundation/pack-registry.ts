@@ -1,11 +1,16 @@
 /**
  * In-memory Pack registry — keyed by packId + packVersion (TF-8).
+ * Durable: registerPack also upserts kw-technology-packs (cloud authority via sync).
  */
 
 import { assertCapabilitiesExist } from "./definition-registry";
 import { normalizeTechnologyPack } from "./pack-schema";
 import { requireDefinition } from "./technology-definition";
 import type { TechnologyPack } from "./types";
+import {
+  loadTechnologyPackDurableStoreLocal,
+  upsertTechnologyPackDurable,
+} from "./technology-pack-store";
 
 const BY_KEY = new Map<string, TechnologyPack>();
 
@@ -17,16 +22,59 @@ export function clearPackRegistryForTests(): void {
   BY_KEY.clear();
 }
 
+/**
+ * Register pack in memory + durable store.
+ * Same packId@@packVersion: idempotent if already registered (no throw on hydrate).
+ * New pack: immutable once registered in-memory; durable upsert is append-only for new keys.
+ */
 export function registerPack(raw: TechnologyPack): TechnologyPack {
   const pack = normalizeTechnologyPack(raw);
   requireDefinition(pack.definitionId);
   assertCapabilitiesExist(pack.packCapabilities);
   const key = packKey(pack.packId, pack.packVersion);
-  if (BY_KEY.has(key)) {
-    throw new Error(`TF-8: pack already registered ${key} — immutable, use createNextVersion`);
+  const existing = BY_KEY.get(key);
+  if (existing) {
+    return existing;
   }
   BY_KEY.set(key, pack);
+  try {
+    upsertTechnologyPackDurable(pack);
+  } catch {
+    /* durable optional in constrained test envs — memory still holds */
+  }
+  void pushTechnologyPackStoreToCloudSafe();
   return pack;
+}
+
+/** Hydrate memory registry from durable LS/cloud store (cold start). */
+export function hydratePackRegistryFromDurable(): number {
+  const store = loadTechnologyPackDurableStoreLocal();
+  let n = 0;
+  for (const pack of store.packs) {
+    const key = packKey(pack.packId, pack.packVersion);
+    if (BY_KEY.has(key)) continue;
+    try {
+      requireDefinition(pack.definitionId);
+      assertCapabilitiesExist(pack.packCapabilities);
+      BY_KEY.set(key, normalizeTechnologyPack(pack));
+      n += 1;
+    } catch {
+      /* skip packs whose definitions are not seeded yet */
+    }
+  }
+  return n;
+}
+
+async function pushTechnologyPackStoreToCloudSafe(): Promise<void> {
+  try {
+    const { persistKey, isSupabaseConfigured } = await import("@/lib/cloud-sync");
+    if (!isSupabaseConfigured()) return;
+    const { TECHNOLOGY_PACK_STORAGE_KEY, loadTechnologyPackDurableStoreLocal: load } =
+      await import("./technology-pack-store");
+    await persistKey(TECHNOLOGY_PACK_STORAGE_KEY, load());
+  } catch {
+    /* offline / test — local durable still OK */
+  }
 }
 
 export function getPack(packId: string, packVersion: string): TechnologyPack | undefined {

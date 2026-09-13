@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.201 — IK Full Autonomy GO#1–4 durable persistence (2026-09-13)
+
+- DATA_KEYS: `kw-technology-packs` · `kw-identity-candidates` · `kw-multi-dwelling-package-v1`
+- Pack hydrate cold-start · ACLC WC persist · IC + multi-dwelling cloud push (Supabase)
+- Test: `test-ik-full-autonomy-durability-01.mjs`
+
 ## 2.66.200 — AUT-R1 0815-04 + 2006-04 exact HTTPS Evidence (2026-09-13)
 
 - BIP Obornicki → 0815-04 CURRENT 13.15 AUTO_R1 · winbud Szczegolowy.pdf → 2006-04 CURRENT 9.62 AUTO_R1

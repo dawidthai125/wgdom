@@ -114,6 +114,56 @@ export function saveIdentityCandidateDurableStore(store: IdentityCandidateDurabl
   } catch {
     /* memory-only durable still valid for session / tests */
   }
+  void pushIdentityCandidateStoreToCloudSafe(next);
+}
+
+/** Union by fingerprint (primary) / candidateId — empty never wipes non-empty. */
+export function mergeIdentityCandidateDurableStore(
+  local: unknown,
+  cloud: unknown,
+): IdentityCandidateDurableStore {
+  const a = normalizeIdentityCandidateDurableStore(local);
+  const b = normalizeIdentityCandidateDurableStore(cloud);
+  if (a.candidates.length > 0 && b.candidates.length === 0) return a;
+  if (a.candidates.length === 0 && b.candidates.length > 0) return b;
+  const byKey = new Map<string, IdentityCandidateRecord>();
+  for (const c of [...a.candidates, ...b.candidates]) {
+    const key = c.fingerprint || c.candidateId;
+    const prev = byKey.get(key);
+    if (!prev) {
+      byKey.set(key, c);
+      continue;
+    }
+    const ta = Date.parse(c.updatedAt) || Date.parse(c.createdAt) || 0;
+    const tb = Date.parse(prev.updatedAt) || Date.parse(prev.createdAt) || 0;
+    byKey.set(key, ta >= tb ? c : prev);
+  }
+  const candidates = [...byKey.values()].sort((x, y) =>
+    x.candidateId.localeCompare(y.candidateId),
+  );
+  const ta = Date.parse(a.updatedAt) || 0;
+  const tb = Date.parse(b.updatedAt) || 0;
+  return {
+    schemaVersion: IDENTITY_CANDIDATE_SCHEMA_VERSION,
+    updatedAt: new Date(Math.max(ta, tb) || Date.now()).toISOString(),
+    candidates,
+  };
+}
+
+export function mergeIdentityCandidateDataKey(local: unknown, cloud: unknown): unknown {
+  return mergeIdentityCandidateDurableStore(local, cloud);
+}
+
+async function pushIdentityCandidateStoreToCloudSafe(
+  store: IdentityCandidateDurableStore,
+): Promise<void> {
+  try {
+    const { persistKey, isSupabaseConfigured } = await import("@/lib/cloud-sync");
+    if (!isSupabaseConfigured()) return;
+    await persistKey(IDENTITY_CANDIDATE_STORAGE_KEY, store);
+  } catch {
+    /* offline / test — local durable still OK */
+  }
 }
 
 /** Test helper — clears ephemeral + durable local key + memory. */

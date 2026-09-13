@@ -82,11 +82,26 @@ export {
 export {
   clearPackRegistryForTests,
   getPack,
+  hydratePackRegistryFromDurable,
   listAllPacks,
   listPackVersions,
   registerPack,
   requirePack,
 } from "./pack-registry";
+
+export {
+  TECHNOLOGY_PACK_STORAGE_KEY,
+  TECHNOLOGY_PACK_SCHEMA_VERSION,
+  clearTechnologyPackDurableStoreForTests,
+  emptyTechnologyPackDurableStore,
+  loadTechnologyPackDurableStoreLocal,
+  mergeTechnologyPackDataKey,
+  mergeTechnologyPackDurableStore,
+  normalizeTechnologyPackDurableStore,
+  saveTechnologyPackDurableStoreLocal,
+  upsertTechnologyPackDurable,
+  type TechnologyPackDurableStore,
+} from "./technology-pack-store";
 
 export { deriveExecutionPlan } from "./execution-plan";
 export { projectWorkBundle } from "./project-work-bundle";

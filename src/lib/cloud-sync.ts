@@ -204,6 +204,24 @@ import {
   normalizeLaborSourceEvidenceStore,
 } from "@/lib/labor-source-evidence";
 import {
+  TECHNOLOGY_PACK_STORAGE_KEY,
+  emptyTechnologyPackDurableStore,
+  mergeTechnologyPackDataKey,
+  normalizeTechnologyPackDurableStore,
+} from "@/lib/technology-foundation";
+import {
+  IDENTITY_CANDIDATE_STORAGE_KEY,
+  emptyIdentityCandidateDurableStore,
+  mergeIdentityCandidateDataKey,
+  normalizeIdentityCandidateDurableStore,
+} from "@/lib/work-catalog/identity-candidate-store";
+import {
+  MULTI_DWELLING_PACKAGE_LS_KEY,
+  emptyMultiDwellingPackageStore,
+  mergeMultiDwellingPackageDataKey,
+  normalizeMultiDwellingPackageStore,
+} from "@/lib/multi-dwelling";
+import {
   OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY,
   defaultCompanyKnowledgeStoreForPersist,
   mergeCompanyKnowledgeStore,
@@ -285,6 +303,12 @@ export const DATA_KEYS = [
   "kw-knr-discovery-evidence",
   /** WR-SOURCE-EVIDENCE-DB-01 — labor market observations (≠ OUR RATE / catalog). */
   "kw-wgdom-labor-source-evidence",
+  /** IK Full Autonomy GO#1 — TechnologyPack durable (≠ prices). */
+  "kw-technology-packs",
+  /** IK Full Autonomy GO#3 — IdentityCandidate durable OWNER_REVIEW+ (≠ CatalogWork). */
+  "kw-identity-candidates",
+  /** IK Full Autonomy GO#4 — multi-dwelling package + OfferBoq attestations. */
+  "kw-multi-dwelling-package-v1",
   /** P3.1 — company knowledge mirror (Purchase / OfferBoq learning). */
   "kw-offer-boq-company-knowledge",
   /** P3.2 — PRICE DATA MISSING demand queue (dedup blob). */
@@ -319,6 +343,9 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-knr-catalog",
   "kw-knr-discovery-evidence",
   "kw-wgdom-labor-source-evidence",
+  "kw-technology-packs",
+  "kw-identity-candidates",
+  "kw-multi-dwelling-package-v1",
   "kw-offer-boq-company-knowledge",
   "kw-price-intelligence-demand",
   "kw-contacts",
@@ -3058,6 +3085,12 @@ export function mergeDataKey(
       return mergeKnrDiscoveryEvidenceStore(local, cloud);
     case "kw-wgdom-labor-source-evidence":
       return mergeLaborSourceEvidenceDataKey(local, cloud);
+    case "kw-technology-packs":
+      return mergeTechnologyPackDataKey(local, cloud);
+    case "kw-identity-candidates":
+      return mergeIdentityCandidateDataKey(local, cloud);
+    case "kw-multi-dwelling-package-v1":
+      return mergeMultiDwellingPackageDataKey(local, cloud);
     case "kw-offer-boq-company-knowledge":
       return mergeCompanyKnowledgeStore(local, cloud);
     case "kw-price-intelligence-demand":
@@ -3530,6 +3563,15 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
     return emptyKnrDiscoveryEvidenceStore();
   }
   if (key === LABOR_SOURCE_EVIDENCE_STORAGE_KEY) return emptyLaborSourceEvidenceStore();
+  if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
+    return emptyTechnologyPackDurableStore();
+  }
+  if (key === IDENTITY_CANDIDATE_STORAGE_KEY || key === "kw-identity-candidates") {
+    return emptyIdentityCandidateDurableStore();
+  }
+  if (key === MULTI_DWELLING_PACKAGE_LS_KEY || key === "kw-multi-dwelling-package-v1") {
+    return emptyMultiDwellingPackageStore();
+  }
   if (key === OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY) return defaultCompanyKnowledgeStoreForPersist();
   if (key === PRICE_DEMAND_STORAGE_KEY) return defaultPriceDemandStoreForPersist();
   if (key === WGDOM_USER_CLASSIFICATION_DICTIONARY_KEY) return defaultUserClassificationDictionaryStore();
@@ -3569,6 +3611,15 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
     return normalizeKnrDiscoveryEvidenceStore(coerced);
   }
   if (key === LABOR_SOURCE_EVIDENCE_STORAGE_KEY) return normalizeLaborSourceEvidenceStore(coerced);
+  if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
+    return normalizeTechnologyPackDurableStore(coerced);
+  }
+  if (key === IDENTITY_CANDIDATE_STORAGE_KEY || key === "kw-identity-candidates") {
+    return normalizeIdentityCandidateDurableStore(coerced);
+  }
+  if (key === MULTI_DWELLING_PACKAGE_LS_KEY || key === "kw-multi-dwelling-package-v1") {
+    return normalizeMultiDwellingPackageStore(coerced);
+  }
   if (key === OFFER_BOQ_COMPANY_KNOWLEDGE_STORAGE_KEY) return normalizeCompanyKnowledgeStore(coerced);
   if (key === PRICE_DEMAND_STORAGE_KEY) return normalizePriceDemandStore(coerced);
   return coerced;
