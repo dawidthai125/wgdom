@@ -13,6 +13,7 @@ import {
   isOwnerAuthorizedLaborEvidenceSourceId,
   resolveOwnerAuthorizedLaborEvidenceRoute,
 } from "@/lib/labor-source-evidence/owner-authorized-routes";
+import { resolvePromotedTrustedEvidenceRoute } from "@/lib/labor-source-discovery";
 
 export function resolveLaborSourceEvidenceSourceRole(
   sourceId: string,
@@ -24,6 +25,8 @@ export function resolveLaborSourceEvidenceSourceRole(
   if (isOwnerAuthorizedLaborEvidenceSourceId(id)) {
     return resolveOwnerAuthorizedLaborEvidenceRoute(id)?.role ?? "REFERENCE";
   }
+  const promoted = resolvePromotedTrustedEvidenceRoute(id);
+  if (promoted) return promoted.role;
   if (isApfAuthorizedSourceId(id)) {
     const route = resolveApfAuthorizedRoute(id);
     if (route?.role === "PRIMARY") return "PRIMARY";

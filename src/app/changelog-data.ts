@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.202",
+    label: "IK Full Autonomy GO#6 research discovery",
+    items: [
+      {
+        type: "new",
+        text: "kw-labor-source-discovery: DISCOVERED ≠ TRUSTED Evidence. SSRF HTTPS-only. Promote → durable Owner-route extension before Evidence upsert. Host-lock KEEP-5/APF/static Owner unchanged core. Test: test-labor-source-discovery-01.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.201",
     label: "IK Full Autonomy GO#1–4 durable persistence",
     items: [

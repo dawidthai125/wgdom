@@ -20,6 +20,11 @@ import {
   resolveOwnerAuthorizedLaborEvidenceRoute,
   resolveOwnerAuthorizedLaborEvidenceRouteByUrl,
 } from "@/lib/labor-source-evidence/owner-authorized-routes";
+import {
+  isPromotedTrustedEvidenceSourceId,
+  resolvePromotedTrustedEvidenceRoute,
+  resolvePromotedTrustedEvidenceRouteByUrl,
+} from "@/lib/labor-source-discovery";
 
 const KEEP5_RUNTIME_SOURCE_IDS = new Set<string>([
   "kb_pl",
@@ -38,14 +43,16 @@ export function isLaborSourceEvidenceRuntimeSourceId(sourceId: string): boolean 
   return (
     isLaborSourceEvidenceKeep5SourceId(id) ||
     isApfAuthorizedSourceId(id) ||
-    isOwnerAuthorizedLaborEvidenceSourceId(id)
+    isOwnerAuthorizedLaborEvidenceSourceId(id) ||
+    isPromotedTrustedEvidenceSourceId(id)
   );
 }
 
 export function isLaborSourceEvidenceUrlAllowed(sourceUrl: string): boolean {
   if (isWorkRateSelectiveUrlAllowed(sourceUrl)) return true;
   if (resolveApfAuthorizedRouteByUrl(sourceUrl) != null) return true;
-  return resolveOwnerAuthorizedLaborEvidenceRouteByUrl(sourceUrl) != null;
+  if (resolveOwnerAuthorizedLaborEvidenceRouteByUrl(sourceUrl) != null) return true;
+  return resolvePromotedTrustedEvidenceRouteByUrl(sourceUrl) != null;
 }
 
 export function assertLaborSourceEvidenceHostLock(input: {
@@ -88,6 +95,18 @@ export function assertLaborSourceEvidenceHostLock(input: {
       return {
         ok: false,
         messagePl: `Owner Labor Evidence host lock: sourceId „${sourceId}” nie pasuje do authorized URL.`,
+      };
+    }
+  }
+
+  // Discovery-promoted Trusted routes (DISCOVERED → promote) — exact sourceId ↔ URL.
+  if (isPromotedTrustedEvidenceSourceId(sourceId)) {
+    const byUrl = resolvePromotedTrustedEvidenceRouteByUrl(sourceUrl);
+    const byId = resolvePromotedTrustedEvidenceRoute(sourceId);
+    if (!byUrl || !byId || byUrl.sourceId !== sourceId) {
+      return {
+        ok: false,
+        messagePl: `Promoted discovery Evidence host lock: sourceId „${sourceId}” nie pasuje do promoted URL.`,
       };
     }
   }

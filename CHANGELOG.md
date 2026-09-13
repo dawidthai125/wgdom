@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.202 — IK Full Autonomy GO#6 research discovery (2026-09-13)
+
+- `kw-labor-source-discovery`: DISCOVERED ≠ TRUSTED · SSRF · promote → Evidence route extension
+- Host-lock core KEEP-5/APF/static Owner unchanged · Test: `test-labor-source-discovery-01.mjs`
+
 ## 2.66.201 — IK Full Autonomy GO#1–4 durable persistence (2026-09-13)
 
 - DATA_KEYS: `kw-technology-packs` · `kw-identity-candidates` · `kw-multi-dwelling-package-v1`

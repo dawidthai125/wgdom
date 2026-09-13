@@ -210,6 +210,12 @@ import {
   normalizeTechnologyPackDurableStore,
 } from "@/lib/technology-foundation";
 import {
+  LABOR_SOURCE_DISCOVERY_STORAGE_KEY,
+  emptyLaborSourceDiscoveryStore,
+  mergeLaborSourceDiscoveryDataKey,
+  normalizeLaborSourceDiscoveryStore,
+} from "@/lib/labor-source-discovery";
+import {
   IDENTITY_CANDIDATE_STORAGE_KEY,
   emptyIdentityCandidateDurableStore,
   mergeIdentityCandidateDataKey,
@@ -303,6 +309,8 @@ export const DATA_KEYS = [
   "kw-knr-discovery-evidence",
   /** WR-SOURCE-EVIDENCE-DB-01 — labor market observations (≠ OUR RATE / catalog). */
   "kw-wgdom-labor-source-evidence",
+  /** IK Full Autonomy GO#6 — discovery DISCOVERED ≠ TRUSTED (+ promoted routes). */
+  "kw-labor-source-discovery",
   /** IK Full Autonomy GO#1 — TechnologyPack durable (≠ prices). */
   "kw-technology-packs",
   /** IK Full Autonomy GO#3 — IdentityCandidate durable OWNER_REVIEW+ (≠ CatalogWork). */
@@ -343,6 +351,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-knr-catalog",
   "kw-knr-discovery-evidence",
   "kw-wgdom-labor-source-evidence",
+  "kw-labor-source-discovery",
   "kw-technology-packs",
   "kw-identity-candidates",
   "kw-multi-dwelling-package-v1",
@@ -3085,6 +3094,8 @@ export function mergeDataKey(
       return mergeKnrDiscoveryEvidenceStore(local, cloud);
     case "kw-wgdom-labor-source-evidence":
       return mergeLaborSourceEvidenceDataKey(local, cloud);
+    case "kw-labor-source-discovery":
+      return mergeLaborSourceDiscoveryDataKey(local, cloud);
     case "kw-technology-packs":
       return mergeTechnologyPackDataKey(local, cloud);
     case "kw-identity-candidates":
@@ -3563,6 +3574,9 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
     return emptyKnrDiscoveryEvidenceStore();
   }
   if (key === LABOR_SOURCE_EVIDENCE_STORAGE_KEY) return emptyLaborSourceEvidenceStore();
+  if (key === LABOR_SOURCE_DISCOVERY_STORAGE_KEY || key === "kw-labor-source-discovery") {
+    return emptyLaborSourceDiscoveryStore();
+  }
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return emptyTechnologyPackDurableStore();
   }
@@ -3611,6 +3625,9 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
     return normalizeKnrDiscoveryEvidenceStore(coerced);
   }
   if (key === LABOR_SOURCE_EVIDENCE_STORAGE_KEY) return normalizeLaborSourceEvidenceStore(coerced);
+  if (key === LABOR_SOURCE_DISCOVERY_STORAGE_KEY || key === "kw-labor-source-discovery") {
+    return normalizeLaborSourceDiscoveryStore(coerced);
+  }
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return normalizeTechnologyPackDurableStore(coerced);
   }
