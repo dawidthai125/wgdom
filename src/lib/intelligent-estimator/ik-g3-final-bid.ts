@@ -29,11 +29,11 @@ export type IkG3FinalBidRecord = {
   vatPln: number;
   grossPln: number;
   currency: "PLN";
-  source: "owner_g3";
+  source: "owner_g3" | "autonomous_g3";
   p7RecommendedNetPln: number | null;
-  ownerOverride: true;
+  ownerOverride: boolean;
   approvedAt: string;
-  approvedBy: "owner";
+  approvedBy: "owner" | "autonomous";
   caseLabel?: string;
 };
 
@@ -47,6 +47,7 @@ export type IkG3BuildInput = {
   p7RecommendedNetPln?: number | null;
   caseLabel?: string;
   approvedAt?: string;
+  source?: "owner_g3" | "autonomous_g3";
 };
 
 export type IkG3ValidateResult =
@@ -116,6 +117,7 @@ export function buildIkG3FinalBidRecord(input: IkG3BuildInput): {
   });
   if (!amounts.ok) return amounts;
 
+  const source = input.source === "autonomous_g3" ? "autonomous_g3" : "owner_g3";
   const record: IkG3FinalBidRecord = {
     schemaVersion: IK_G3_FINAL_BID_SCHEMA_VERSION,
     kind: IK_G3_FINAL_BID_KIND,
@@ -128,14 +130,14 @@ export function buildIkG3FinalBidRecord(input: IkG3BuildInput): {
     vatPln: roundPln(input.vatPln),
     grossPln: roundPln(input.grossPln),
     currency: "PLN",
-    source: "owner_g3",
+    source,
     p7RecommendedNetPln:
       input.p7RecommendedNetPln != null && Number.isFinite(input.p7RecommendedNetPln)
         ? roundPln(input.p7RecommendedNetPln)
         : null,
-    ownerOverride: true,
+    ownerOverride: source === "owner_g3",
     approvedAt: input.approvedAt ?? new Date().toISOString(),
-    approvedBy: "owner",
+    approvedBy: source === "autonomous_g3" ? "autonomous" : "owner",
     ...(input.caseLabel ? { caseLabel: input.caseLabel } : {}),
   };
   return { ok: true, record };
@@ -203,6 +205,7 @@ export async function persistIkG3FinalBid(opts: {
   grossPln: number;
   p7RecommendedNetPln?: number | null;
   caseLabel?: string;
+  source?: "owner_g3" | "autonomous_g3";
   /** Inject pipeline for tests — skips load. */
   items?: TenderPipelineItem[];
   /** Inject saver for tests. */
@@ -217,6 +220,7 @@ export async function persistIkG3FinalBid(opts: {
     grossPln: opts.grossPln,
     p7RecommendedNetPln: opts.p7RecommendedNetPln,
     caseLabel: opts.caseLabel,
+    source: opts.source,
   });
   if (!built.ok) {
     return { ok: false, reason: built.reason, writes: { pipelinePersist: 0 } };

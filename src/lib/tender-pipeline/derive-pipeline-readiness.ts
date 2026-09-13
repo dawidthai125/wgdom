@@ -71,4 +71,7 @@ export function derivePricingReadyFinal(opts: {
   // Legacy single-phase parse (bez A1 enrichment) — brak parsedAt, ale kosztorys.ok wystarcza.
   return !opts.dossierEnriching;
 }
+
+/** Thin re-export — IK READY_TO_BID (no parallel state machine). */
+export { isIkReadyToBid, evaluateIkG3PersistReady } from "@/lib/intelligent-estimator/evaluate-ik-g3-persist-ready";
 

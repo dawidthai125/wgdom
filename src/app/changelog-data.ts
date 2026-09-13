@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.204",
+    label: "IK Full Autonomy GO#9–10 AUT-G3-PERSIST + READY_TO_BID",
+    items: [
+      {
+        type: "new",
+        text: "evaluateIkG3PersistReady shared gate · autonomous_g3 persist after P7/P8 settle (Owner g3Accept override). isIkReadyToBid = finance + BidCutover + durable ikFinalBid. recommendedBid ≠ ikFinalBid ≠ submittedBid. Test: test-ik-aut-g3-persist-01.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.203",
     label: "IK Full Autonomy GO#7–8 Material Evidence + cooldown",
     items: [

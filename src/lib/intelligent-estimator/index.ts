@@ -689,6 +689,10 @@ export {
   patchIkG3FinalBidOnItem,
   persistIkG3FinalBid,
 } from "./ik-g3-final-bid";
+export {
+  evaluateIkG3PersistReady,
+  isIkReadyToBid,
+} from "./evaluate-ik-g3-persist-ready";
 export type {
   IkG3FinalBidRecord,
   IkG3BuildInput,

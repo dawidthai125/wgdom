@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.204 — IK Full Autonomy GO#9–10 AUT-G3-PERSIST + READY_TO_BID (2026-09-13)
+
+- `evaluateIkG3PersistReady` · `source: autonomous_g3` · `isIkReadyToBid` · submitted untouched
+- Test: `test-ik-aut-g3-persist-01.mjs`
+
 ## 2.66.203 — IK Full Autonomy GO#7–8 Material Evidence + cooldown (2026-09-13)
 
 - `kw-wgdom-material-source-evidence` MEK durable · `kw-work-rate-research-cooldown` TTL durable

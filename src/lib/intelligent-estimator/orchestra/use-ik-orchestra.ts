@@ -26,7 +26,10 @@ import { runIkP8RiskDecision } from "@/lib/intelligent-estimator/ik-p8-risk-deci
 import {
   buildIkG3FinalBidRecord,
   persistIkG3FinalBid,
+  IK_G3_DEFAULT_VAT_RATE,
+  readIkG3FinalBid,
 } from "@/lib/intelligent-estimator/ik-g3-final-bid";
+import { evaluateIkG3PersistReady } from "@/lib/intelligent-estimator/evaluate-ik-g3-persist-ready";
 import {
   expertChainMayProceedFromReport,
   resolveIkExpertAdmission,
@@ -617,6 +620,78 @@ export function useIkOrchestra({
     setPkgEpoch((n) => n + 1);
   }, [fullSnapshot.autoG2Phase, effectiveItem]);
 
+  // AUT-G3-PERSIST — after P7/P8 settle · latch like AutoG2 · Owner g3Accept remains override.
+  const g3PersistAttemptKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!flags.p7F5On) return;
+    const liveItem = itemRef.current;
+    const liveUpdate = onUpdateRef.current;
+    const tenderPipelineId = String(liveItem?.id || "").trim();
+    if (!tenderPipelineId || !positionCostBid) return;
+
+    const gate = evaluateIkG3PersistReady({
+      expert: postIdentityExpert,
+      p7: positionCostBid,
+      risk: riskDecision,
+      requireBidCutover: true,
+    });
+    if (!gate.ready) return;
+
+    const existing = readIkG3FinalBid(liveItem);
+    if (existing && existing.netPln > 0) return;
+
+    const net = positionCostBid.recommendedBidPln!;
+    const vatRate = IK_G3_DEFAULT_VAT_RATE;
+    const vatPln = Math.round(net * vatRate);
+    const grossPln = Math.round(net + vatPln);
+    const key = [
+      "aut-g3",
+      tenderPipelineId,
+      net,
+      positionCostBid.completeLineCount,
+      positionCostBid.billableLineCount,
+      riskDecision?.status ?? "none",
+    ].join("|");
+    if (g3PersistAttemptKeyRef.current === key) return;
+    g3PersistAttemptKeyRef.current = key;
+
+    void (async () => {
+      const built = buildIkG3FinalBidRecord({
+        tenderPipelineId,
+        ocdsId: liveItem.tenderId ?? null,
+        netPln: net,
+        vatPln,
+        grossPln,
+        vatRate,
+        p7RecommendedNetPln: net,
+        caseLabel: "AUT-G3-PERSIST",
+        source: "autonomous_g3",
+      });
+      if (!built.ok) return;
+      if (liveUpdate) {
+        liveUpdate({ ikFinalBid: built.record });
+        return;
+      }
+      await persistIkG3FinalBid({
+        tenderPipelineId,
+        expectedOcds: liveItem.tenderId ?? null,
+        netPln: net,
+        vatPln,
+        grossPln,
+        vatRate,
+        p7RecommendedNetPln: net,
+        caseLabel: "AUT-G3-PERSIST",
+        source: "autonomous_g3",
+      });
+    })();
+  }, [
+    flags.p7F5On,
+    positionCostBid,
+    riskDecision,
+    postIdentityExpert,
+    effectiveItem,
+  ]);
+
   // KL-3 HOST — lookup + on-MISS discovery (async · Orchestra reanalysis seam on complete).
   // Deps use stable knowledgeKey string (not knr/report object identity) so setKnowledgeBusy(true)
   // → snapshot rebuild cannot self-cancel the in-flight attempt (RCA: permanent busy latch).
@@ -1020,15 +1095,20 @@ export function useIkOrchestra({
         const liveItem = itemRef.current;
         const liveUpdate = onUpdateRef.current;
         const tenderPipelineId = String(liveItem.id || "").trim();
-        const admission = resolveIkExpertAdmission(postIdentityExpert);
-        const p7Gaps = positionCostBid?.gapLineCount ?? 0;
-        const packagePass = positionCostBid?.packageGatePass;
-        if (
-          admission.unresolvedCount > 0
-          || p7Gaps > 0
-          || packagePass === false
-        ) {
-          return { ok: false, reason: "FINAL_BID_NOT_READY_PACKAGE_PARTIAL" };
+        const gate = evaluateIkG3PersistReady({
+          expert: postIdentityExpert,
+          p7: positionCostBid,
+          risk: riskDecision,
+          requireBidCutover: false,
+        });
+        if (!gate.ready) {
+          return {
+            ok: false,
+            reason:
+              gate.reason === "PACKAGE_GATE_FAIL" || gate.reason === "P7_GAPS"
+                ? "FINAL_BID_NOT_READY_PACKAGE_PARTIAL"
+                : gate.reason,
+          };
         }
         const built = buildIkG3FinalBidRecord({
           tenderPipelineId,
@@ -1039,6 +1119,7 @@ export function useIkOrchestra({
           vatRate,
           p7RecommendedNetPln,
           caseLabel,
+          source: "owner_g3",
         });
         if (!built.ok) return { ok: false, reason: built.reason };
         if (
@@ -1061,6 +1142,7 @@ export function useIkOrchestra({
           vatRate,
           p7RecommendedNetPln,
           caseLabel,
+          source: "owner_g3",
         });
         if (!result.ok) return { ok: false, reason: result.reason };
         if (result.noop) return { ok: true, noop: true, reason: "IDEMPOTENT_NOOP" };
@@ -1078,6 +1160,7 @@ export function useIkOrchestra({
       refreshPhase,
       postIdentityExpert,
       positionCostBid,
+      riskDecision,
     ],
   );
 
