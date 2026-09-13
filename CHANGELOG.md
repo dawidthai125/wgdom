@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.199 — TPI/729 48 residual labor research SSOT (2026-09-13)
+
+- Durable register 27 COMPOUND / 12 KNR / 9 excluded · live identity verify · 0 new AUT-R1 (no invent)
+- SSOT: `IK-LABOR-RATE-RESEARCH-TPI729-48-RESIDUALS-V1.md` · machine `tpi729-48-residual-labor-research-v1.ts`
+
 ## 2.66.198 — AUT-R1 durable PLN Evidence 1118-09 + 0829-03 (2026-09-13)
 
 - Owner exact Labor Evidence routes (BIP Olecko 48.201 PLN/m² · public estimate 61.12 PLN/m²) → durable Evidence → AUT-R1

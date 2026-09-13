@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.199",
+    label: "TPI/729 48 residual labor research SSOT",
+    items: [
+      {
+        type: "new",
+        text: "Durable research register 48× BRAK_STAWKI_ROBOT (27 COMPOUND / 12 KNR / 9 excluded). Live identity verify: 1205-09=knnr-2 (≠knr-2-02); 0135/0602/0216/0401 IDENTITY_HOLD. 0815-04/2006-04 EVIDENCE_ONLY_HOLD (URL unresolved · no invent PLN). 0 new AUT-R1. SSOT: IK-LABOR-RATE-RESEARCH-TPI729-48-RESIDUALS-V1.md · test-tpi729-48-residual-labor-research-v1.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.198",
     label: "AUT-R1 durable PLN Evidence — 1118-09 + 0829-03",
     items: [
