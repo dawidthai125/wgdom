@@ -65,6 +65,10 @@ let ikMaterialE2eForTests: boolean | IkE2eMode | null = null;
 let ikMaterialResearchForTests: boolean | null = null;
 let ikF5E2eForTests: boolean | IkE2eMode | null = null;
 let ikRiskDecisionE2eForTests: boolean | IkE2eMode | null = null;
+/** ATESD/ATHED Orchestra CONNECT — default ON when IK entry ON. */
+let ikAtesdTechnologyForTests: boolean | null = null;
+/** Live ATHED HTTP — production default ON when IK Entry ON; tests may force. */
+let ikAtesdExecuteFetchForTests: boolean | null = null;
 
 /** Test-only override (null = AppSettings). */
 export function forceIkEntryEnabledForTests(on: boolean | null): void {
@@ -347,6 +351,31 @@ export function isIkP7F5E2eActive(): boolean {
     ikEntryEnabled: isIkEntryEnabled(),
     ikF5E2eEnabled: isIkF5E2eEnabled(),
   });
+}
+
+/**
+ * ATESD/ATHED technology phase — CONNECTED when IK Entry ON.
+ * Does NOT persist TechnologyPack to cloud · Does NOT unlock Finance/G3.
+ */
+export function forceIkAtesdTechnologyForTests(on: boolean | null): void {
+  ikAtesdTechnologyForTests = on;
+}
+
+/** Live ATHED HTTP fetch permission (tests / explicit). Production default = IK Entry ON. */
+export function forceIkAtesdExecuteFetchForTests(on: boolean | null): void {
+  ikAtesdExecuteFetchForTests = on;
+}
+
+export function isIkAtesdTechnologyE2eActive(): boolean {
+  if (ikAtesdTechnologyForTests != null) return ikAtesdTechnologyForTests === true;
+  return isIkEntryEnabled() === true;
+}
+
+export function isIkAtesdExecuteFetchActive(): boolean {
+  if (ikAtesdExecuteFetchForTests != null) return ikAtesdExecuteFetchForTests === true;
+  // LIVE FETCH ENABLEMENT — when IK Entry ON, ATHED uses legal allowlist/registry fetch.
+  // Provider 403/blocked remains fail-closed (≠ Owner). Tests may force false.
+  return isIkEntryEnabled() === true;
 }
 
 /**

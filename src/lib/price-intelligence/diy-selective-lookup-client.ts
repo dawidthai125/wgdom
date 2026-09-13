@@ -6,6 +6,7 @@
 import { API_BASE, API_HEADERS } from "@/lib/cloud-sync";
 import {
   buildDiySelectiveRequestUrl,
+  identityMatchesQuery,
   isDiySelectiveUrlAllowed,
 } from "./diy-shop-html-parse";
 import type {
@@ -122,6 +123,206 @@ export function createEdgeDiySelectiveLookup(opts?: {
           priceGap: true,
         };
       }
+    },
+  };
+}
+
+const DEFAULT_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
+
+function extractAllowlistedProductUrls(
+  html: string,
+  baseUrl: string,
+  provider: DiyShopProviderId,
+  query: string,
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const re = /href=["']([^"']+)["']/gi;
+  let m: RegExpExecArray | null;
+  const qFold = query
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/ł/g, "l");
+  const tokens = qFold.split(/\s+/).filter((t) => t.length >= 4);
+  while ((m = re.exec(html)) && out.length < 6) {
+    const raw = m[1]!;
+    let abs: string;
+    try {
+      abs = new URL(raw, baseUrl).href.split("#")[0]!;
+    } catch {
+      continue;
+    }
+    if (!isDiySelectiveUrlAllowed(abs)) continue;
+    const path = abs.toLowerCase();
+    const looksPdp =
+      (provider === "castorama" && /_capl\.prd/i.test(path))
+      || (provider === "obi" && /\/p\/\d+\//i.test(path))
+      || (provider === "leroy" && /\d{8}\.html/i.test(path));
+    if (!looksPdp) continue;
+    if (tokens.length && !tokens.some((t) => path.includes(t.slice(0, Math.min(6, t.length))))) {
+      // soft filter — still allow if path has construction material tokens
+      if (
+        !/panel|podlog|plyt|cegl|silka|silikat|bloczek|pustak|gladz|gips|szpachl|farba|tynk|grunt|jastrych/i.test(
+          path,
+        )
+      ) {
+        continue;
+      }
+    }
+    if (seen.has(abs)) continue;
+    seen.add(abs);
+    out.push(abs);
+  }
+  return out;
+}
+
+/**
+ * Direct browser/Node fetch of allowlisted DIY search (+ optional first PDP follow).
+ * Used when Edge shop proxy is blocked (403/503). Same legal public catalogs — no paywall bypass.
+ */
+export function createDirectDiySelectiveLookup(opts?: {
+  fetchImpl?: typeof fetch;
+  /** Follow first identity-matching PDP from search HTML (still ONE product URL). */
+  followFirstMatchingPdp?: boolean;
+  userAgent?: string;
+}): DiySelectiveLookupPort {
+  const fetchImpl = opts?.fetchImpl ?? fetch;
+  const follow = opts?.followFirstMatchingPdp !== false;
+  const ua = opts?.userAgent ?? DEFAULT_UA;
+  return {
+    async lookup(req: DiySelectiveLookupRequest): Promise<DiySelectiveLookupResult> {
+      const query = String(req.query || "").trim();
+      if (!query && !req.sku && !req.ean) {
+        return { ok: false, error: "EMPTY_QUERY", httpFetchCount: 0, priceGap: true };
+      }
+      const requestUrl = buildDiySelectiveRequestUrl({
+        provider: req.provider,
+        query,
+        sku: req.sku,
+        ean: req.ean,
+      });
+      if (!requestUrl || !isDiySelectiveUrlAllowed(requestUrl)) {
+        return { ok: false, error: "URL_NOT_ALLOWED", httpFetchCount: 0, priceGap: true };
+      }
+      let httpFetchCount = 0;
+      try {
+        const res = await fetchImpl(requestUrl, {
+          redirect: "follow",
+          headers: { "User-Agent": ua, Accept: "text/html,application/xhtml+xml" },
+          signal: AbortSignal.timeout(16_000),
+        });
+        httpFetchCount += 1;
+        const bodyText = await res.text();
+        if (!res.ok) {
+          return {
+            ok: false,
+            error: `UPSTREAM_${res.status}`,
+            httpFetchCount,
+            priceGap: true,
+          };
+        }
+        let finalUrl = res.url || requestUrl;
+        let pageBody = bodyText;
+
+        if (follow) {
+          const pdps = extractAllowlistedProductUrls(
+            bodyText,
+            requestUrl,
+            req.provider,
+            query,
+          );
+          for (const pdp of pdps.slice(0, 2)) {
+            const pRes = await fetchImpl(pdp, {
+              redirect: "follow",
+              headers: { "User-Agent": ua, Accept: "text/html,application/xhtml+xml" },
+              signal: AbortSignal.timeout(16_000),
+            });
+            httpFetchCount += 1;
+            if (!pRes.ok) continue;
+            const pHtml = await pRes.text();
+            const title = (pHtml.match(/<title[^>]*>([^<]+)/i) || [])[1] || "";
+            if (!identityMatchesQuery(title, query) && !identityMatchesQuery(pdp, query)) {
+              continue;
+            }
+            pageBody = pHtml;
+            finalUrl = pRes.url || pdp;
+            break;
+          }
+        }
+
+        const page: DiySelectiveRawPage = {
+          provider: req.provider,
+          requestUrl,
+          finalUrl,
+          status: 200,
+          bodyText: pageBody,
+          fetchedAtIso: new Date().toISOString(),
+        };
+        return { ok: true, page, httpFetchCount };
+      } catch (e) {
+        return {
+          ok: false,
+          error: e instanceof Error ? e.message : "DIRECT_FETCH_FAIL",
+          httpFetchCount,
+          priceGap: true,
+        };
+      }
+    },
+  };
+}
+
+/**
+ * Edge first; on fail (403/503/circuit) OR search-results SERP (no PDP),
+ * fall back to direct allowlisted fetch with PDP follow.
+ */
+export function createFallbackDiySelectiveLookup(opts?: {
+  primary?: DiySelectiveLookupPort;
+  fallback?: DiySelectiveLookupPort;
+}): DiySelectiveLookupPort {
+  const primary = opts?.primary ?? createEdgeDiySelectiveLookup();
+  const fallback = opts?.fallback ?? createDirectDiySelectiveLookup();
+  return {
+    async lookup(req: DiySelectiveLookupRequest): Promise<DiySelectiveLookupResult> {
+      const first = await primary.lookup(req);
+      const firstUrl = first.ok
+        ? String(first.page.finalUrl || first.page.requestUrl || "")
+        : "";
+      const edgeSerpOk =
+        first.ok
+        && /\/search(?:\/|\?)|search\?term=/i.test(firstUrl);
+      if (first.ok && !edgeSerpOk) return first;
+      const err = first.ok
+        ? "EDGE_SERP_NO_PDP"
+        : String(first.error || "");
+      const retry =
+        edgeSerpOk
+        || /403|503|404|UPSTREAM|CIRCUIT|LOOKUP_FETCH|NO_API|EDGE/i.test(err)
+        || first.priceGap === true;
+      if (!retry && !first.ok) return first;
+      const second = await fallback.lookup(req);
+      if (second.ok) {
+        return {
+          ...second,
+          httpFetchCount: first.httpFetchCount + second.httpFetchCount,
+        };
+      }
+      // Prefer Direct gap; if Edge had SERP body keep Edge only when Direct hard-fails.
+      if (first.ok && edgeSerpOk) {
+        return {
+          ok: false,
+          error: `${err}|FALLBACK:${second.error}`,
+          httpFetchCount: first.httpFetchCount + second.httpFetchCount,
+          priceGap: true,
+        };
+      }
+      return {
+        ok: false,
+        error: `${err}|FALLBACK:${second.error}`,
+        httpFetchCount: first.httpFetchCount + second.httpFetchCount,
+        priceGap: true,
+      };
     },
   };
 }
