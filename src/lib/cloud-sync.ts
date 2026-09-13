@@ -216,6 +216,18 @@ import {
   normalizeLaborSourceDiscoveryStore,
 } from "@/lib/labor-source-discovery";
 import {
+  MATERIAL_SOURCE_EVIDENCE_STORAGE_KEY,
+  emptyMaterialSourceEvidenceStore,
+  mergeMaterialSourceEvidenceDataKey,
+  normalizeMaterialSourceEvidenceStore,
+} from "@/lib/material-source-evidence";
+import {
+  WORK_RATE_RESEARCH_COOLDOWN_STORAGE_KEY,
+  emptyWorkRateResearchCooldownStore,
+  mergeWorkRateResearchCooldownDataKey,
+  normalizeWorkRateResearchCooldownStore,
+} from "@/lib/work-catalog/work-rate-research-cooldown";
+import {
   IDENTITY_CANDIDATE_STORAGE_KEY,
   emptyIdentityCandidateDurableStore,
   mergeIdentityCandidateDataKey,
@@ -311,6 +323,10 @@ export const DATA_KEYS = [
   "kw-wgdom-labor-source-evidence",
   /** IK Full Autonomy GO#6 — discovery DISCOVERED ≠ TRUSTED (+ promoted routes). */
   "kw-labor-source-discovery",
+  /** IK Full Autonomy GO#7 — material MEK durable (≠ invent / OUR RATE). */
+  "kw-wgdom-material-source-evidence",
+  /** IK Full Autonomy GO#8 — work-rate research cooldown durable TTL. */
+  "kw-work-rate-research-cooldown",
   /** IK Full Autonomy GO#1 — TechnologyPack durable (≠ prices). */
   "kw-technology-packs",
   /** IK Full Autonomy GO#3 — IdentityCandidate durable OWNER_REVIEW+ (≠ CatalogWork). */
@@ -352,6 +368,8 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-knr-discovery-evidence",
   "kw-wgdom-labor-source-evidence",
   "kw-labor-source-discovery",
+  "kw-wgdom-material-source-evidence",
+  "kw-work-rate-research-cooldown",
   "kw-technology-packs",
   "kw-identity-candidates",
   "kw-multi-dwelling-package-v1",
@@ -3096,6 +3114,10 @@ export function mergeDataKey(
       return mergeLaborSourceEvidenceDataKey(local, cloud);
     case "kw-labor-source-discovery":
       return mergeLaborSourceDiscoveryDataKey(local, cloud);
+    case "kw-wgdom-material-source-evidence":
+      return mergeMaterialSourceEvidenceDataKey(local, cloud);
+    case "kw-work-rate-research-cooldown":
+      return mergeWorkRateResearchCooldownDataKey(local, cloud);
     case "kw-technology-packs":
       return mergeTechnologyPackDataKey(local, cloud);
     case "kw-identity-candidates":
@@ -3577,6 +3599,12 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === LABOR_SOURCE_DISCOVERY_STORAGE_KEY || key === "kw-labor-source-discovery") {
     return emptyLaborSourceDiscoveryStore();
   }
+  if (key === MATERIAL_SOURCE_EVIDENCE_STORAGE_KEY || key === "kw-wgdom-material-source-evidence") {
+    return emptyMaterialSourceEvidenceStore();
+  }
+  if (key === WORK_RATE_RESEARCH_COOLDOWN_STORAGE_KEY || key === "kw-work-rate-research-cooldown") {
+    return emptyWorkRateResearchCooldownStore();
+  }
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return emptyTechnologyPackDurableStore();
   }
@@ -3627,6 +3655,12 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   if (key === LABOR_SOURCE_EVIDENCE_STORAGE_KEY) return normalizeLaborSourceEvidenceStore(coerced);
   if (key === LABOR_SOURCE_DISCOVERY_STORAGE_KEY || key === "kw-labor-source-discovery") {
     return normalizeLaborSourceDiscoveryStore(coerced);
+  }
+  if (key === MATERIAL_SOURCE_EVIDENCE_STORAGE_KEY || key === "kw-wgdom-material-source-evidence") {
+    return normalizeMaterialSourceEvidenceStore(coerced);
+  }
+  if (key === WORK_RATE_RESEARCH_COOLDOWN_STORAGE_KEY || key === "kw-work-rate-research-cooldown") {
+    return normalizeWorkRateResearchCooldownStore(coerced);
   }
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return normalizeTechnologyPackDurableStore(coerced);

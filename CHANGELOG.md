@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.203 — IK Full Autonomy GO#7–8 Material Evidence + cooldown (2026-09-13)
+
+- `kw-wgdom-material-source-evidence` MEK durable · `kw-work-rate-research-cooldown` TTL durable
+- Test: `test-ik-material-evidence-cooldown-01.mjs`
+
 ## 2.66.202 — IK Full Autonomy GO#6 research discovery (2026-09-13)
 
 - `kw-labor-source-discovery`: DISCOVERED ≠ TRUSTED · SSRF · promote → Evidence route extension

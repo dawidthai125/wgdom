@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.203",
+    label: "IK Full Autonomy GO#7–8 Material Evidence + cooldown",
+    items: [
+      {
+        type: "new",
+        text: "kw-wgdom-material-source-evidence durable MEK mirror (AMED/AMPED writers). kw-work-rate-research-cooldown survives process Map clear within TTL. AUT-MAT contract untouched. Test: test-ik-material-evidence-cooldown-01.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.202",
     label: "IK Full Autonomy GO#6 research discovery",
     items: [

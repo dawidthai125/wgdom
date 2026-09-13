@@ -2,8 +2,15 @@
  * MATERIAL EVIDENCE KNOWLEDGE (MEK-v1) — AMED learning store.
  *
  * Stores provider / search / extraction / validation outcomes — NEVER a random price as truth.
- * In-memory SSOT for dry-run; ZERO cloud persist unless a later GO wires DATA_KEYS.
+ * In-memory + durable mirror kw-wgdom-material-source-evidence (cloud via DATA_KEYS).
  */
+
+import {
+  observationFromMekRecord,
+  upsertMaterialSourceEvidenceObservation,
+  clearMaterialSourceEvidenceStoreForTests,
+  loadMaterialSourceEvidenceStoreLocal,
+} from "@/lib/material-source-evidence";
 
 export const MATERIAL_EVIDENCE_KNOWLEDGE_VERSION = "MEK-v1" as const;
 
@@ -41,6 +48,7 @@ const BY_ID = new Map<string, MaterialEvidenceKnowledgeRecord>();
 
 export function clearMaterialEvidenceKnowledgeForTests(): void {
   BY_ID.clear();
+  clearMaterialSourceEvidenceStoreForTests();
 }
 
 export function upsertMaterialEvidenceKnowledge(
@@ -50,7 +58,41 @@ export function upsertMaterialEvidenceKnowledge(
     throw new Error("MEK: invent / universal price truth forbidden");
   }
   BY_ID.set(rec.id, rec);
+  try {
+    upsertMaterialSourceEvidenceObservation(observationFromMekRecord(rec), rec.freshnessIso);
+  } catch {
+    /* durable optional in constrained envs — memory still holds */
+  }
   return rec;
+}
+
+/** Cold-start: hydrate MEK memory from durable material evidence store. */
+export function hydrateMaterialEvidenceKnowledgeFromDurable(): number {
+  let n = 0;
+  for (const o of loadMaterialSourceEvidenceStoreLocal().observations) {
+    if (BY_ID.has(o.evidenceId)) continue;
+    BY_ID.set(o.evidenceId, {
+      id: o.evidenceId,
+      kind: o.kind as MaterialEvidenceKnowledgeKind,
+      materialCategory: o.materialCategory,
+      materialKey: o.materialKey,
+      providerId: o.providerId,
+      sourceUrl: o.sourceUrl,
+      searchStrategy: null,
+      applicability: String(o.payload?.applicability || o.kind),
+      evidenceRefs: Array.isArray(o.payload?.evidenceRefs)
+        ? (o.payload.evidenceRefs as string[])
+        : [],
+      validationState: o.validationState,
+      provenance: o.provenance,
+      freshnessIso: o.observedAt,
+      payload: o.payload,
+      invent: false,
+      priceAsUniversalTruth: false,
+    });
+    n += 1;
+  }
+  return n;
 }
 
 export function listMaterialEvidenceKnowledge(filter?: {
@@ -58,6 +100,9 @@ export function listMaterialEvidenceKnowledge(filter?: {
   kind?: MaterialEvidenceKnowledgeKind;
   materialKey?: string | null;
 }): MaterialEvidenceKnowledgeRecord[] {
+  if (BY_ID.size === 0) {
+    hydrateMaterialEvidenceKnowledgeFromDurable();
+  }
   const cat = filter?.materialCategory != null ? String(filter.materialCategory).trim() : null;
   const key = filter?.materialKey != null ? String(filter.materialKey).trim() : null;
   const kind = filter?.kind;
