@@ -211,6 +211,7 @@ export const TPI729_48_RESIDUAL_RESEARCH_ROWS: readonly Tpi729ResidualResearchRo
           urlResolved: false,
           notePl: "Labor norm 0.96 r-g/m2 claimed; URL not resolved.",
         },
+        {
           label: "ChatGPT research note — panels labor (HOLD · no PLN invent)",
           sourceUrl: "https://chatgpt.com/",
           urlResolved: false,
