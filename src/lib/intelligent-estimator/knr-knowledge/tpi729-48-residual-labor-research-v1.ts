@@ -211,6 +211,11 @@ export const TPI729_48_RESIDUAL_RESEARCH_ROWS: readonly Tpi729ResidualResearchRo
           urlResolved: false,
           notePl: "Labor norm 0.96 r-g/m2 claimed; URL not resolved.",
         },
+          label: "ChatGPT research note — panels labor (HOLD · no PLN invent)",
+          sourceUrl: "https://chatgpt.com/",
+          urlResolved: false,
+          notePl: "Owner ChatGPT research pointer — durable HOLD only · ZERO AUT-R1 invent PLN/m2.",
+        },
         {
           label: "Prior verified identity sources (gov.pl / BIP Karlino)",
           sourceUrl: "https://www.gov.pl/attachment/bfce9db3-9dba-46d1-b28f-f9782eb51260",

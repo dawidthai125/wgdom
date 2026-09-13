@@ -70,6 +70,36 @@ export function shouldDeferIkDownstreamUntilKnrKnowledge(input: {
   return input.knowledgeBusy || input.knrKnowledge === null;
 }
 
+export type KnrDownstreamPendingDiag = {
+  /** Not a terminal FAIL — Orchestra waits for KL-3 envelope. */
+  kind: "KNR_DOWNSTREAM_PENDING";
+  pending: boolean;
+  knowledgeBusy: boolean;
+  envelopeReady: boolean;
+  knrLineCount: number;
+  messagePl: string;
+};
+
+/** Explicit diag when Identity/Labor/P7 wait on KL-3 — ≠ terminal FAIL. */
+export function buildKnrDownstreamPendingDiag(input: {
+  readyForExperts: boolean;
+  knrLineCount: number;
+  knowledgeBusy: boolean;
+  knrKnowledge: KnrKnowledgeEnvelope | null;
+}): KnrDownstreamPendingDiag {
+  const pending = shouldDeferIkDownstreamUntilKnrKnowledge(input);
+  return {
+    kind: "KNR_DOWNSTREAM_PENDING",
+    pending,
+    knowledgeBusy: input.knowledgeBusy,
+    envelopeReady: input.knrKnowledge != null,
+    knrLineCount: input.knrLineCount,
+    messagePl: pending
+      ? "KL-3 KNR knowledge pending — downstream (AutoG2/P5–P8) deferred (nie FAIL)."
+      : "KL-3 downstream not deferred.",
+  };
+}
+
 export function buildDeferredIdentityBlockedContext(lineCount: number): IkIdentityContext {
   return {
     status: "blocked",

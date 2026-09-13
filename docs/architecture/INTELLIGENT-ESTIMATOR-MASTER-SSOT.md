@@ -133,21 +133,22 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | Warstwa | Stan |
 |---------|------|
 | **PRODUCT LAW (ten §0)** | FULL IK AUTONOMY — routine auto-close · Owner = exception · `ownerRuntimeDependency = 0` for routine |
-| **RUNTIME TODAY (tip `a4d3dc8`)** | G1/G2 REUSE/pack **PV** · **AUT-R1** labor Accept under §0.2 **IMPLEMENTED** (`aut-r1-accept*`) · **AUT-MAT** material Accept under §0.2 **IMPLEMENTED** (`aut-mat-accept*`) · silent invent nadal **FORBIDDEN** · G3 `ikFinalBid` persist = Owner · Finance residual OPEN on TPI bid path |
+| **RUNTIME TODAY (tip changelog 2.66.205)** | G1/G2 REUSE/pack **PV** · **AUT-R1** / **AUT-MAT** **IMPLEMENTED** · Pack/ACLC/IC/MDP/discovery/ME/cooldown **DATA_KEYS** · **AUT-G3-PERSIST** CODE IMPLEMENTED · Finance residual may remain OPEN on TPI · silent invent **FORBIDDEN** |
 | **TPI capability residual (FULL89 · local ops 2026-09-12)** | billable **74** · COMPLETE **46** · C-COV **28** · LABOR_LEAF **16** · OUR_RATE first **11** · OUR RATE CURRENT **40** · MATERIAL_* **0** · UNIT **1** · **ownerRuntimeDependency = 0** — **≠** Global IK PV · **≠** „Owner Accept × N” plan |
-| **RESIDUAL GAPS** | patrz §24 + §0.5 + §34 — data/unit/identity/plane · **nie** „rebuild AUT-R1” |
+| **RESIDUAL GAPS** | patrz §24 + §0.5 + §34 — data/unit/identity/plane · **nie** „rebuild AUT-R1” · TPI **1205-09/1205-05/identity HOLD** |
 
 ### 0.5 Architecture / implementation gaps (autonomy)
 
 | ID | Gap | Class |
 |----|-----|-------|
-| **AUT-R1** | Research/Evidence → Candidate → `evaluateAutR1LaborAcceptContract` → `acceptWorkRateResearchCandidate` → Work Catalog OUR RATE | **IMPLEMENTED / MAIN VERIFIED** · accept @ `a8c1cadb` · Evidence→AUT-R1 Orchestra wire `aut-r1-from-durable-evidence` **ON TIP** @ `36401b6b` · **≠** invent · **≠** unit auto-convert |
-| **AUT-MAT** | Material Evidence → `aut-mat-accept-contract` → PM Accept | **IMPLEMENTED / MAIN VERIFIED / ON TIP** @ `a4d3dc83` · **≠** labor routing · **≠** multi-source invent |
+| **AUT-R1** | Research/Evidence → Candidate → `evaluateAutR1LaborAcceptContract` → `acceptWorkRateResearchCandidate` → Work Catalog OUR RATE | **IMPLEMENTED / MAIN VERIFIED** · Evidence→AUT-R1 Orchestra wire · **≠** invent · **≠** unit auto-convert |
+| **AUT-MAT** | Material Evidence → `aut-mat-accept-contract` → PM Accept | **IMPLEMENTED / MAIN VERIFIED** · MEK durable `kw-wgdom-material-source-evidence` · **≠** labor routing · **≠** multi-source invent |
 | **AUT-BOM** | Provisional / missing BOM → autonomous close tylko gdy contract (AUTO_BOM / `LABOR_ONLY_AUTO_BOM_V1`) | **PARTIAL** · TPI BOM first blockers still heavy · **DATA + POLICY** residual |
-| **AUT-FIN** | Finance / BidCutover residual → READY_TO_BID path | **CURRENT OPEN** (`OWNER_FINANCE_NOT_OK`) — bid path · **≠** permission to invent rates |
+| **AUT-FIN** | Finance / BidCutover residual → READY_TO_BID path | **CURRENT OPEN** may remain on TPI · `isIkReadyToBid` derive exists · **≠** permission to invent rates |
 | **AUT-G3-CALC** | Autonomous **calculation** of final bid price as routine output | **PRODUCT TARGET** · partial via P7 prepare |
-| **AUT-G3-PERSIST** | Autonomous vs Owner persist of `ikFinalBid` | **ARCHITECTURE GAP** — wymaga osobnego design GO · **NIE implementuj teraz** |
+| **AUT-G3-PERSIST** | Autonomous vs Owner persist of `ikFinalBid` | **CODE IMPLEMENTED** (`evaluateIkG3PersistReady` · `source: autonomous_g3`) · **≠** Global PV · Owner override remains |
 | **AUT-SUB** | Offer submission to Zamawiający | **OUT OF SCOPE** / future business |
+| **DURABILITY** | Pack · ACLC · IdentityCandidates · multi-dwelling · discovery · cooldown | **CODE IMPLEMENTED** · DATA_KEYS listed in [`IK-FULL-AUTONOMY-IMPLEMENTATION-KNOWLEDGE.md`](./IK-FULL-AUTONOMY-IMPLEMENTATION-KNOWLEDGE.md) |
 
 ---
 
@@ -495,7 +496,7 @@ Rozróżnij **A** vs **B** (Product North Star §0):
 |-------|-----------|--------|
 | **A. AUTONOMOUS FINAL PRICE CALC** | P7/P8 + commercial + risk → **wyliczona** finalBid / recommendedBid / READY_TO_BID | **NIE** jako rutyna — IK ma sam domknąć gdy constraints PASS |
 | **B. SUBMISSION AUTHORITY** | Złożenie oferty u Zamawiającego | **TAK** — osobna czynność business (gdy kiedykolwiek) |
-| **C. `ikFinalBid` PERSIST** | Zapis kanoniczny na pipeline item | **ARCHITECTURE GAP (AUT-G3-PERSIST)** — historycznie Owner-only · wymaga osobnego design GO · **NIE implementuj teraz** |
+| **C. `ikFinalBid` PERSIST** | Zapis kanoniczny na pipeline item | **CODE IMPLEMENTED (AUT-G3-PERSIST)** · `source: autonomous_g3` · Owner override · **≠** Global PV |
 
 - P7 = preparation / calc path · P8 = risk prepare · **TARGET:** calc może domknąć READY_TO_BID bez czekania na Owner click.
 - **HARD:** nie blokować całego systemu tylko dlatego, że historycznie „G3 = Owner-only persist”.
@@ -1501,7 +1502,7 @@ Catalog First
 | Knowledge Destination Router thin facade | **IMPLEMENTED** (GO48) · Material Evidence / Pack·BOM adapters **OPEN** |
 | Material Evidence plane (parity with labor) | **NOT IMPLEMENTED** |
 | Accept→Catalog (OUR RATE / PM) | **IMPLEMENTED** — Owner Exception **and** Autonomous Accept under §0.2 (**AUT-R1** / **AUT-MAT** on tip) |
-| IdentityCandidate | **IMPLEMENTED** (GO35–41) · cloud `DATA_KEYS` **OPEN** |
+| IdentityCandidate | **IMPLEMENTED** (GO35–41) · cloud `kw-identity-candidates` in `DATA_KEYS` **CODE IMPLEMENTED** (2.66.201) |
 | Full Knowledge Loop CLOSED | **NO** — do not claim |
 
 **Orchestra placement (authoritative):**
@@ -1864,7 +1865,7 @@ Knowledge reuse **MUST** reduce: Supabase reads/writes · external research · d
 | AG-02 | AUTO G2 main Orchestra RATE∥BOM integration | HIGH | **PRODUCTION VERIFIED** (TPI/729 · GO79 · policy) · code @ `923ea4b3` · RATE 2/89 ACC · BOM 0/89 ACC |
 | AUT-R1 | Research/Evidence → OUR RATE under §0.2 Autonomous Accept | HIGH | **IMPLEMENTED** on tip (`aut-r1-accept*` + `aut-r1-from-durable-evidence`) @ `36401b6b` · residual = DATA/UNIT/IDENTITY · **≠** invent |
 | AUT-MAT | Material Evidence + autonomous PM Accept | HIGH | **IMPLEMENTED** on tip `a4d3dc8` (`aut-mat-accept*`) · TPI MATERIAL_* = DATA residual |
-| AUT-G3-PERSIST | `ikFinalBid` autonomous vs Owner persist | HIGH | **ARCHITECTURE GAP** — design GO · no impl this session |
+| AUT-G3-PERSIST | `ikFinalBid` autonomous vs Owner persist | HIGH | **CODE IMPLEMENTED** (2.66.204) · Global PV still required for FULL AUTONOMY TRUE |
 
 **Do not** mark entire Knowledge Loop CLOSED. **Do not** close KB-06 / KB-07. **Do not** mark Material Evidence complete.
 **Do not** claim Global IK PV from AG-01/AG-02. Finance / G3 persist / IdentityCandidate cloud remain **OPEN** as before.
@@ -2086,7 +2087,7 @@ Owner Ingest FULL PDF
 | **G2 Material (exception)** | Accept candidate PM | Price Memory | ≠ Accept | **no** (escalation only) | requires Chief avail · global WAIT natural candidate |
 | **G2 Material (autonomous)** | §0.2 AUT-MAT → PM | Price Memory | DIY research | **YES when §0.2** | **IMPLEMENTED** (tip `a4d3dc8`) |
 | **G3 Final Bid CALC** | Wyliczenie finalBid / READY_TO_BID | ephemeral / proposal | no | **YES TARGET (routine)** | P7/P8 path · AUT-G3-CALC · ≠ submission |
-| **G3 Final Bid PERSIST** | Persist `ikFinalBid` | pipeline item | no | **ARCHITECTURE GAP** | AUT-G3-PERSIST · osobny design GO · **NIE implementuj teraz** · CHROBREGO CLOSED benchmark |
+| **G3 Final Bid PERSIST** | Persist `ikFinalBid` | pipeline item | no | **CODE IMPLEMENTED** | AUT-G3-PERSIST · `evaluateIkG3PersistReady` · Owner override · **≠** Global PV |
 | **G3 Submission** | Złożenie oferty u Zamawiającego | external | no | **business / OUT** | ≠ calc · ≠ persist |
 | **KL-6 KNR VERIFY** | DISCOVERED → VERIFIED | knr catalog | discovery ≠ verify | **no** | CLOSED/PV UI |
 | **Owner Map** | document→dwelling | LS multi-dwelling | no | **no** | REQUIRED multi |
@@ -2134,7 +2135,7 @@ DF: [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-O
 | `kw-wgdom-work-catalog` | OUR RATE / works / `marketQuotes` (PM) / `commercialPricing` | **YES** | Accept writes (Owner Exception **lub** Autonomous §0.2 TARGET) · margin rules REUSE |
 | `kw-wgdom-labor-source-evidence` | Evidence | **YES** | ≠ OUR RATE without Accept · OD-43-02 SHOULD append on research |
 | Price Memory / commercial | materials via WC Quotes | **YES** | Accept writes (Owner **lub** Autonomous TARGET) |
-| `kw-identity-candidates` | IdentityCandidate OWNER_REVIEW+ | **NO cloud DATA_KEYS (GO44)** | local durable · OD-43-05 no auto expand |
+| `kw-identity-candidates` | IdentityCandidate OWNER_REVIEW+ | **DATA_KEYS + deferred bootstrap (2.66.201)** | merge by fingerprint · empty never wipes |
 | `kw-knr-catalog` | KNR knowledge | **YES** | PENDING_VERIFY / VERIFY |
 | `kw-owner-rate-input-v1` | Owner Input | **NO (LS)** | equipment/transport |
 | Chief dossier | session | memory | not cloud SSOT |

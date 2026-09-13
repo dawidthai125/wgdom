@@ -119,6 +119,19 @@ export function useIkOrchestra({
   pricingCatalogRevision = 0,
   onPricingAccepted,
 }: IkOrchestraHostInput): IkOrchestraSnapshot {
+  const [flagEpoch, setFlagEpoch] = useState(0);
+  useEffect(() => {
+    const bump = () => setFlagEpoch((n) => n + 1);
+    if (typeof window === "undefined") return;
+    window.addEventListener("focus", bump);
+    window.addEventListener("storage", bump);
+    document.addEventListener("visibilitychange", bump);
+    return () => {
+      window.removeEventListener("focus", bump);
+      window.removeEventListener("storage", bump);
+      document.removeEventListener("visibilitychange", bump);
+    };
+  }, []);
   const flags = useMemo(
     () => ({
       p2DocumentsBoqOn: isIkP2DocumentsBoqActive() === true,
@@ -131,8 +144,9 @@ export function useIkOrchestra({
       p6ResearchOn: isIkP6MaterialExecuteResearchActive() === true,
       p7F5On: isIkP7F5E2eActive() === true,
       p8RiskOn: isIkP8RiskDecisionE2eActive() === true,
+      flagEpoch,
     }),
-    [],
+    [flagEpoch],
   );
   const {
     p2DocumentsBoqOn,
@@ -783,6 +797,7 @@ export function useIkOrchestra({
     }
     if (knrDownstreamDeferred) {
       laborSettledRef.current = false;
+      laborAttemptedRef.current = null;
       setLabor(null);
       return;
     }
@@ -848,6 +863,7 @@ export function useIkOrchestra({
     }
     if (knrDownstreamDeferred) {
       atesdSettledRef.current = false;
+      atesdAttemptedRef.current = null;
       setAtesdTechnology(null);
       return;
     }
@@ -898,6 +914,7 @@ export function useIkOrchestra({
       return;
     }
     if (knrDownstreamDeferred) {
+      materialAttemptedRef.current = null;
       setMaterial(null);
       return;
     }

@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.205 — IK Full Autonomy GO#5 KL-3 resume + learning knowledge (2026-09-13)
+
+- KL-3 pending diag · flagEpoch · latch clear on defer · RULE 01–25 · Master SSOT update
+- FULL AUTONOMY still FALSE until Global PV · Test: `test-ik-kl3-resume-01.mjs`
+
 ## 2.66.204 — IK Full Autonomy GO#9–10 AUT-G3-PERSIST + READY_TO_BID (2026-09-13)
 
 - `evaluateIkG3PersistReady` · `source: autonomous_g3` · `isIkReadyToBid` · submitted untouched

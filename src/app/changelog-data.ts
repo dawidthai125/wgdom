@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.205",
+    label: "IK Full Autonomy GO#5 KL-3 resume + learning knowledge",
+    items: [
+      {
+        type: "new",
+        text: "KL-3: KnrDownstreamPending diag · flagEpoch refresh · clear P5/ATESD/P6 latches on defer so resume runs once. Learning RULE 01–25 + Master SSOT AUT-G3-PERSIST/DATA_KEYS. Test: test-ik-kl3-resume-01.mjs. FULL AUTONOMY still FALSE until Global PV.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.204",
     label: "IK Full Autonomy GO#9–10 AUT-G3-PERSIST + READY_TO_BID",
     items: [
