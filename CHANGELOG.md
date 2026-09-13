@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.207 — AUT-R1 paint/prime P1 verified labor PLN Evidence (2026-09-13)
+
+- Owner routes: Bozków 1204-02 R=3.721 · Cypisek 1505-01 R=1.182 · LOK Łuków 1134-01/02 R=1.044/1.392
+- Shared-PDF host-lock fix · AUT-R1 CURRENT (canonical 2-dp OUR RATE) · P0 1014-07 untouched
+- Test: `test-aut-r1-paint-prime-p1-evidence.mjs` · ops `catalog-aut-r1-paint-prime-p1-ops.mjs`
+
 ## 2.66.206 — MOPS clone labor-gap ACLC identity paint/prime (2026-09-13)
 
 - CKRK leaves 1204-02 / 1505-01 / 1134-01 / 1134-02 · research register (r-g ≠ OUR RATE · AUT-R1 blocked)

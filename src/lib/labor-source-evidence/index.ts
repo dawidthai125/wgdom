@@ -67,6 +67,7 @@ export {
   OWNER_AUTHORIZED_LABOR_EVIDENCE_ROUTES,
   OWNER_LABOR_EVIDENCE_STATUS_AUTHORIZED,
   isOwnerAuthorizedLaborEvidenceSourceId,
+  listOwnerAuthorizedLaborEvidenceRoutesByUrl,
   listOwnerAuthorizedLaborEvidenceSourceIds,
   normalizeOwnerLaborEvidenceUrl,
   ownerLaborEvidenceUrlsMatch,

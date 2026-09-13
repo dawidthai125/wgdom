@@ -469,8 +469,8 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
       notes:
         "MASTER_EVIDENCE_SPRINT — candidate near TPI rozebranie progu; KEEP FAIL_CLOSED unless identity resolver proves exact scope compatibility; NO invent leaf bind",
     },
-    // ── MOPS clone 08def932 / p2ui painting+priming exact leaves (2.66.206) ──
-    // Identity-only CKRK · r-g norms ≠ OUR RATE · no AUT-R1 until Owner-authorized PLN Evidence route.
+    // ── MOPS clone 08def932 / p2ui painting+priming exact leaves (2.66.206→207) ──
+    // Identity CKRK + Owner-authorized PLN Evidence URLs (source-observed R ≠ r-g×hourly).
     {
       tableCode: "1204-02",
       canonicalDisplay: "KNR 4-01 1204-02",
@@ -491,17 +491,17 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
       sources: Object.freeze([
         {
           sourceUrl:
-            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+            "https://zsckrbozkow.pl/wp-content/uploads/2025/05/Szkola-Bozkow-rem-Ip-kosztorys-inwest-pdf.pdf",
           sourceType: "PUBLIC_INSTITUTION",
         },
         {
           sourceUrl:
-            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
           sourceType: "PUBLIC_INSTITUTION",
         },
       ]),
       notes:
-        "MOPS-08DEF932-LABOR-GAP-V1: walls paint EXACT · ≠ 1505-01 ceilings · ≠ legacy-gladzie_tynki-m2 · ≠ 0815-05 · labor norm 0.119 r-g/m2 RESEARCH only · claimed ~3.721 PLN/m2 = RESEARCH_EVIDENCE_CANDIDATE not OUR RATE · no r-g×hourly",
+        "MOPS-08DEF932 P1: walls paint EXACT · źródłowe R=3.721 PLN/m2 (ZSCKR Bozków) → Owner zsckr_bozkow_1204_02 → AUT-R1 · ≠ 1505-01 · ≠ 0815-05 · no r-g×hourly",
     },
     {
       tableCode: "1505-01",
@@ -523,17 +523,17 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
       sources: Object.freeze([
         {
           sourceUrl:
-            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+            "https://hbstudio.pl/wp-content/uploads/2017/10/cypisek-ceny-minimalne.pdf",
           sourceType: "PUBLIC_INSTITUTION",
         },
         {
           sourceUrl:
-            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
           sourceType: "PUBLIC_INSTITUTION",
         },
       ]),
       notes:
-        "MOPS-08DEF932-LABOR-GAP-V1: ceiling paint EXACT · ≠ 1204-02 walls · ≠ legacy-malowanie-m2 · labor norm ~0.1391 r-g/m2 RESEARCH only · NO PLN Evidence host-lock → AUT-R1 HOLD",
+        "MOPS-08DEF932 P1: ceiling paint EXACT · R=1.182 PLN/m2 (HBStudio Cypisek) → hbstudio_cypisek_1505_01 → AUT-R1 · ≠ 1204-02 · ≠ legacy-malowanie-m2",
     },
     {
       tableCode: "1134-01",
@@ -552,17 +552,17 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
       sources: Object.freeze([
         {
           sourceUrl:
-            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+            "https://www.lok.lukow.pl/pobierz/article-d235da9c67851a0efa42a4993de09cb7",
           sourceType: "PUBLIC_INSTITUTION",
         },
         {
           sourceUrl:
-            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
           sourceType: "PUBLIC_INSTITUTION",
         },
       ]),
       notes:
-        "MOPS-08DEF932-LABOR-GAP-V1: horizontal priming · ≠ 1134-02 vertical · ≠ legacy-malowanie-m2 22.9 · norm 0.060 r-g/m2 RESEARCH only · ACLC id cw.knr.nnrnkb.1134-01.m2 · pack.priming still binds absent legacy-gruntowanie-m2",
+        "MOPS-08DEF932 P1: horizontal priming · R=1.044 PLN/m2 (LOK Łuków) → lok_lukow_1134_01 → AUT-R1 · ≠ 1134-02 · ≠ legacy-malowanie-m2 22.9",
     },
     {
       tableCode: "1134-02",
@@ -581,16 +581,16 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
       sources: Object.freeze([
         {
           sourceUrl:
-            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+            "https://www.lok.lukow.pl/pobierz/article-d235da9c67851a0efa42a4993de09cb7",
           sourceType: "PUBLIC_INSTITUTION",
         },
         {
           sourceUrl:
-            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
           sourceType: "PUBLIC_INSTITUTION",
         },
       ]),
       notes:
-        "MOPS-08DEF932-LABOR-GAP-V1: vertical priming · ≠ 1134-01 · ≠ legacy-malowanie-m2 22.9 · norm 0.080 r-g/m2 RESEARCH only · ACLC id cw.knr.nnrnkb.1134-02.m2",
+        "MOPS-08DEF932 P1: vertical priming · R=1.392 PLN/m2 (LOK Łuków shared PDF) → lok_lukow_1134_02 → AUT-R1 · ≠ 1134-01",
     },
   ]);

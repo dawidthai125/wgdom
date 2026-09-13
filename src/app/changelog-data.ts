@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.207",
+    label: "AUT-R1 paint/prime P1 — verified labor PLN Evidence",
+    items: [
+      {
+        type: "new",
+        text: "Owner Evidence routes: ZSCKR Bozków 3.721→1204-02 · HBStudio 1.182→1505-01 · LOK Łuków 1.044/1.392→1134-01/02 (shared PDF host-lock). AUT-R1 CURRENT via source-observed R PLN/m² (canonical 2-dp OUR RATE). 0815-*/2006/1118/0829 + P0 1014-07 immutable. Test: test-aut-r1-paint-prime-p1-evidence · ops catalog-aut-r1-paint-prime-p1-ops.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.206",
     label: "MOPS clone labor-gap ACLC identity (paint/prime) — no invent OUR RATE",
     items: [

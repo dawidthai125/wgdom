@@ -398,6 +398,32 @@ function saveSeed(store) {
       "https://bip.powiatobornicki.pl/pliki/powiatobornicki/zalaczniki/3800/01_07_2022_14_23_54_kosztorys-inwestorski.pdf",
   });
   ok("E13c alternate Obornicki PDF not auto-authorized", !wildPdf.ok);
+
+  const bozkow = resolveOwnerAuthorizedLaborEvidenceRoute("zsckr_bozkow_1204_02");
+  ok("E13d Bozków 1204 route present", Boolean(bozkow?.url));
+  ok(
+    "E13d Bozków host lock",
+    assertLaborSourceEvidenceHostLock({
+      sourceId: "zsckr_bozkow_1204_02",
+      sourceUrl: bozkow.url,
+    }).ok,
+  );
+  const lukowUrl =
+    "https://www.lok.lukow.pl/pobierz/article-d235da9c67851a0efa42a4993de09cb7";
+  ok(
+    "E13d LOK 1134-01 host lock",
+    assertLaborSourceEvidenceHostLock({
+      sourceId: "lok_lukow_1134_01",
+      sourceUrl: lukowUrl,
+    }).ok,
+  );
+  ok(
+    "E13d LOK 1134-02 shared URL host lock",
+    assertLaborSourceEvidenceHostLock({
+      sourceId: "lok_lukow_1134_02",
+      sourceUrl: lukowUrl,
+    }).ok,
+  );
 }
 
 // ——— E14 Work Catalog isolation ———

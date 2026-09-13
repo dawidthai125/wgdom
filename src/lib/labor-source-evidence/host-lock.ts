@@ -17,6 +17,7 @@ import {
 } from "@/lib/tender-position-cost/autonomous-pricing-fallback/apf-source-authorization";
 import {
   isOwnerAuthorizedLaborEvidenceSourceId,
+  ownerLaborEvidenceUrlsMatch,
   resolveOwnerAuthorizedLaborEvidenceRoute,
   resolveOwnerAuthorizedLaborEvidenceRouteByUrl,
 } from "@/lib/labor-source-evidence/owner-authorized-routes";
@@ -87,11 +88,15 @@ export function assertLaborSourceEvidenceHostLock(input: {
     }
   }
 
-  // Owner Labor Evidence: exact sourceId ↔ exact URL (no cross-route mix).
+  // Owner Labor Evidence: exact sourceId ↔ that route's exact URL.
+  // Multiple routes MAY share one URL (e.g. two leaf codes in one PDF) —
+  // primary key is sourceId; do not require URL→sourceId uniqueness.
   if (isOwnerAuthorizedLaborEvidenceSourceId(sourceId)) {
-    const byUrl = resolveOwnerAuthorizedLaborEvidenceRouteByUrl(sourceUrl);
     const byId = resolveOwnerAuthorizedLaborEvidenceRoute(sourceId);
-    if (!byUrl || !byId || byUrl.sourceId !== sourceId) {
+    if (
+      !byId ||
+      !ownerLaborEvidenceUrlsMatch(byId.url, sourceUrl)
+    ) {
       return {
         ok: false,
         messagePl: `Owner Labor Evidence host lock: sourceId „${sourceId}” nie pasuje do authorized URL.`,
@@ -128,5 +133,9 @@ export function listLaborSourceEvidenceOwnerRouteSourceIds(): readonly string[] 
     "public_cost_estimate_0829_03",
     "bip_powiat_obornicki_0815_04",
     "winbud_szczegolowy_2006_04",
+    "zsckr_bozkow_1204_02",
+    "hbstudio_cypisek_1505_01",
+    "lok_lukow_1134_01",
+    "lok_lukow_1134_02",
   ] as const;
 }

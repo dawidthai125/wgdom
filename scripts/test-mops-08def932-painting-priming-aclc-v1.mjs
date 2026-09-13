@@ -146,21 +146,22 @@ ok("6 ACLC CREATE ×4 memory sync");
 
 {
   const row1204 = MOPS_08DEF932_LABOR_GAP_ROWS.find((r) => r.tableCode === "1204-02");
-  assert.equal(row1204?.autR1SufficientPlnEvidence, false);
+  assert.equal(row1204?.autR1SufficientPlnEvidence, true);
   assert.equal(row1204?.researchPlnCandidate, 3.721);
-  assert.equal(row1204?.status, "AUT_R1_BLOCKED_NO_PLN_ROUTE");
+  assert.equal(row1204?.status, "AUT_R1_CURRENT");
   const rowMycie = MOPS_08DEF932_LABOR_GAP_ROWS.find((r) => r.tableCode === "1014-07");
   assert.equal(rowMycie?.status, "EVIDENCE_ONLY_HOLD");
   const row0909 = MOPS_08DEF932_LABOR_GAP_ROWS.find((r) => r.tableCode === "0909-04");
   assert.equal(row0909?.status, "OWNER_DECISION");
   const rowWykwity = MOPS_08DEF932_LABOR_GAP_ROWS.find((r) => r.group === "J");
   assert.equal(rowWykwity?.status, "OWNER_DECISION");
-  ok("9 research register holds AUT-R1 / Owner / mycie");
+  ok("9 research register AUT_R1_CURRENT paint/prime · P0/Owner holds");
 }
 
 {
   const sum = summarizeMops08LaborGapResearch();
-  assert.ok(sum.autR1Blocked >= 4);
+  assert.equal(sum.autR1Current, 4);
+  assert.equal(sum.autR1Blocked, 0);
   assert.ok(sum.ownerDecision >= 2);
   assert.ok(sum.bomRequired >= 2);
   ok("10 summary counters");
