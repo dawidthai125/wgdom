@@ -469,4 +469,128 @@ export const CHATGPT_KNR_RESEARCH_TPI729_VERIFIED: readonly ChatgptKnrVerifiedRe
       notes:
         "MASTER_EVIDENCE_SPRINT — candidate near TPI rozebranie progu; KEEP FAIL_CLOSED unless identity resolver proves exact scope compatibility; NO invent leaf bind",
     },
+    // ── MOPS clone 08def932 / p2ui painting+priming exact leaves (2.66.206) ──
+    // Identity-only CKRK · r-g norms ≠ OUR RATE · no AUT-R1 until Owner-authorized PLN Evidence route.
+    {
+      tableCode: "1204-02",
+      canonicalDisplay: "KNR 4-01 1204-02",
+      catalogFamilyPrefix: "KNR 4-01",
+      description:
+        "Dwukrotne malowanie farbami emulsyjnymi starych tynków wewnętrznych ścian",
+      unit: "m2",
+      semanticTokens: Object.freeze([
+        "malowanie",
+        "emulsyjnymi",
+        "starych",
+        "tynków",
+        "ścian",
+        "wewnętrznych",
+        "dwukrotne",
+      ]),
+      aliases: Object.freeze(["1204/02", "1204-02"]),
+      sources: Object.freeze([
+        {
+          sourceUrl:
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+        {
+          sourceUrl:
+            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+      ]),
+      notes:
+        "MOPS-08DEF932-LABOR-GAP-V1: walls paint EXACT · ≠ 1505-01 ceilings · ≠ legacy-gladzie_tynki-m2 · ≠ 0815-05 · labor norm 0.119 r-g/m2 RESEARCH only · claimed ~3.721 PLN/m2 = RESEARCH_EVIDENCE_CANDIDATE not OUR RATE · no r-g×hourly",
+    },
+    {
+      tableCode: "1505-01",
+      canonicalDisplay: "KNR 2-02 1505-01",
+      catalogFamilyPrefix: "KNR 2-02",
+      description:
+        "Dwukrotne malowanie farbami emulsyjnymi wewnętrznych tynków gładkich bez gruntowania — sufity",
+      unit: "m2",
+      semanticTokens: Object.freeze([
+        "malowanie",
+        "emulsyjnymi",
+        "tynków",
+        "gładkich",
+        "bez gruntowania",
+        "sufity",
+        "dwukrotne",
+      ]),
+      aliases: Object.freeze(["1505/01", "1505-01"]),
+      sources: Object.freeze([
+        {
+          sourceUrl:
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+        {
+          sourceUrl:
+            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+      ]),
+      notes:
+        "MOPS-08DEF932-LABOR-GAP-V1: ceiling paint EXACT · ≠ 1204-02 walls · ≠ legacy-malowanie-m2 · labor norm ~0.1391 r-g/m2 RESEARCH only · NO PLN Evidence host-lock → AUT-R1 HOLD",
+    },
+    {
+      tableCode: "1134-01",
+      canonicalDisplay: "NNRNKB 202 1134-01",
+      catalogFamilyPrefix: "NNRNKB",
+      description: "Gruntowanie podłoży preparatami — powierzchnie poziome / sufity",
+      unit: "m2",
+      semanticTokens: Object.freeze([
+        "gruntowanie",
+        "podłoży",
+        "preparatami",
+        "poziome",
+        "sufity",
+      ]),
+      aliases: Object.freeze(["1134/01", "1134-01"]),
+      sources: Object.freeze([
+        {
+          sourceUrl:
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+        {
+          sourceUrl:
+            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+      ]),
+      notes:
+        "MOPS-08DEF932-LABOR-GAP-V1: horizontal priming · ≠ 1134-02 vertical · ≠ legacy-malowanie-m2 22.9 · norm 0.060 r-g/m2 RESEARCH only · ACLC id cw.knr.nnrnkb.1134-01.m2 · pack.priming still binds absent legacy-gruntowanie-m2",
+    },
+    {
+      tableCode: "1134-02",
+      canonicalDisplay: "NNRNKB 202 1134-02",
+      catalogFamilyPrefix: "NNRNKB",
+      description: "Gruntowanie podłoży preparatami — powierzchnie pionowe",
+      unit: "m2",
+      semanticTokens: Object.freeze([
+        "gruntowanie",
+        "podłoży",
+        "preparatami",
+        "pionowe",
+        "ściany",
+      ]),
+      aliases: Object.freeze(["1134/02", "1134-02"]),
+      sources: Object.freeze([
+        {
+          sourceUrl:
+            "https://wydawnictwo.up.lublin.pl/szp/2014/AZP-PN-19-2014/zal._1c_-_przedmiar_-_roboty_remontowo-_malarskie_w_pokojach_oraz_pomieszczeniach_kuchennych_i_sanitarnych.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+        {
+          sourceUrl:
+            "https://up.lublin.pl/szp/2014/AZP-PN-24-2014/przedmiar_roboty_remontowo-budowlane.htm",
+          sourceType: "PUBLIC_INSTITUTION",
+        },
+      ]),
+      notes:
+        "MOPS-08DEF932-LABOR-GAP-V1: vertical priming · ≠ 1134-01 · ≠ legacy-malowanie-m2 22.9 · norm 0.080 r-g/m2 RESEARCH only · ACLC id cw.knr.nnrnkb.1134-02.m2",
+    },
   ]);

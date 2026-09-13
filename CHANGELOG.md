@@ -1,5 +1,10 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.206 — MOPS clone labor-gap ACLC identity paint/prime (2026-09-13)
+
+- CKRK leaves 1204-02 / 1505-01 / 1134-01 / 1134-02 · research register (r-g ≠ OUR RATE · AUT-R1 blocked)
+- Test: `test-mops-08def932-painting-priming-aclc-v1.mjs` · no invent PLN · 0815-* untouched
+
 ## 2.66.205 — IK Full Autonomy GO#5 KL-3 resume + learning knowledge (2026-09-13)
 
 - KL-3 pending diag · flagEpoch · latch clear on defer · RULE 01–25 · Master SSOT update

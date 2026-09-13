@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-13",
+    version: "2.66.206",
+    label: "MOPS clone labor-gap ACLC identity (paint/prime) — no invent OUR RATE",
+    items: [
+      {
+        type: "new",
+        text: "CKRK + ACLC-ready leaves: KNR 4-01 1204-02 · KNR 2-02 1505-01 · NNRNKB 1134-01/02. Research register MOPS-08DEF932-LABOR-GAP-V1: r-g + 3.721 PLN = RESEARCH only · AUT-R1 BLOCKED (no Owner PLN route). 0909/wykwity/BOM groups NOT implemented. Test: test-mops-08def932-painting-priming-aclc-v1.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-13",
     version: "2.66.205",
     label: "IK Full Autonomy GO#5 KL-3 resume + learning knowledge",
     items: [

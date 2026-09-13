@@ -112,6 +112,9 @@ export * from "./knr-owner-identity-seed";
 export * from "./knr-corpus-conflict-resolution-v1";
 export * from "./knr-corpus-ready-selection";
 
+/** MOPS clone 08def932 painting/priming labor-gap research (≠ OUR RATE). */
+export * from "./mops-08def932-painting-priming-labor-research-v1";
+
 /** KL-0 / KL-1 / KL-5 implementation markers (KL-6 / KL-3B / APP-1 / APP-2-ID / APP-2 / Host KL-3 markers from modules). */
 export const KNR_KNOWLEDGE_KL0_IMPLEMENTED = true as const;
 export const KNR_KNOWLEDGE_KL5_IMPLEMENTED = true as const;
