@@ -191,7 +191,12 @@ console.log("=== PAYROLL P2 — FIELD INTENT ===\n");
     dataUpdatedAt: "2026-08-28T19:00:00.000Z",
   }];
   const { roster } = applyPayrollFieldIntentsOntoCanonical(cloud, before, after, [], WF, WT);
-  assert("R5 extraCost remains A", (roster[0].extraCosts || [])[0]?.description === "A");
+  const costs = roster[0].extraCosts || [];
+  const descs = costs.map((c) => c.description).sort();
+  // F1: hours edit must not wipe peer/stale cost ids — union-by-id keeps A and B
+  assert("R5 extraCost union keeps A", descs.includes("A"));
+  assert("R5 extraCost union keeps B", descs.includes("B"));
+  assert("R5 extraCost count 2", costs.length === 2);
 }
 
 // R6: cloud rate 100, stale 80, edit day => rate 100

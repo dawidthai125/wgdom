@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.214",
+    label: "PAYROLL — F1 extraCosts union-by-id (cross-device lost update)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: koszty (extraCosts) nie giną między urządzeniami — merge union po id + LWW per wpis (updatedAt), niezależnie od dataUpdatedAt godzin. Domain Push / 409 rebase nie nadpisują całej tablicy pustką. Usuwanie kosztów bez tombstone = ograniczenie udokumentowane. Test: test-payroll-extracosts-f1-union.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.213",
     label: "PAYROLL — block D5 Soft Restore cross-week hour leak",
     items: [

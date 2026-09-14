@@ -76,8 +76,8 @@ console.log("\n--- A2 add row + amount via patch ---");
   assert("A2 add then amount 150", amountOf(state[0]) === "150");
 }
 
-// B — po fixie UI: wymuszony sync merge (B5 z RCA)
-console.log("\n--- B ETAP1 + forced sync: cloud newer empty extraCosts ---");
+// B — F1 union-by-id: empty peer / newer employee clock must NOT wipe filled amount
+console.log("\n--- B ETAP1 + forced sync: cloud newer empty amount same id ---");
 {
   let state = [baseEmp([])];
   const row = { id: COST_ID, description: "", amount: "" };
@@ -87,8 +87,7 @@ console.log("\n--- B ETAP1 + forced sync: cloud newer empty extraCosts ---");
 
   const cloudEmp = baseEmp([{ id: COST_ID, description: "", amount: "" }], "2026-06-24T12:00:02.000Z");
   const merged = simulateApplyAdminMerge(localEmp, cloudEmp);
-  const lostAfterSync = amountOf(merged) === "";
-  assert("B1 sync still drops amount when cloud newer (PARTIAL FIX boundary)", lostAfterSync);
+  assert("B1 F1 keeps 150 despite cloud newer empty amount", amountOf(merged) === "150");
 }
 
 console.log("\n--- B2 typical single-device sync after patch ---");
@@ -100,14 +99,13 @@ console.log("\n--- B2 typical single-device sync after patch ---");
 }
 
 const etap1Status = fail === 0 ? "ETAP1_SMOKE_PASS" : "ETAP1_SMOKE_FAIL";
-const partialFix = true; // B1 confirms sync edge remains
 
 console.log("\n=== ETAP 1 REPORT ===");
 console.log(JSON.stringify({
   etap1Status,
-  partialFix,
+  partialFix: false,
   answerA: "Removing safeEmp spread for extraCosts (onPatchExtraCosts) fixes local stale overwrite",
-  answerB: "Bug STILL occurs after forced merge when cloud has newer dataUpdatedAt and empty amount — ETAP 2 required for full fidelity",
+  answerB: "F1 mergeExtraCostsById keeps filled amount vs empty peer (no whole-array dataUpdatedAt wipe)",
   pass,
   fail,
 }, null, 2));

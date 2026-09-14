@@ -191,6 +191,7 @@ import {
   PAYROLL_HOURS_COLLAPSE_CONFIRM_REQUIRED,
 } from "@/lib/payroll-hours-collapse-gate";
 import { deriveHoursIntentsFromLocalEdit } from "@/lib/payroll-hours-intent";
+import { stampExtraCostsOnEdit } from "@/lib/payroll-extra-costs-merge";
 import {
   applyPrevRecoveryToLiveRoster,
   dismissPayrollPrevRecovery,
@@ -2465,12 +2466,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
         let changed = false;
         const next = prev.map((e) => {
           if (e.id !== empId) return e;
-          const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(nextExtraCosts);
+          const stamped = stampExtraCostsOnEdit(e.extraCosts, nextExtraCosts, now);
+          const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(stamped);
           if (!dataChanged) return e;
           changed = true;
           return {
             ...e,
-            extraCosts: nextExtraCosts,
+            extraCosts: stamped,
             dataUpdatedAt: now,
           };
         });
@@ -2720,9 +2722,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const now = new Date().toISOString();
       return emps.map((e) => {
         if (e.id !== empId) return e;
-        const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(nextExtraCosts);
+        const stamped = stampExtraCostsOnEdit(e.extraCosts, nextExtraCosts, now);
+        const dataChanged = JSON.stringify(e.extraCosts) !== JSON.stringify(stamped);
         if (!dataChanged) return e;
-        return { ...e, extraCosts: nextExtraCosts, dataUpdatedAt: now };
+        return { ...e, extraCosts: stamped, dataUpdatedAt: now };
       });
     });
   }, [patchArchiveWeek]);

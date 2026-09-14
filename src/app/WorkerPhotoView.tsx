@@ -559,6 +559,7 @@ export function WorkerPhotoView({ workerName, workerId, onLogout }: { workerName
       receiptUrl: publicUrl,
       status: "pending",
       submittedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       submittedBy: workerName,
     };
     try {

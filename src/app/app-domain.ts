@@ -91,6 +91,12 @@ export interface EmployeeExtraCost {
   rejectReason?: string;
   submittedAt?: string;
   submittedBy?: string;
+  /**
+   * Per-item mutation clock (F1 lost-update fix).
+   * Optional for legacy rows — merge falls back to submittedAt / deterministic tie-break.
+   * NOT WeekEmployee.dataUpdatedAt (hours clock).
+   */
+  updatedAt?: string;
 }
 
 /** Jawna korekta wypłaty (np. wynagrodzenie urlopowe) — ≠ extraCosts (zwrot wydatków). */

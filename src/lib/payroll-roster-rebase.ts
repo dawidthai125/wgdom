@@ -5,6 +5,7 @@
 
 import type { WeekEmployee } from "@/app/app-domain";
 import { rebasePayrollFieldIntents } from "@/lib/payroll-field-intent";
+import { mergeExtraCostsById } from "@/lib/payroll-extra-costs-merge";
 
 function payrollCoreFieldsEqual(b: WeekEmployee, a: WeekEmployee): boolean {
   return (
@@ -36,8 +37,9 @@ export function isPayrollExtraCostsOnlyIntent(
 }
 
 /**
- * Worker 409 rebase — apply only extraCosts intent onto canonical roster.
- * Never merge full after record (stale days/settled/rate must not win).
+ * Worker 409 rebase — apply extraCosts intent onto canonical via union-by-id.
+ * Never whole-replace after over cloud (would drop peer costs).
+ * DELETE LIMITATION: without tombstones, filter-remove may resurrect on merge.
  */
 export function rebasePayrollExtraCostsIntent(
   canonical: WeekEmployee[],
@@ -52,9 +54,13 @@ export function rebasePayrollExtraCostsIntent(
     const a = afterById.get(canon.id);
     if (!b || !a) return canon;
     if (JSON.stringify(b.extraCosts ?? []) === JSON.stringify(a.extraCosts ?? [])) return canon;
+    const baselineOk = JSON.stringify(b.extraCosts ?? []) === JSON.stringify(canon.extraCosts ?? []);
+    const nextCosts = baselineOk
+      ? (a.extraCosts ?? [])
+      : mergeExtraCostsById(a.extraCosts ?? [], canon.extraCosts ?? []);
     return {
       ...canon,
-      extraCosts: a.extraCosts ?? [],
+      extraCosts: nextCosts,
       dataUpdatedAt: a.dataUpdatedAt ?? canon.dataUpdatedAt,
     };
   });

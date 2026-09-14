@@ -9,6 +9,7 @@ import {
   normalizeEarlyPayoutList,
   type PayrollEarlyPayout,
 } from "./payroll-early-payout-types.ts";
+import { mergeExtraCostsById } from "./payroll-extra-costs-merge.ts";
 
 export type PayrollDayLike = {
   active?: boolean;
@@ -293,18 +294,9 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
 
   const lAt = parsePayrollRecordTs(l.dataUpdatedAt);
   const cAt = parsePayrollRecordTs(c.dataUpdatedAt);
-  const extraCosts =
-    lAt >= cAt
-      ? Array.isArray(l.extraCosts)
-        ? l.extraCosts
-        : Array.isArray(c.extraCosts)
-          ? c.extraCosts
-          : []
-      : Array.isArray(c.extraCosts)
-        ? c.extraCosts
-        : Array.isArray(l.extraCosts)
-          ? l.extraCosts
-          : [];
+  // F1 — extraCosts are NOT whole-array LWW on dataUpdatedAt (hours clock).
+  // Union-by-id + per-item LWW; empty side never wipes the other.
+  const extraCosts = mergeExtraCostsById(l.extraCosts, c.extraCosts);
 
   const rate = pickRateByTimestamps(l, c);
   const lRateAt = parsePayrollRecordTs(l.rateUpdatedAt);

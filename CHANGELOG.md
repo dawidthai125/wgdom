@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.214 — PAYROLL F1 extraCosts union-by-id (2026-09-14)
+
+- `EmployeeExtraCost.updatedAt` (optional, backward compatible)
+- `mergeExtraCostsById` — union by id + per-item LWW; empty side never wipes peer
+- Pull merge / Domain Push field-intent / 409 worker rebase use union (not whole-array `dataUpdatedAt`)
+- Delete without tombstones may resurrect — documented limitation (no fake delete protocol)
+- Tests: `test-payroll-extracosts-f1-union.mjs` · P2 field-intent R5 updated for union
+- No production KV write / no Edge deploy in this change set
+
 ## 2.66.213 — PAYROLL D5 Soft Restore cross-week guard (2026-09-14)
 
 - Soft Restore: `-prev` hours only with same-week binding (`prevRosterWeekFrom/To`); rotational `kw-week-employees-prev` alone cannot leak prior calendar week into ADD

@@ -28,6 +28,7 @@ import {
 } from "@/lib/payroll-hours-intent";
 import { applyEarlyPayoutFieldIntent } from "@/lib/payroll-early-payout";
 import { applySettlementFieldIntent } from "@/lib/payroll-settlement";
+import { mergeExtraCostsById } from "@/lib/payroll-extra-costs-merge";
 import { resolveUnresolvedSettlementAckEmpIds } from "@/lib/payroll-settlement-cloud-ack";
 import { weekEmployeeMergeKey } from "@/lib/payroll-week-employee-merge";
 import { resolvePayrollPendingAddKeys } from "@/lib/payroll-pending-add-intent";
@@ -148,7 +149,7 @@ function applyFieldsOntoCloudEmp(
     }
   }
 
-  // --- ExtraCosts (P2 baseline vs cloud — same contract as rate / MA / settlement) ---
+  // --- ExtraCosts (F1 — union-by-id; never whole-array Cloud-wins wipe) ---
   {
     const beforeCosts = beforeEmp?.extraCosts;
     const afterCosts = afterEmp?.extraCosts;
@@ -159,12 +160,20 @@ function applyFieldsOntoCloudEmp(
       && !extraCostsEqual(beforeCosts, afterCosts);
     const baselineOk = !!beforeEmp && extraCostsEqual(beforeCosts, cloudCosts);
     if (costsEdited && baselineOk) {
+      // Same baseline as cloud — trust after (includes intentional filter-deletes).
       next.extraCosts = cloneJson(afterCosts ?? []);
       next.dataUpdatedAt = afterEmp.dataUpdatedAt ?? next.dataUpdatedAt;
       if (!extraCostsEqual(next.extraCosts, cloudCosts)) changed = true;
     } else {
-      next.extraCosts = cloneJson(cloudCosts ?? []);
-      if (costsEdited) changed = true;
+      // No cost edit, OR concurrent conflict (stale baseline):
+      // union after ⊕ cloud so empty/stale after cannot wipe peer adds.
+      // DELETE LIMITATION: without tombstones, concurrent delete may resurrect.
+      const merged = mergeExtraCostsById(afterCosts ?? [], cloudCosts ?? []);
+      next.extraCosts = merged;
+      if (costsEdited || !extraCostsEqual(merged, cloudCosts ?? [])) {
+        if (afterEmp?.dataUpdatedAt) next.dataUpdatedAt = afterEmp.dataUpdatedAt ?? next.dataUpdatedAt;
+        changed = true;
+      }
     }
   }
 
