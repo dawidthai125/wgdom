@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.221",
+    label: "PAYROLL AKORD Phase 1 — model wynagrodzenia w Kadrach",
+    items: [
+      {
+        type: "new",
+        text: "Kadry: model wynagrodzenia Godzinowa / Akord (domyślnie godzinowa). Brak pola = godzinowa. Zmiana od następnego tygodnia — bez przeliczania bieżącej listy i archiwum. Test: test-payroll-compensation-model-p1.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.220",
     label: "PAYROLL — final gaps: extraCost delete + failed remove tomb",
     items: [

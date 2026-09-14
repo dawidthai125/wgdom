@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.221 — PAYROLL AKORD Phase 1 (2026-09-14)
+
+- Kadry: `compensationModel` hourly | akord (missing/invalid → hourly, bez masowej migracji)
+- `compensationModelUpdatedAt` przy zmianie modelu; sync kartoteki bez zmian `mergeDirectory` (LWW `updatedAt`)
+- Snapshot na `WeekEmployee` tylko przy `weekEmployeeFromDir` (PURE) — bieżący tydzień bez rewrite
+- Test: `scripts/test-payroll-compensation-model-p1.mjs`
+
 ## docs — PAYROLL documentation reconciliation (2026-09-14)
 
 - Docs-only: ujednolicono Payroll CRITICAL PROTECTED + Final Hardened baseline (**runtime już 2.66.220 / `73aededf`** — bez nowego bump UI)

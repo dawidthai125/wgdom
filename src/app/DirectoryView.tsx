@@ -22,6 +22,11 @@ import { EmployeeLeavesSection } from "@/app/EmployeeLeavesSection";
 import { digestSha256Hex } from "@/lib/admin-auth";
 import { recordSecurityAudit } from "@/lib/security-audit-log";
 import { canChangeBiweeklyAnchor } from "@/lib/payroll-early-payout";
+import {
+  directoryCompensationModel,
+  stampDirectoryCompensationModel,
+  type PayrollCompensationModel,
+} from "@/lib/payroll-compensation-model";
 
 async function hashWorkerPin(pin: string): Promise<string> {
   return digestSha256Hex(`wgdom-worker-pin-v1:${pin}`);
@@ -101,6 +106,11 @@ export function DirectoryView({
   };
 
   const update = (updated:DirectoryEmployee) => onChange(directory.map((d)=>d.id===updated.id?updated:d));
+
+  const setCompensationModel = (emp: DirectoryEmployee, model: PayrollCompensationModel) => {
+    if (directoryCompensationModel(emp) === model) return;
+    update(stampDirectoryCompensationModel(emp, { ...emp, compensationModel: model }, new Date().toISOString()));
+  };
   const remove = (id:string) => {
     addDeletedDirectoryId(id);
     const next = directory.filter((d)=>d.id!==id);
@@ -211,9 +221,35 @@ export function DirectoryView({
                         <LabelWithHint label="Telefon" hint="Numer do logowania pracownika — wpisuje 9 ostatnich cyfr (bez +48). Wymagany do trybu pracownika." htmlFor={`dir-phone-${editEmp.id}`}/>
                         <input id={`dir-phone-${editEmp.id}`} type="tel" value={editEmp.phone} onChange={(e)=>update({...editEmp,phone:e.target.value})} placeholder="+48 000 000 000" className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors"/>
                       </div>
+                      <div className="sm:col-span-2">
+                        <LabelWithHint
+                          label="Model wynagrodzenia"
+                          hint="Godzinowa — jak dotychczas (godziny × stawka). Akord — uzgodniona kwota, bez godzin. Zmiana obowiązuje od następnego tygodnia na liście płac; bieżący tydzień i archiwum się nie przeliczają."
+                        />
+                        <div className="mt-1 flex flex-wrap gap-2" role="radiogroup" aria-label="Model wynagrodzenia">
+                          <label className={`flex items-center gap-2 cursor-pointer rounded-lg px-3 py-2 text-sm border ${directoryCompensationModel(editEmp)==="hourly"?"border-primary/50 bg-primary/10":"border-border bg-secondary"}`}>
+                            <input
+                              type="radio"
+                              name={`dir-comp-${editEmp.id}`}
+                              checked={directoryCompensationModel(editEmp)==="hourly"}
+                              onChange={() => setCompensationModel(editEmp, "hourly")}
+                            />
+                            Godzinowa
+                          </label>
+                          <label className={`flex items-center gap-2 cursor-pointer rounded-lg px-3 py-2 text-sm border ${directoryCompensationModel(editEmp)==="akord"?"border-primary/50 bg-primary/10":"border-border bg-secondary"}`}>
+                            <input
+                              type="radio"
+                              name={`dir-comp-${editEmp.id}`}
+                              checked={directoryCompensationModel(editEmp)==="akord"}
+                              onChange={() => setCompensationModel(editEmp, "akord")}
+                            />
+                            Akord
+                          </label>
+                        </div>
+                      </div>
                       {canViewRates && (
                       <div>
-                        <LabelWithHint label="Domyślna stawka (PLN/h)" hint="Podpowiada się w liście płac i na robotach. Można zmienić na konkretny tydzień bez edycji kartoteki." htmlFor={`dir-rate-${editEmp.id}`}/>
+                        <LabelWithHint label="Domyślna stawka (PLN/h)" hint={directoryCompensationModel(editEmp)==="akord" ? "Przy modelu Akord stawka godzinowa nie liczy wypłaty na liście płac. Zostaje na wypadek powrotu do godzinówki od następnego tygodnia." : "Podpowiada się w liście płac i na robotach. Można zmienić na konkretny tydzień bez edycji kartoteki."} htmlFor={`dir-rate-${editEmp.id}`}/>
                         <input id={`dir-rate-${editEmp.id}`} type="number" min="0" step="0.5" value={editEmp.defaultRate} onChange={(e)=>update({...editEmp,defaultRate:e.target.value})} className="w-full bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none transition-colors" style={{fontFamily:"'JetBrains Mono', monospace"}}/>
                       </div>
                       )}
@@ -358,6 +394,7 @@ export function DirectoryView({
                         <p className="text-xs text-muted-foreground">{emp.position||<span className="italic">brak stanowiska</span>}
                           {emp.multiSiteDaily && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">wiele robót/dzień</span>}
                           {emp.biweeklyPayroll && <span className="ml-2 text-[10px] bg-sky-500/15 text-sky-400 px-1.5 py-0.5 rounded-full">co 2 tyg.</span>}
+                          {directoryCompensationModel(emp)==="akord" && <span className="ml-2 text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full">akord</span>}
                           {isTestDirectoryEmployee(emp) && <span className="ml-2 text-[10px] bg-violet-500/15 text-violet-400 px-1.5 py-0.5 rounded-full">TEST</span>}
                         </p>
                       </div>

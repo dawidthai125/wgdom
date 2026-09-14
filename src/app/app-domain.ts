@@ -20,6 +20,7 @@ import { resolveJobListStatus, JOB_LIST_STATUS_CONFIG, type JobListStatusJob } f
 import { syncJobDocuments } from "@/lib/job-documents";
 import { filterAvailablePhotos } from "@/lib/media-filter";
 import { removeWorkEntriesMatchingFromJobs } from "@/lib/payroll-job-assignments";
+import { directoryCompensationModel } from "@/lib/payroll-compensation-model";
 
 export type DayKey = "Pn" | "Wt" | "Sr" | "Cz" | "Pt" | "So";
 export const DAY_LABELS: Record<DayKey, string> = { Pn: "Poniedziałek", Wt: "Wtorek", Sr: "Środa", Cz: "Czwartek", Pt: "Piątek", So: "Sobota" };
@@ -48,6 +49,12 @@ export interface DirectoryEmployee {
   workerPinHash?: string;
   /** Konto testowe — tylko logowanie pracownika, bez listy płac, grafiku i raportów */
   testAccount?: boolean;
+  /**
+   * AKORD Phase 1 — Kadry. Missing / invalid = hourly (no mass migration).
+   * Change applies from the *next* week snapshot (`weekEmployeeFromDir`), not retroactively.
+   */
+  compensationModel?: import("@/lib/payroll-compensation-model").PayrollCompensationModel;
+  compensationModelUpdatedAt?: string;
   updatedAt?: string;
 }
 
@@ -132,6 +139,11 @@ export interface WeekEmployee {
   rate: string;           // stawka na ten tydzień (może różnić się od domyślnej)
   /** Kiedy ostatnio zmieniono stawkę (sync z kartoteki / ręcznie) */
   rateUpdatedAt?: string;
+  /**
+   * Snapshot modelu wynagrodzenia w momencie dodania do tygodnia (`weekEmployeeFromDir`).
+   * Missing = hourly. Kadry change does not rewrite existing week rows.
+   */
+  compensationModel?: import("@/lib/payroll-compensation-model").PayrollCompensationModel;
   /** Kiedy ostatnio zmieniono godziny / koszty / Sob.pr. */
   dataUpdatedAt?: string;
   /** Kiedy ostatnio zmieniono status rozliczenia */
@@ -465,6 +477,7 @@ export function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
   if (!directoryId) {
     throw new Error("weekEmployeeFromDir: directoryId is required for new WeekEmployee records");
   }
+  const compensationModel = directoryCompensationModel(dir);
   return {
     id: crypto.randomUUID(),
     directoryId,
@@ -472,6 +485,7 @@ export function weekEmployeeFromDir(dir: DirectoryEmployee): WeekEmployee {
     phone: dir.phone,
     position: dir.position,
     rate: dir.defaultRate,
+    ...(compensationModel === "akord" ? { compensationModel } : {}),
     days: defaultDays(),
     prevSaturday: defaultDay(),
     extraCosts: [],
