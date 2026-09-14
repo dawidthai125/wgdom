@@ -32,6 +32,14 @@ export const ECONOMY_PRODUCT_HOST_SPECS: readonly EconomyProductHostSpec[] = [
     workNamePl: "Grunt podłoża (product host)",
   },
   {
+    materialKey: "mat.atlas_uni_grunt",
+    catalogWorkId: "cw.product.atlas_uni_grunt",
+    marketProductId: "mp.atlas_uni_grunt",
+    unit: "l",
+    namePl: "ATLAS UNI-GRUNT",
+    workNamePl: "ATLAS UNI-GRUNT (product host)",
+  },
+  {
     materialKey: "mat.farba_lateksowa_wewnetrzna",
     catalogWorkId: "cw.product.farba_lateksowa_wewnetrzna",
     marketProductId: "mp.farba_lateksowa_wewnetrzna",

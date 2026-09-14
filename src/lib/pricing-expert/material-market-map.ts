@@ -271,6 +271,17 @@ export const DEFAULT_MATERIAL_MARKET_MAP: readonly MaterialMarketMapEntry[] = [
     marketProductId: "mp.grunt",
     labelPl: "Grunt podłoża",
   },
+  /**
+   * AUT-BOM Owner GO 2026-09-14 — ATLAS UNI-GRUNT (exact branded deep/universal primer).
+   * MUST NOT alias mat.grunt (economy latex primer) or CT17 unless taxonomy equates them.
+   */
+  {
+    materialKey: "mat.atlas_uni_grunt",
+    workId: "cw.product.atlas_uni_grunt",
+    candidateWorkIds: ["cw.product.atlas_uni_grunt"],
+    marketProductId: "mp.atlas_uni_grunt",
+    labelPl: "ATLAS UNI-GRUNT",
+  },
   {
     materialKey: "mat.jastrych_cementowy",
     workId: "cw.product.jastrych_cementowy",
@@ -333,6 +344,68 @@ export const DEFAULT_MATERIAL_MARKET_MAP: readonly MaterialMarketMapEntry[] = [
     candidateWorkIds: ["cw.product.przewod_ydyzo_5x6"],
     marketProductId: "mp.przewod_ydyzo_5x6",
     labelPl: "Przewód YDYżo 5×6 mm²",
+  },
+  /* —— MATERIAL_ID_BIND_5 Owner GO — NEW_CANONICAL demand (HARD evidence · no brand · no price) —— */
+  {
+    materialKey: "mat.zawor_czerpalny_dn15",
+    workId: "cw.product.zawor_czerpalny_dn15",
+    candidateWorkIds: ["cw.product.zawor_czerpalny_dn15"],
+    marketProductId: "mp.zawor_czerpalny_dn15",
+    labelPl: "Zawór czerpalny / wypływowy mosiężny DN15",
+  },
+  /** Pack/evidence key currently on TechnologyPack — same demand as mat.zawor_czerpalny_dn15 */
+  {
+    materialKey: "mat.norm.zawor_wyp_ywowy_czerpalny_mosiezny_ze_z_aczka_do_weza_dn15",
+    workId: "cw.product.zawor_czerpalny_dn15",
+    candidateWorkIds: ["cw.product.zawor_czerpalny_dn15"],
+    marketProductId: "mp.zawor_czerpalny_dn15",
+    labelPl: "Zawór czerpalny / wypływowy mosiężny DN15",
+  },
+  {
+    materialKey: "mat.filtr_wody_dn20",
+    workId: "cw.product.filtr_wody_dn20",
+    candidateWorkIds: ["cw.product.filtr_wody_dn20"],
+    marketProductId: "mp.filtr_wody_dn20",
+    labelPl: "Filtr wody / osadnikowy DN20",
+  },
+  {
+    materialKey: "mat.norm.filtr_wody_pitnej_dn20_z_reduktorem_cisnienia",
+    workId: "cw.product.filtr_wody_dn20",
+    candidateWorkIds: ["cw.product.filtr_wody_dn20"],
+    marketProductId: "mp.filtr_wody_dn20",
+    labelPl: "Filtr wody / osadnikowy DN20",
+  },
+  {
+    materialKey: "mat.impregnat_grzybobojczy_preparaty_solowe",
+    workId: "cw.product.impregnat_grzybobojczy_preparaty_solowe",
+    candidateWorkIds: ["cw.product.impregnat_grzybobojczy_preparaty_solowe"],
+    marketProductId: "mp.impregnat_grzybobojczy_preparaty_solowe",
+    labelPl: "Środki impregnacyjne i grzybobójcze — preparaty solowe",
+  },
+  {
+    materialKey: "mat.norm.srodki_impregnacyjne_i_grzybobojcze_preparaty_solowe",
+    workId: "cw.product.impregnat_grzybobojczy_preparaty_solowe",
+    candidateWorkIds: ["cw.product.impregnat_grzybobojczy_preparaty_solowe"],
+    marketProductId: "mp.impregnat_grzybobojczy_preparaty_solowe",
+    labelPl: "Środki impregnacyjne i grzybobójcze — preparaty solowe",
+  },
+  /**
+   * Distinct from mat.hydroizolacja („Hydroizolacja pod płytki”) —
+   * Owner GO: do NOT auto-bind folia elastyczna / folia w płynie → mat.hydroizolacja.
+   */
+  {
+    materialKey: "mat.folia_elastyczna_w_plynie",
+    workId: "cw.product.folia_elastyczna_w_plynie",
+    candidateWorkIds: ["cw.product.folia_elastyczna_w_plynie"],
+    marketProductId: "mp.folia_elastyczna_w_plynie",
+    labelPl: "Folia elastyczna / folia w płynie",
+  },
+  {
+    materialKey: "mat.min.folia_elastyczna_folia_w_plynie",
+    workId: "cw.product.folia_elastyczna_w_plynie",
+    candidateWorkIds: ["cw.product.folia_elastyczna_w_plynie"],
+    marketProductId: "mp.folia_elastyczna_w_plynie",
+    labelPl: "Folia elastyczna / folia w płynie",
   },
 ];
 
@@ -805,7 +878,25 @@ export const S4_OWNER_APPROVED_EXACT_ALIASES: readonly MaterialCoverageAlias[] =
     namePl: "Grunt uniwersalny",
     unit: "l",
     materialKey: "mat.grunt",
-    evidence: "S4 Owner GO — sole grunt product in map",
+    evidence: "S4 Owner GO — economy latex primer host (≠ ATLAS UNI-GRUNT)",
+  },
+  {
+    namePl: "ATLAS UNI-GRUNT",
+    unit: "l",
+    materialKey: "mat.atlas_uni_grunt",
+    evidence: "Owner GO AUT-BOM priming 2026-09-14 — exact branded primer (≠ mat.grunt)",
+  },
+  {
+    namePl: "Atlas Uni-Grunt",
+    unit: "l",
+    materialKey: "mat.atlas_uni_grunt",
+    evidence: "Owner GO AUT-BOM priming 2026-09-14 — casing variant",
+  },
+  {
+    namePl: "ATLAS UNI GRUNT",
+    unit: "l",
+    materialKey: "mat.atlas_uni_grunt",
+    evidence: "Owner GO AUT-BOM priming 2026-09-14 — NNRNKB wording without hyphen",
   },
   {
     namePl: "Gładź gipsowa finiszowa",
@@ -842,6 +933,56 @@ export const S4_OWNER_APPROVED_EXACT_ALIASES: readonly MaterialCoverageAlias[] =
     unit: "m2",
     materialKey: "mat.eps_graph",
     evidence: "S4 Owner GO",
+  },
+  /* MATERIAL_ID_BIND_5 Owner GO — exact aliases → NEW_CANONICAL demand keys */
+  {
+    namePl: "Zawór czerpalny / wypływowy mosiężny DN15",
+    unit: "szt",
+    materialKey: "mat.zawor_czerpalny_dn15",
+    evidence: "MATERIAL_ID_BIND_5 Owner GO · KNR-W 2-15 0135-01",
+  },
+  {
+    namePl: "zawór wypływowy/czerpalny mosiężny ze złączką do węża DN15",
+    unit: "szt",
+    materialKey: "mat.zawor_czerpalny_dn15",
+    evidence: "MATERIAL_ID_BIND_5 Owner GO · HARD evidence wording",
+  },
+  {
+    namePl: "Filtr wody / osadnikowy DN20",
+    unit: "szt",
+    materialKey: "mat.filtr_wody_dn20",
+    evidence: "MATERIAL_ID_BIND_5 Owner GO · KNR 35/216/10",
+  },
+  {
+    namePl: "filtr wody pitnej DN20 z reduktorem ciśnienia",
+    unit: "szt",
+    materialKey: "mat.filtr_wody_dn20",
+    evidence: "MATERIAL_ID_BIND_5 Owner GO · HARD evidence wording",
+  },
+  {
+    namePl: "Środki impregnacyjne i grzybobójcze — preparaty solowe",
+    unit: "kg",
+    materialKey: "mat.impregnat_grzybobojczy_preparaty_solowe",
+    evidence: "MATERIAL_ID_BIND_5 Owner GO · KNR-W 4-01 0621-01",
+  },
+  {
+    namePl: "środki impregnacyjne i grzybobójcze — preparaty solowe",
+    unit: "kg",
+    materialKey: "mat.impregnat_grzybobojczy_preparaty_solowe",
+    evidence: "MATERIAL_ID_BIND_5 Owner GO · HARD evidence wording",
+  },
+  {
+    namePl: "Folia elastyczna / folia w płynie",
+    unit: "kg",
+    materialKey: "mat.folia_elastyczna_w_plynie",
+    evidence:
+      "MATERIAL_ID_BIND_5 Owner GO · KNR K-04 0602 · distinct from mat.hydroizolacja · no brand LOCK",
+  },
+  {
+    namePl: "folia elastyczna / folia w płynie",
+    unit: "kg",
+    materialKey: "mat.folia_elastyczna_w_plynie",
+    evidence: "MATERIAL_ID_BIND_5 Owner GO · HARD evidence wording",
   },
 ];
 

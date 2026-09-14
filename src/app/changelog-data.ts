@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.211",
+    label: "AUT-BOM — ATLAS UNI-GRUNT priming packs 1134-01 / 1134-02",
+    items: [
+      {
+        type: "new",
+        text: "Canonical material mat.atlas_uni_grunt (≠ mat.grunt) + leaf packs pack.priming.nnrnkb_1134_01_v1 (0.21 L/m²) · pack.priming.nnrnkb_1134_02_v1 (0.22 L/m²) · exact cw.knr.nnrnkb.* bind · public NNRNKB/ZUT evidence · labour[] tech ≠ OUR RATE. Paint packs / economy priming / 0815-05 untouched. Test: test-canonical-priming-atlas-uni-grunt-aut-bom.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.210",
     label: "AUT-BOM — canonical paint TechnologyPacks 1204-02 / 1505-01",
     items: [

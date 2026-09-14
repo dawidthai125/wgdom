@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.211 — AUT-BOM ATLAS UNI-GRUNT priming 1134-01 / 1134-02 (2026-09-14)
+
+- New material identity: `mat.atlas_uni_grunt` (≠ `mat.grunt`)
+- Packs: `pack.priming.nnrnkb_1134_01_v1` (0.21 L/m²) · `pack.priming.nnrnkb_1134_02_v1` (0.22 L/m²)
+- Exact `cw.knr.nnrnkb.*` bind · public ZUT/NNRNKB evidence · no kg density convert
+- Test: `test-canonical-priming-atlas-uni-grunt-aut-bom.mjs`
+
 ## 2.66.210 — AUT-BOM canonical paint packs 1204-02 / 1505-01 (2026-09-14)
 
 - Leaf packs: `pack.painting.knr_4_01_1204_02_v1` (0.286 L/m²) · `pack.painting.knr_2_02_1505_01_v1` (0.2891 L/m²)

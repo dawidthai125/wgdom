@@ -89,7 +89,7 @@ resetTf();
   eq("2. packId", bom.packId, FIXTURE_PAINTING_KNR_2_02_1505_01_PACK_ID);
 }
 
-// --- PASS 3–4: 1134 remain MISSING_BOM (identity block) ---
+// --- PASS 3–4: 1134 now resolve via ATLAS UNI-GRUNT packs (follow-up GO) ---
 {
   const b1 = resolveTechnologyBomForWork({
     workId: W1134_01,
@@ -101,10 +101,10 @@ resetTf();
     unit: "m2",
     positionQuantity: 10,
   });
-  ok("3. 1134-01 still MISSING_BOM (material identity block)", b1.status === "MISSING_BOM");
-  ok("4. 1134-02 still MISSING_BOM (material identity block)", b2.status === "MISSING_BOM");
-  eq("3. no pack", b1.packId, null);
-  eq("4. no pack", b2.packId, null);
+  ok("3. 1134-01 BOM OK (atlas uni-grunt pack)", b1.status === "OK");
+  ok("4. 1134-02 BOM OK (atlas uni-grunt pack)", b2.status === "OK");
+  ok("3. pack is priming 1134-01", b1.packId === "pack.priming.nnrnkb_1134_01_v1");
+  ok("4. pack is priming 1134-02", b2.packId === "pack.priming.nnrnkb_1134_02_v1");
 }
 
 // --- PASS 5: exact factors ---
@@ -222,16 +222,15 @@ resetTf();
   ok("15. fuzzy description → 0 packs", fuzzy.length === 0);
 }
 
-// --- FAIL 16–17: 1134 collapse ---
+// --- FAIL 16–17: 1134 orientation isolation (separate packs) ---
 {
-  ok(
-    "16. 1134-01 not served by 1134-02 pack (none exist)",
-    findActiveTechnologyPacksForWorkId(W1134_01).length === 0,
-  );
-  ok(
-    "17. 1134-02 not served by 1134-01 pack (none exist)",
-    findActiveTechnologyPacksForWorkId(W1134_02).length === 0,
-  );
+  const f01 = findActiveTechnologyPacksForWorkId(W1134_01);
+  const f02 = findActiveTechnologyPacksForWorkId(W1134_02);
+  eq("16. 1134-01 singleton", f01.length, 1);
+  eq("17. 1134-02 singleton", f02.length, 1);
+  ok("16. no collapse 01→02", f01[0]?.packId === "pack.priming.nnrnkb_1134_01_v1");
+  ok("17. no collapse 02→01", f02[0]?.packId === "pack.priming.nnrnkb_1134_02_v1");
+  ok("16/17 different packs", f01[0]?.packId !== f02[0]?.packId);
 }
 
 // --- FAIL 18: economy factor not substituted ---

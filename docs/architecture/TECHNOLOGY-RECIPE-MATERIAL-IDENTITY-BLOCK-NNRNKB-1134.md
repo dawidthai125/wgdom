@@ -1,25 +1,8 @@
-# MATERIAL IDENTITY BLOCK — NNRNKB 1134-01 / 1134-02 (AUT-BOM 2026-09-14)
+# MATERIAL IDENTITY BLOCK — NNRNKB 1134-01 / 1134-02 (SUPERSEDED)
 
-> **Status:** `MATERIAL_IDENTITY_REQUIRED` · packs **NOT** created  
-> **Owner GO:** AUT-BOM 4 leaves · factors observed but identity gate FAIL
+> **Status:** **RESOLVED** 2026-09-14 · see [`TECHNOLOGY-RECIPE-MATERIAL-IDENTITY-ATLAS-UNI-GRUNT.md`](./TECHNOLOGY-RECIPE-MATERIAL-IDENTITY-ATLAS-UNI-GRUNT.md)  
+> **Resolution:** new canonical `mat.atlas_uni_grunt` + packs `pack.priming.nnrnkb_1134_01_v1` / `pack.priming.nnrnkb_1134_02_v1`
 
-## Observed factors (held — not implemented)
+## Historical block reason (kept for audit)
 
-| Leaf | Factor | Labour | Source material wording |
-|------|--------|--------|-------------------------|
-| `cw.knr.nnrnkb.1134-01.m2` | 0.21 L/m² | 0.06 r-g/m² | CT17 / Atlas Uni-Grunt · horizontal |
-| `cw.knr.nnrnkb.1134-02.m2` | 0.22 L/m² | 0.08 r-g/m² | CT17 / Atlas Uni-Grunt · vertical |
-
-## Why blocked
-
-Repository taxonomy **explicitly excludes** CT17 / Atlas Uni-Grunt from `mat.grunt`:
-
-- `docs/architecture/TECHNOLOGY-RECIPE-SOURCE-RESEARCH-PRIMING-01.md` — CT17 / Atlas Uni-Grunt = **OUT** of ECONOMY_INTERIOR_PRIMER_V1 (`mat.grunt` = lateksowa farba podkładowa)
-- `scripts/test-technology-recipe-consumption-priming-01.mjs` — CT17 / Atlas → **no** `mat.grunt`
-- S4 alias is „Grunt uniwersalny” / „Grunt podłoża” — **not** named CT17 / Atlas Uni-Grunt
-
-Owner GO forbids inventing a new material key in this step.
-
-## Required before next GO
-
-Owner-approved material identity for deep-penetrating primer (new `mat.*` or explicit taxonomy remap of CT17/Atlas → existing key), then leaf-scoped packs with exact factors above. Keep 1134-01 ≠ 1134-02.
+Repository taxonomy excluded CT17 / Atlas Uni-Grunt from `mat.grunt` (economy latex primer). Owner GO forbade inventing a key in the paint-only AUT-BOM step; priming GO created `mat.atlas_uni_grunt`.
