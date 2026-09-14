@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.225 — PAYROLL AKORD weekly advances ≠ remaining (2026-09-14)
+
+- Do wypłaty z akordu = suma zaliczek z bieżącego tygodnia listy płac (nie remaining / agreed)
+- Panel: komunikat informacyjny (PL), rozdział „pozostało” vs „w tym tygodniu”, picker tylko `in_progress`
+- Biweekly / carry / settlement / archive / PDF — ten sam SSOT; hourly bez zmian
+- Test: `scripts/test-payroll-akord-week-advance-payout.mjs` + aktualizacja 4B/4C
+
 ## 2.66.224 — PAYROLL AKORD Phase 4C.1 historical display (2026-09-14)
 
 - Archiwum: historyczny Akord = zamrożony `emp.netPay` (nie `calcWeekEmployee`)

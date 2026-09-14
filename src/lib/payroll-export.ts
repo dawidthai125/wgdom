@@ -336,7 +336,7 @@ function payrollAkordDetailLines(r: PayrollCalcRow): string[] {
   if (r.compensationModel !== "akord" || !r.akordAllocations?.length) return [];
   return r.akordAllocations.map(
     (a) =>
-      `${a.jobLabel}: uzgodn. ${fmt(a.agreedAmount)} · zal. ${fmt(a.advancesSum)} · do wypłaty ${fmt(a.remaining)}`,
+      `${a.jobLabel}: uzgodniona kwota ${fmt(a.agreedAmount)} · zaliczki łącznie ${fmt(a.advancesSum)} · pozostało z akordu ${fmt(a.remaining)}`,
   );
 }
 
@@ -599,7 +599,7 @@ export async function buildPayrollEmailHtml(
 
   const akordDetailBlock = rows.some((r) => r.compensationModel === "akord" && (r.akordAllocations?.length ?? 0) > 0)
     ? `<div style="margin:16px 0 0;padding:12px 14px;background:${C.lightNavy};border-left:3px solid ${C.gold}">
-        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:${C.navy}">AKORD — rozbicie robót (Do wypłaty = SSOT z listy)</p>
+        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:${C.navy}">AKORD — rozbicie robót (Do wypłaty = zaliczki z tego tygodnia + SSOT listy)</p>
         ${rows
           .filter((r) => r.compensationModel === "akord" && (r.akordAllocations?.length ?? 0) > 0)
           .map((r) => {
@@ -1306,7 +1306,7 @@ export async function generatePayrollPdfBlob(
       ...(akordPdfStack.length > 0
         ? [
             {
-              text: "AKORD — rozbicie robót (Do wypłaty = SSOT z listy)",
+              text: "AKORD — rozbicie robót (Do wypłaty = zaliczki z tego tygodnia + SSOT listy)",
               bold: true,
               fontSize: 11,
               color: C.navy,

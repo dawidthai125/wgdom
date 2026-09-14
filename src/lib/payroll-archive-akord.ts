@@ -10,7 +10,7 @@ import {
   isAkordWeekEmployee,
   weekEmployeeCompensationModel,
 } from "@/lib/payroll-compensation-model";
-import { resolveAkordPayable } from "@/lib/payroll-piecework-payable";
+import { resolveAkordWeekAdvances } from "@/lib/payroll-piecework-payable";
 import type { PayrollPieceworkState } from "@/lib/payroll-piecework-types";
 
 function normName(s: string): string {
@@ -45,7 +45,13 @@ export function freezeAkordArchivePayables(
       pieceworkState: options.pieceworkState,
       livePayroll: true,
     });
-    const akordPayableFrozen = resolveAkordPayable(emp.directoryId, options.pieceworkState);
+    // Freeze weekly AKORD contribution (current-week advances), not remaining balance.
+    const akordPayableFrozen = resolveAkordWeekAdvances(
+      emp.directoryId,
+      options.pieceworkState,
+      snap.weekFrom,
+      snap.weekTo,
+    );
     return {
       ...es,
       compensationModel: "akord" as const,

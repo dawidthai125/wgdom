@@ -51,7 +51,7 @@ import {
 import { isAkordWeekEmployee, weekEmployeeCompensationModel } from "@/lib/payroll-compensation-model";
 import { AkordPieceworkPanel } from "@/app/AkordPieceworkPanel";
 import { emptyPayrollPieceworkState, type PayrollPieceworkState } from "@/lib/payroll-piecework-types";
-import { resolveAkordPayable } from "@/lib/payroll-piecework-payable";
+import { resolveAkordBalance, resolveAkordWeekAdvances } from "@/lib/payroll-piecework-payable";
 import type { Job } from "@/app/app-domain";
 import { visibleExtraCosts } from "@/lib/payroll-extra-costs-merge";
 
@@ -134,7 +134,10 @@ export function WeekEmployeeDetail({
     : null;
   const akord = isAkordWeekEmployee(safeEmp);
   const compensationModel = weekEmployeeCompensationModel(safeEmp);
-  const akordPayable = akord ? resolveAkordPayable(safeEmp.directoryId, piecework) : 0;
+  const akordBalance = akord ? resolveAkordBalance(safeEmp.directoryId, piecework) : 0;
+  const akordWeekAdvances = akord
+    ? resolveAkordWeekAdvances(safeEmp.directoryId, piecework, weekFrom, weekTo)
+    : 0;
   const updateDayData = useCallback((key: DayKey, next: DayData) => {
     onPatchDay(key, next);
   }, [onPatchDay]);
@@ -525,13 +528,19 @@ export function WeekEmployeeDetail({
                 </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-border/50 text-sm">
-                <span className="text-muted-foreground">Pozostało (akord)</span>
+                <span className="text-muted-foreground">Pozostało z akordu</span>
+                <span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                  {fmt(akordBalance)} PLN
+                </span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50 text-sm">
+                <span className="text-muted-foreground">Zaliczki akordu (ten tydzień)</span>
                 <span className="font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>
-                  {fmt(akordPayable)} PLN
+                  {fmt(akordWeekAdvances)} PLN
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Obecność jest informacyjna — nie wylicza kwoty. Do wypłaty = suma remaining z allocation + koszty/korekty.
+                Obecność jest informacyjna — nie wylicza kwoty. Do wypłaty w tym tygodniu = zaliczki akordu z tego tygodnia + koszty/korekty (nie saldo „pozostało”).
               </p>
             </>
           ) : (

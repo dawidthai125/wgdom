@@ -67,7 +67,11 @@ import { useAdminAccess } from "@/app/admin-access";
 import { Checkbox, PayrollDayCellDisplay } from "@/app/app-ui";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
 import { isAkordWeekEmployee, weekEmployeeCompensationModel } from "@/lib/payroll-compensation-model";
-import { resolveAkordAllocationBreakdown, resolveAkordPayable } from "@/lib/payroll-piecework-payable";
+import {
+  resolveAkordAllocationBreakdown,
+  resolveAkordPayable,
+  resolveAkordWeekAdvances,
+} from "@/lib/payroll-piecework-payable";
 import type { PayrollPieceworkState } from "@/lib/payroll-piecework-types";
 import { emptyPayrollPieceworkState } from "@/lib/payroll-piecework-types";
 import {
@@ -1541,8 +1545,15 @@ export function PayrollView({
                             <td className="px-2 py-3.5 text-right text-muted-foreground whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRowMap.has(r.emp.id)?r.weekGross:r.grossPay)}</td>
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(() => {
                               if (isAkordWeekEmployee(r.emp)) {
-                                const adv = resolveAkordAllocationBreakdown(r.emp.directoryId, payrollPiecework).allocations.reduce((s, a) => s + a.activeAdvancesSum, 0);
-                                return adv > 0 ? <span className="text-destructive">−{fmt(adv)}</span> : <span className="text-muted-foreground/40">—</span>;
+                                const weekAdv = resolveAkordWeekAdvances(
+                                  r.emp.directoryId,
+                                  payrollPiecework,
+                                  weekFrom,
+                                  weekTo,
+                                );
+                                return weekAdv > 0
+                                  ? <span className="text-primary" title="Zaliczki akordu z tego tygodnia (wchodzą do wypłaty)">{fmt(weekAdv)}</span>
+                                  : <span className="text-muted-foreground/40">—</span>;
                               }
                               const zal = biweeklyRowMap.has(r.emp.id) ? r.weekZaliczka : r.totalZaliczka;
                               return zal > 0 ? <span className="text-destructive">−{fmt(zal)}</span> : <span className="text-muted-foreground/40">—</span>;

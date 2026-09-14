@@ -33,7 +33,7 @@ import {
   updateAllocation,
 } from "../src/lib/payroll-piecework.ts";
 import { ensurePieceworkJobForJobId, findActivePieceworkJobByJobId } from "../src/lib/payroll-piecework-ensure-job.ts";
-import { resolveAkordPayable, resolveAkordAllocationBreakdown } from "../src/lib/payroll-piecework-payable.ts";
+import { resolveAkordPayable, resolveAkordAllocationBreakdown, resolveAkordWeekAdvances } from "../src/lib/payroll-piecework-payable.ts";
 import { emptyPayrollPieceworkState } from "../src/lib/payroll-piecework-types.ts";
 import { calcWeekEmployeeForPayroll, canDeferPayroll, buildPayrollCarryForwardRecord } from "../src/lib/payroll-carry-forward.ts";
 import { resolveSettlementPayableAmount } from "../src/lib/payroll-settlement.ts";
@@ -240,7 +240,7 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
   assert("14c. PieceworkInvariantViolatedError type", new PieceworkInvariantViolatedError("alloc-x", 100, 150) instanceof Error);
 }
 
-// ─── 18–26 Payroll SSOT ─────────────────────────────────────────────────────
+// ─── 18–26 Payroll SSOT (weekly = current-week advances; balance ≠ payout) ───
 {
   let s = emptyPayrollPieceworkState();
   s = seedJobAlloc(s, { jobId: "j1", dirId: "dir-a", agreed: 4200, label: "A" });
@@ -248,17 +248,20 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
   const adv = createAdvance(s, {
     allocationId: s.allocations[0].id,
     amount: 1000,
-    paidAt: T0,
+    paidAt: "2026-09-10T10:00:00.000Z",
     now: T0,
+    weekFrom: WEEK1.weekFrom,
+    weekTo: WEEK1.weekTo,
   });
   s = adv.state;
-  assert("18. main list AKORD payable 6200", resolveAkordPayable("dir-a", s) === 6200);
+  assert("18. main list AKORD balance remaining 6200", resolveAkordPayable("dir-a", s) === 6200);
+  assert("18b. week advances 1000", resolveAkordWeekAdvances("dir-a", s, WEEK1.weekFrom, WEEK1.weekTo) === 1000);
 
   const empA = akordEmp("dir-a");
   const empH = hourlyEmp();
   const rowA = calcWeekEmployeeForPayroll(empA, { ...WEEK1, pieceworkState: s, livePayroll: true });
   const rowH = calcWeekEmployeeForPayroll(empH, { ...WEEK1, pieceworkState: s, livePayroll: true });
-  assert("19. mixed hourly + akord", rowA.displayNetPay === 6200 && rowH.displayNetPay > 0 && rowH.displayNetPay !== 6200);
+  assert("19. mixed hourly + akord", rowA.displayNetPay === 1000 && rowH.displayNetPay > 0 && rowH.displayNetPay !== 1000);
 
   const empAttend = {
     ...empA,
@@ -269,7 +272,7 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     },
   };
   const rowAttend = calcWeekEmployeeForPayroll(empAttend, { ...WEEK1, pieceworkState: s, livePayroll: true });
-  assert("20. attendance does not change payable", rowAttend.displayNetPay === 6200);
+  assert("20. attendance does not change payable", rowAttend.displayNetPay === 1000);
   assert("21. from/to does not change payable", rowAttend.displayNetPay === rowA.displayNetPay);
 
   const dirBi = [
@@ -290,19 +293,19 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
   const bw = calcBiweeklyRowDisplay(empA, dirBi, WEEK1.weekFrom, WEEK1.weekTo, [], undefined, {
     pieceworkState: s,
   });
-  assert("22. biweekly AKORD uses piecework SSOT", bw != null && bw.displayNet === 6200);
+  assert("22. biweekly AKORD uses week advances SSOT", bw != null && bw.displayNet === 1000);
 
   const defer = canDeferPayroll(empA, rowA, [{ id: "dir-a", name: "Akord", biweeklyPayroll: false }], false);
-  assert("23. deferred AKORD uses displayNetPay SSOT", defer.ok === true && defer.frozenAmount === 6200);
+  assert("23. deferred AKORD uses displayNetPay SSOT", defer.ok === true && defer.frozenAmount === 1000);
   if (defer.ok) {
     const rec = buildPayrollCarryForwardRecord(defer.frozenAmount, WEEK1.weekFrom, WEEK1.weekTo);
-    assert("23b. deferred record amount frozen", rec.amount === 6200);
+    assert("23b. deferred record amount frozen", rec.amount === 1000);
   }
 
   const settleAmt = resolveSettlementPayableAmount(empA, [], WEEK1.weekFrom, WEEK1.weekTo, [], {
     pieceworkState: s,
   });
-  assert("24. settlement same SSOT", Math.abs(settleAmt - 6200) < 0.01);
+  assert("24. settlement same SSOT", Math.abs(settleAmt - 1000) < 0.01);
 
   // Early HOLD: WeekEmployeeDetail hides EarlyPayoutPanel for akord (source check)
   const wedSrc = readFileSync(resolve("src/app/WeekEmployeeDetail.tsx"), "utf8");
@@ -320,7 +323,7 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     s,
     [jobStub("j1", "ul. A", "1"), jobStub("j2", "ul. B", "2")],
   );
-  assert("26. no double count — PDF row net = payable SSOT", calcRows[0].netPay === 6200 && calcRows[0].compensationModel === "akord");
+  assert("26. no double count — PDF row net = week advances SSOT", calcRows[0].netPay === 1000 && calcRows[0].compensationModel === "akord");
   assert("33. PDF row one/multi job fields", (calcRows[0].akordAllocations?.length ?? 0) >= 2);
   assert("35. mixed PDF rows", calcRows[1].compensationModel === "hourly" && calcRows[1].rateNum === 40);
 }
@@ -332,7 +335,7 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
   const adv1 = createAdvance(s, {
     allocationId: s.allocations[0].id,
     amount: 2000,
-    paidAt: T0,
+    paidAt: "2026-09-10T10:00:00.000Z",
     now: T0,
     weekFrom: WEEK1.weekFrom,
     weekTo: WEEK1.weekTo,
@@ -344,7 +347,7 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     [emp],
     { pieceworkState: s },
   );
-  assert("27. Sunday archive freeze = 6000", snap1.employees[0].netPay === 6000 && snap1.employees[0].akordPayableFrozen === 6000);
+  assert("27. Sunday archive freeze = 2000 week advances", snap1.employees[0].netPay === 2000 && snap1.employees[0].akordPayableFrozen === 2000);
 
   const adv2 = createAdvance(s, {
     allocationId: s.allocations[0].id,
@@ -356,9 +359,9 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
   });
   s = adv2.state;
   assert("28a. live remaining = 5000", resolveAkordPayable("dir-a", s) === 5000);
-  assert("28. later advance does not mutate old archive", snap1.employees[0].netPay === 6000);
+  assert("28. later advance does not mutate old archive", snap1.employees[0].netPay === 2000);
 
-  // Monday rebuild: weekEmployees clear → weekEmployeeFromDir → durable piecework still pays
+  // Monday rebuild: weekEmployees clear → weekEmployeeFromDir → only WEEK2 advances pay
   const monday = weekEmployeeFromDir({
     id: "dir-a",
     name: "Akord",
@@ -375,7 +378,7 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     pieceworkState: s,
     livePayroll: true,
   });
-  assert("29. Monday rebuild preserves durable piecework payable", mondayRow.displayNetPay === 5000);
+  assert("29. Monday rebuild weekly = WEEK2 advances only", mondayRow.displayNetPay === 1000);
 
   // Employee roster removal does not delete piecework
   assert("30. employee roster removal preserves piecework", s.allocations.some((a) => a.directoryId === "dir-a" && !a.deletedAt));
@@ -437,8 +440,10 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
   const adv = createAdvance(s, {
     allocationId: s.allocations[0].id,
     amount: 2000,
-    paidAt: T0,
+    paidAt: "2026-09-10T10:00:00.000Z",
     now: T0,
+    weekFrom: WEEK1.weekFrom,
+    weekTo: WEEK1.weekTo,
   });
   s = adv.state;
   const emp = akordEmp("dir-a");
@@ -447,20 +452,22 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     [emp],
     { pieceworkState: s },
   );
-  assert("4C.1 freeze base 6000", snap.employees[0].netPay === 6000);
+  assert("4C.1 freeze base 2000", snap.employees[0].netPay === 2000);
 
   const later = createAdvance(s, {
     allocationId: s.allocations[0].id,
     amount: 1000,
     paidAt: "2026-09-15T10:00:00.000Z",
     now: "2026-09-15T10:00:00.000Z",
+    weekFrom: WEEK2.weekFrom,
+    weekTo: WEEK2.weekTo,
   });
   s = later.state;
-  assert("4C.1 live later 5000", resolveAkordPayable("dir-a", s) === 5000);
+  assert("4C.1 live later remaining 5000", resolveAkordPayable("dir-a", s) === 5000);
 
   const full = snap.weekEmployees?.[0] ?? emp;
   const archDisp = archiveEmployeePayrollDisplay(full, snap.employees[0], [], snap, [snap]);
-  assert("A. ArchiveView AKORD shows frozen 6000", archDisp.displayNetPay === 6000);
+  assert("A. ArchiveView AKORD shows frozen 2000", archDisp.displayNetPay === 2000);
 
   const hourly = hourlyEmp("dir-h");
   hourly.days = {
@@ -482,7 +489,7 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     livePayroll: false,
     pieceworkState: s, // live piecework present but archived path must ignore for net
   });
-  assert("4C.1 archived calc uses frozen net", frozenRow.displayNetPay === 6000);
+  assert("4C.1 archived calc uses frozen net", frozenRow.displayNetPay === 2000);
 
   const histRows = toPayrollCalcRows(
     [{ emp, ...frozenRow, rateNum: 0 }],
@@ -494,12 +501,12 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     [jobStub("h41")],
     { historical: true },
   );
-  assert("C. Historical PDF netPay = 6000", histRows[0].netPay === 6000);
+  assert("C. Historical PDF netPay = 2000", histRows[0].netPay === 2000);
   assert(
     "C. Historical PDF no live akordAllocations",
     !histRows[0].akordAllocations || histRows[0].akordAllocations.length === 0,
   );
-  assert("C. Historical PDF text = 6000 SSOT", payrollNetDisplayText(histRows[0]).includes("6") || histRows[0].netPay === 6000);
+  assert("C. Historical PDF text = 2000 SSOT", histRows[0].netPay === 2000);
   // Must not present live remaining 5000 as historical breakdown
   const liveRemaining = resolveAkordPayable("dir-a", s);
   assert(
@@ -518,15 +525,15 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     [jobStub("h41")],
     { historical: false },
   );
-  assert("D. Live PDF netPay = 5000", liveRows[0].netPay === 5000);
+  assert("D. Live PDF WEEK1 netPay = 2000 (not remaining)", liveRows[0].netPay === 2000);
   assert("D. Live PDF has allocation breakdown", (liveRows[0].akordAllocations?.length ?? 0) >= 1);
 
   // E — later allocation must not mutate prior snapshot
   const more = seedJobAlloc(s, { jobId: "h41-b", dirId: "dir-a", agreed: 999, label: "pollute" });
-  assert("E. live payable changed after new alloc", resolveAkordPayable("dir-a", more) > 5000);
-  assert("E. historical snapshot net still 6000", snap.employees[0].netPay === 6000);
+  assert("E. live balance changed after new alloc", resolveAkordPayable("dir-a", more) > 5000);
+  assert("E. historical snapshot net still 2000", snap.employees[0].netPay === 2000);
   const archAfter = archiveEmployeePayrollDisplay(full, snap.employees[0], [], snap, [snap]);
-  assert("E. ArchiveView still 6000 after later alloc", archAfter.displayNetPay === 6000);
+  assert("E. ArchiveView still 2000 after later alloc", archAfter.displayNetPay === 2000);
 
   const commentSrc = readFileSync(resolve("src/lib/payroll-carry-forward.ts"), "utf8");
   assert(

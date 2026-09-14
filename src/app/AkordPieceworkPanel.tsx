@@ -1,6 +1,7 @@
 /**
- * PAYROLL AKORD Phase 4C — Job / Allocation / Advance editor (WeekEmployeeDetail).
+ * PAYROLL AKORD — Job / Allocation / Advance editor (WeekEmployeeDetail).
  * All writes go through Phase 4A CAS (commitPieceworkOp).
+ * Weekly payout = current-week advances only; remaining is informational.
  */
 
 import { useMemo, useState } from "react";
@@ -17,7 +18,11 @@ import {
 } from "@/lib/payroll-piecework";
 import { commitPieceworkOp } from "@/lib/payroll-piecework-commit";
 import { ensurePieceworkJobForJobId } from "@/lib/payroll-piecework-ensure-job";
-import { resolveAkordAllocationBreakdown } from "@/lib/payroll-piecework-payable";
+import {
+  isPieceworkAdvanceInPayrollWeek,
+  resolveAkordAllocationBreakdown,
+  resolveAkordWeekAdvances,
+} from "@/lib/payroll-piecework-payable";
 import {
   isActivePieceworkAdvance,
   isPieceworkDeleted,
@@ -71,9 +76,24 @@ export function AkordPieceworkPanel({
     [directoryId, piecework],
   );
 
+  const weekAdvances = useMemo(
+    () => resolveAkordWeekAdvances(directoryId, piecework, weekFrom, weekTo),
+    [directoryId, piecework, weekFrom, weekTo],
+  );
+
+  const totalAgreed = useMemo(
+    () => +breakdown.allocations.reduce((s, a) => s + a.agreedAmount, 0).toFixed(2),
+    [breakdown.allocations],
+  );
+  const totalAdvancesAll = useMemo(
+    () => +breakdown.allocations.reduce((s, a) => s + a.activeAdvancesSum, 0).toFixed(2),
+    [breakdown.allocations],
+  );
+
+  /** Tylko roboty w trakcie (Job.status === in_progress). */
   const jobOptions = useMemo(() => {
     return [...jobs]
-      .filter((j) => j.status === "in_progress" || j.status === "completed")
+      .filter((j) => j.status === "in_progress")
       .sort((a, b) => jobLabel(a).localeCompare(jobLabel(b), "pl"));
   }, [jobs]);
 
@@ -130,16 +150,16 @@ export function AkordPieceworkPanel({
   const addAdvanceRow = async () => {
     const amount = parseFloat(advAmount.replace(",", "."));
     if (!(amount > 0) || Number.isNaN(amount)) {
-      setError("Podaj kwotę zaliczki > 0.");
+      setError("Podaj kwotę zaliczki większą od 0.");
       return;
     }
     if (!advAllocId) {
-      setError("Wybierz allocation (robotę).");
+      setError("Wybierz robotę akordu.");
       return;
     }
     const alloc = piecework.allocations.find((a) => a.id === advAllocId);
     if (!alloc || isPieceworkDeleted(alloc)) {
-      setError("Allocation nie istnieje.");
+      setError("Nie znaleziono uzgodnienia akordu.");
       return;
     }
     const used = sumActiveAdvances(piecework.advances, advAllocId);
@@ -167,16 +187,48 @@ export function AkordPieceworkPanel({
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
+    <div className="space-y-3 rounded-xl border border-sky-500/30 bg-sky-500/5 p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-amber-300">Akord — roboty i zaliczki</p>
-        <p className="text-sm font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          Do wypłaty: {fmt(breakdown.payable)} PLN
+        <p className="text-sm font-semibold text-sky-200">Akord — roboty i zaliczki</p>
+      </div>
+
+      <div className="rounded-lg border border-sky-500/35 bg-sky-950/40 px-3 py-2.5 space-y-1.5 text-[12px] leading-relaxed text-sky-50">
+        <p>
+          Uzgodniona kwota akordu nie jest automatycznie doliczana do wypłaty tygodniowej ani sobotniej.
+        </p>
+        <p>
+          Do wypłaty w tym tygodniu z akordu wchodzą tylko zaliczki dodane w tym tygodniu.
         </p>
       </div>
-      <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Uzgodniona kwota i zaliczki są trwałe (Cloud CAS). Obecność nie zmienia wypłaty.
-      </p>
+
+      <div className="grid gap-2 sm:grid-cols-2 text-xs rounded-lg border border-border/50 bg-card/50 p-3">
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Robota / akord</p>
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">Uzgodniona kwota</span>
+            <span className="font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(totalAgreed)} PLN</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">Zaliczki łącznie</span>
+            <span className="font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(totalAdvancesAll)} PLN</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">Pozostało z akordu</span>
+            <span className="font-semibold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(breakdown.payable)} PLN</span>
+          </div>
+        </div>
+        <div className="space-y-1 sm:border-l sm:border-border/40 sm:pl-3">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Wypłata w tym tygodniu</p>
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">Zaliczki dodane w tym tygodniu</span>
+            <span className="font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(weekAdvances)} PLN</span>
+          </div>
+          <div className="flex justify-between gap-2">
+            <span className="text-muted-foreground">Do wypłaty z akordu w tym tygodniu</span>
+            <span className="font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{fmt(weekAdvances)} PLN</span>
+          </div>
+        </div>
+      </div>
 
       {error && (
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
@@ -186,7 +238,7 @@ export function AkordPieceworkPanel({
 
       <div className="space-y-2">
         {breakdown.allocations.length === 0 && (
-          <p className="text-xs text-muted-foreground">Brak allocation — dodaj robotę i uzgodnioną kwotę.</p>
+          <p className="text-xs text-muted-foreground">Brak uzgodnień — dodaj robotę i uzgodnioną kwotę akordu.</p>
         )}
         {breakdown.allocations.map((row) => {
           const advances = piecework.advances.filter(
@@ -200,7 +252,10 @@ export function AkordPieceworkPanel({
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{title}</p>
                   {row.jobStatus === "closed" && (
-                    <span className="text-[10px] text-muted-foreground">Job closed (remaining nadal w rozliczeniu)</span>
+                    <span className="text-[10px] text-muted-foreground">Robota zakończona (pozostało nadal w saldzie akordu)</span>
+                  )}
+                  {row.jobStatus === "active" && (
+                    <span className="text-[10px] text-muted-foreground">W trakcie</span>
                   )}
                 </div>
                 {!readOnly && (
@@ -209,7 +264,7 @@ export function AkordPieceworkPanel({
                     disabled={busy}
                     className="text-[11px] text-destructive hover:underline shrink-0"
                     onClick={() => {
-                      if (!confirm("Usunąć allocation (soft delete)?")) return;
+                      if (!confirm("Usunąć uzgodnienie akordu (miękkie usunięcie)?")) return;
                       void run((state) => softDeleteAllocation(state, row.allocationId));
                     }}
                   >
@@ -219,7 +274,7 @@ export function AkordPieceworkPanel({
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                 <div>
-                  <p className="text-muted-foreground">Uzgodnione</p>
+                  <p className="text-muted-foreground">Uzgodniona kwota</p>
                   {editAgreedId === row.allocationId ? (
                     <div className="flex gap-1 mt-1">
                       <input
@@ -246,56 +301,66 @@ export function AkordPieceworkPanel({
                   )}
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Zaliczki</p>
-                  <p className="font-semibold text-destructive">{fmt(row.activeAdvancesSum)}</p>
+                  <p className="text-muted-foreground">Zaliczki łącznie</p>
+                  <p className="font-semibold">{fmt(row.activeAdvancesSum)}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Pozostało</p>
+                  <p className="text-muted-foreground">Pozostało z akordu</p>
                   <p className="font-semibold text-primary">{fmt(row.remaining)}</p>
                 </div>
               </div>
               {advances.length > 0 && (
-                <ul className="space-y-1 border-t border-border/40 pt-2">
-                  {advances.map((a) => (
-                    <li key={a.id} className="flex items-center justify-between gap-2 text-[11px]">
-                      <span className="text-muted-foreground truncate">
-                        {fmt(a.amount)} PLN · {a.paidAt.slice(0, 10)}
-                        {a.note ? ` · ${a.note}` : ""}
-                      </span>
-                      {!readOnly && (
-                        <span className="flex gap-2 shrink-0">
-                          <button
-                            type="button"
-                            className="text-primary hover:underline"
-                            disabled={busy}
-                            onClick={() => {
-                              const next = prompt("Nowa kwota zaliczki", String(a.amount));
-                              if (next == null) return;
-                              const amount = parseFloat(next.replace(",", "."));
-                              if (!(amount > 0)) {
-                                setError("Nieprawidłowa kwota.");
-                                return;
-                              }
-                              void run((state) => updateAdvance(state, { id: a.id, amount }));
-                            }}
-                          >
-                            Edytuj
-                          </button>
-                          <button
-                            type="button"
-                            className="text-destructive hover:underline"
-                            disabled={busy}
-                            onClick={() => {
-                              if (!confirm("Usunąć zaliczkę?")) return;
-                              void run((state) => softDeleteAdvance(state, a.id));
-                            }}
-                          >
-                            Usuń
-                          </button>
-                        </span>
-                      )}
-                    </li>
-                  ))}
+                <ul className="space-y-1.5 border-t border-border/40 pt-2">
+                  {advances.map((a) => {
+                    const inWeek = isPieceworkAdvanceInPayrollWeek(a, weekFrom, weekTo);
+                    return (
+                      <li key={a.id} className="space-y-0.5 text-[11px]">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-muted-foreground truncate">
+                            {fmt(a.amount)} PLN · {a.paidAt.slice(0, 10)}
+                            {a.note ? ` · ${a.note}` : ""}
+                          </span>
+                          {!readOnly && (
+                            <span className="flex gap-2 shrink-0">
+                              <button
+                                type="button"
+                                className="text-primary hover:underline"
+                                disabled={busy}
+                                onClick={() => {
+                                  const next = prompt("Nowa kwota zaliczki", String(a.amount));
+                                  if (next == null) return;
+                                  const amount = parseFloat(next.replace(",", "."));
+                                  if (!(amount > 0)) {
+                                    setError("Nieprawidłowa kwota.");
+                                    return;
+                                  }
+                                  void run((state) => updateAdvance(state, { id: a.id, amount }));
+                                }}
+                              >
+                                Edytuj
+                              </button>
+                              <button
+                                type="button"
+                                className="text-destructive hover:underline"
+                                disabled={busy}
+                                onClick={() => {
+                                  if (!confirm("Usunąć zaliczkę?")) return;
+                                  void run((state) => softDeleteAdvance(state, a.id));
+                                }}
+                              >
+                                Usuń
+                              </button>
+                            </span>
+                          )}
+                        </div>
+                        <p className={inWeek ? "text-sky-300/90" : "text-muted-foreground/80"}>
+                          {inWeek
+                            ? "Zaliczka z akordu — wpływa na wypłatę w tym tygodniu"
+                            : "Zaliczka z poprzedniego tygodnia — nie wpływa na bieżącą wypłatę"}
+                        </p>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
@@ -305,7 +370,7 @@ export function AkordPieceworkPanel({
 
       {!readOnly && (
         <div className="space-y-3 border-t border-border/50 pt-3">
-          <p className="text-xs font-medium text-muted-foreground">Dodaj allocation</p>
+          <p className="text-xs font-medium text-muted-foreground">Dodaj robotę</p>
           <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
             <select
               className="bg-secondary rounded-lg px-3 py-2 text-sm border border-transparent focus:border-primary focus:outline-none"
@@ -313,7 +378,7 @@ export function AkordPieceworkPanel({
               onChange={(e) => setJobId(e.target.value)}
               disabled={busy}
             >
-              <option value="">Wybierz robotę…</option>
+              <option value="">{jobOptions.length === 0 ? "Brak robót w trakcie." : "Wybierz robotę…"}</option>
               {jobOptions.map((j) => (
                 <option key={j.id} value={j.id}>
                   {jobLabel(j)}
@@ -323,21 +388,24 @@ export function AkordPieceworkPanel({
             <input
               type="text"
               inputMode="decimal"
-              placeholder="Uzgodnione PLN"
-              className="bg-secondary rounded-lg px-3 py-2 text-sm w-full sm:w-32"
+              placeholder="Uzgodniona kwota akordu"
+              className="bg-secondary rounded-lg px-3 py-2 text-sm w-full sm:w-40"
               value={agreedStr}
               onChange={(e) => setAgreedStr(e.target.value)}
               disabled={busy}
             />
             <button
               type="button"
-              disabled={busy}
+              disabled={busy || jobOptions.length === 0}
               onClick={() => void addAllocation()}
               className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium disabled:opacity-50"
             >
-              Dodaj
+              Dodaj robotę
             </button>
           </div>
+          {jobOptions.length === 0 && (
+            <p className="text-[11px] text-muted-foreground">Brak robót w trakcie.</p>
+          )}
 
           <p className="text-xs font-medium text-muted-foreground">Dodaj zaliczkę</p>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -347,7 +415,7 @@ export function AkordPieceworkPanel({
               onChange={(e) => setAdvAllocId(e.target.value)}
               disabled={busy}
             >
-              <option value="">Allocation…</option>
+              <option value="">Wybierz robotę akordu…</option>
               {breakdown.allocations.map((row) => {
                 const job = jobs.find((j) => j.id === row.jobId);
                 return (
@@ -363,7 +431,7 @@ export function AkordPieceworkPanel({
             <input
               type="text"
               inputMode="decimal"
-              placeholder="Kwota"
+              placeholder="Kwota zaliczki"
               className="bg-secondary rounded-lg px-3 py-2 text-sm"
               value={advAmount}
               onChange={(e) => setAdvAmount(e.target.value)}
@@ -371,6 +439,7 @@ export function AkordPieceworkPanel({
             />
             <input
               type="date"
+              aria-label="Data zaliczki"
               className="bg-secondary rounded-lg px-3 py-2 text-sm"
               value={advPaidAt}
               onChange={(e) => setAdvPaidAt(e.target.value)}
@@ -385,11 +454,14 @@ export function AkordPieceworkPanel({
               disabled={busy}
             />
           </div>
+          <p className="text-[11px] text-sky-200/90">
+            Zaliczka z akordu — wpływa na wypłatę w tym tygodniu (gdy data należy do bieżącego tygodnia listy płac).
+          </p>
           <button
             type="button"
             disabled={busy}
             onClick={() => void addAdvanceRow()}
-            className="rounded-lg border border-amber-500/40 text-amber-200 px-3 py-2 text-sm font-medium hover:bg-amber-500/10 disabled:opacity-50"
+            className="rounded-lg border border-sky-500/40 text-sky-100 px-3 py-2 text-sm font-medium hover:bg-sky-500/10 disabled:opacity-50"
           >
             Zapisz zaliczkę
           </button>

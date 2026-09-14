@@ -146,9 +146,10 @@ function basePiecework(agreed = 5000) {
   assert("6 hourly gross", row.grossPay === 320 && row.displayNetPay === 320);
 }
 
-// --- 7 attendance change ---
+// --- 7 attendance change (no week advances → payout 0; balance unchanged) ---
 {
   const s = basePiecework(5000);
+  assert("7 balance still 5000", resolveAkordPayable("dir-a", s) === 5000);
   const e1 = akordEmp();
   const e2 = {
     ...e1,
@@ -156,7 +157,7 @@ function basePiecework(agreed = 5000) {
   };
   const r1 = calcWeekEmployeeForPayroll(e1, { ...WEEK, pieceworkState: s });
   const r2 = calcWeekEmployeeForPayroll(e2, { ...WEEK, pieceworkState: s });
-  assert("7 attendance independent", r1.displayNetPay === 5000 && r2.displayNetPay === 5000);
+  assert("7 attendance independent weekly payout 0", r1.displayNetPay === 0 && r2.displayNetPay === 0);
 }
 
 // --- 8 from/to stale ---
@@ -170,29 +171,46 @@ function basePiecework(agreed = 5000) {
     },
   };
   const r = calcWeekEmployeeForPayroll(e, { ...WEEK, pieceworkState: s });
-  assert("8 from/to ignored for akord payable", r.displayNetPay === 5000 && r.weekHours === 0);
+  assert("8 from/to ignored for akord weekly payout", r.displayNetPay === 0 && r.weekHours === 0);
+}
+
+function advanceInWeek(state, amount, id = "adv-w") {
+  return createAdvance(state, {
+    allocationId: state.allocations[0].id,
+    amount,
+    id,
+    now: T0,
+    paidAt: "2026-09-10T10:00:00.000Z",
+    weekFrom: WEEK.weekFrom,
+    weekTo: WEEK.weekTo,
+  }).state;
 }
 
 // --- BEFORE/AFTER + extras/manual ---
 {
-  const s = basePiecework(5000);
+  const s0 = basePiecework(5000);
   const bare = akordEmp();
-  const before = calcWeekEmployee(bare); // Phase 3: extras only
+  const before = calcWeekEmployee(bare);
   assert("BEFORE akord base (no piecework in calcWeekEmployee)", before.netPay === 0);
+  const after0 = calcWeekEmployeeForPayroll(bare, { ...WEEK, pieceworkState: s0 });
+  assert("AFTER no week advance → weekly 0", after0.displayNetPay === 0);
+  assert("AFTER balance remaining 5000", resolveAkordPayable("dir-a", s0) === 5000);
+  const s = advanceInWeek(s0, 500, "aw1");
   const after = calcWeekEmployeeForPayroll(bare, { ...WEEK, pieceworkState: s });
-  assert("AFTER akord remaining", after.displayNetPay === 5000);
+  assert("AFTER week advance 500", after.displayNetPay === 500);
   const withExtra = {
     ...bare,
     extraCosts: [{ id: "ec1", amount: "200", description: "x", status: "approved" }],
     payrollManualAdjustment: { amount: 50, description: "m", updatedAt: T0 },
   };
   const withAdj = calcWeekEmployeeForPayroll(withExtra, { ...WEEK, pieceworkState: s });
-  assert("AFTER + extras + manual = 5250", withAdj.displayNetPay === 5250);
+  assert("AFTER week adv + extras + manual = 750", withAdj.displayNetPay === 750);
 }
 
-// --- 9–10 biweekly ---
+// --- 9–10 biweekly: week advances only (never remaining) ---
 {
-  const s = basePiecework(5000);
+  const s0 = basePiecework(5000);
+  const s = advanceInWeek(s0, 800, "bw-adv");
   const emp = {
     ...akordEmp(),
     directoryId: "dir-a",
@@ -203,26 +221,30 @@ function basePiecework(agreed = 5000) {
   const bw = calcBiweeklyRowDisplay(emp, dir, "2026-09-07", "2026-09-12", [], undefined, {
     pieceworkState: s,
   });
-  assert("9 biweekly uses remaining once", bw != null && bw.displayNet === 5000);
-  // non-payout: shift week so Saturday is not anchor
+  assert("9 biweekly current-week advances once", bw != null && bw.displayNet === 800);
+  const bwEmpty = calcBiweeklyRowDisplay(emp, dir, "2026-09-07", "2026-09-12", [], undefined, {
+    pieceworkState: s0,
+  });
+  assert("9b no advance → biweekly 0 (not remaining)", bwEmpty != null && bwEmpty.displayNet === 0);
+  // non-payout week without advances in that week
   const bw2 = calcBiweeklyRowDisplay(emp, dir, "2026-08-31", "2026-09-05", [], undefined, {
     pieceworkState: s,
   });
-  assert("10 non-payout still remaining once", bw2 != null && bw2.displayNet === 5000 && bw2.accruedOnly === true);
+  assert("10 non-payout other week advances → 0", bw2 != null && bw2.displayNet === 0 && bw2.accruedOnly === true);
 }
 
-// --- 11 deferred / carry no double count ---
+// --- 11 deferred / carry — remaining must not re-enter ---
 {
-  const s = basePiecework(5700);
+  const s = advanceInWeek(basePiecework(5700), 570, "c570");
   const emp = akordEmp();
   const row = calcWeekEmployeeForPayroll(emp, { ...WEEK, pieceworkState: s });
-  assert("11 base 5700", row.displayNetPay === 5700);
+  assert("11 base week advance 570", row.displayNetPay === 570);
   const can = canDeferPayroll(emp, row, [], false);
-  assert("11 can defer", can.ok === true && can.frozenAmount === 5700);
-  const carry = buildPayrollCarryForwardRecord(5700, WEEK.weekFrom, WEEK.weekTo);
+  assert("11 can defer", can.ok === true && can.frozenAmount === 570);
+  const carry = buildPayrollCarryForwardRecord(570, WEEK.weekFrom, WEEK.weekTo);
   const deferred = { ...emp, payrollCarryForward: carry };
   const outRow = calcWeekEmployeeForPayroll(deferred, { ...WEEK, pieceworkState: s });
-  assert("11 carry out display 0", outRow.displayNetPay === 0 && outRow.carryForwardOut === 5700);
+  assert("11 carry out display 0", outRow.displayNetPay === 0 && outRow.carryForwardOut === 570);
 
   const nextWeek = { weekFrom: carry.targetWeekFrom, weekTo: carry.targetWeekTo };
   const saved = [
@@ -235,7 +257,7 @@ function basePiecework(agreed = 5000) {
           directoryId: "dir-a",
           name: "Akord",
           netPay: 0,
-          carryForwardOut: 5700,
+          carryForwardOut: 570,
           carryForwardTargetFrom: nextWeek.weekFrom,
           carryForwardTargetTo: nextWeek.weekTo,
         },
@@ -248,23 +270,25 @@ function basePiecework(agreed = 5000) {
     savedWeeks: saved,
     pieceworkState: s,
   });
-  assert("11 carry in no double", inRow.displayNetPay === 5700 && inRow.carryForwardIn === 5700);
+  // next week: no new advances in range → only frozen carry-in (remaining must NOT add)
+  assert("11 carry in no remaining double", inRow.displayNetPay === 570 && inRow.carryForwardIn === 570);
+  assert("11 remaining still durable", resolveAkordPayable("dir-a", s) === 5130);
 }
 
-// --- 12 settlement SSOT ---
+// --- 12 settlement SSOT = week advances ---
 {
-  const s = basePiecework(4500);
-  s.advances = createAdvance(basePiecework(5000), { allocationId: "al1", amount: 500, id: "a", now: T0 }).state.advances;
+  const s = advanceInWeek(basePiecework(5000), 500, "set500");
   const emp = akordEmp();
   const pay = resolveSettlementPayableAmount(emp, [], WEEK.weekFrom, WEEK.weekTo, [], {
-    pieceworkState: createAdvance(basePiecework(5000), { allocationId: "al1", amount: 500, id: "a", now: T0 }).state,
+    pieceworkState: s,
   });
-  assert("12 settlement 4500", pay === 4500);
+  assert("12 settlement week advance 500", pay === 500);
+  assert("12 balance remaining 4500", resolveAkordPayable("dir-a", s) === 4500);
 }
 
 // --- 13 early HOLD ---
 {
-  const s = basePiecework(5000);
+  const s = advanceInWeek(basePiecework(5000), 400, "eh");
   const emp = {
     ...akordEmp(),
     payrollEarlyPayouts: [{ id: "ep1", amount: 1000, method: "cash", periodKey: "2026-09-12", paidAt: T0 }],
@@ -273,7 +297,7 @@ function basePiecework(agreed = 5000) {
   const bw = calcBiweeklyRowDisplay(emp, dir, "2026-09-07", "2026-09-12", [], undefined, {
     pieceworkState: s,
   });
-  assert("13 early HOLD", bw != null && bw.earlyPaid === 0 && bw.displayNet === 5000);
+  assert("13 early HOLD", bw != null && bw.earlyPaid === 0 && bw.displayNet === 400);
 }
 
 // --- 14 alias covered by 11 ---
@@ -307,14 +331,14 @@ assert("14 double-count covered", true);
   assert("17 cloud advance preserved", resolveAkordPayable("dir-a", merged) === 800);
 }
 
-// --- closed job still counts remaining ---
+// --- closed job still counts remaining (balance) ---
 {
   let s = basePiecework(5000);
   s = {
     ...s,
     jobs: s.jobs.map((j) => (j.id === "pj1" ? { ...j, status: "closed", updatedAt: T1 } : j)),
   };
-  assert("closed job remaining still payable", resolveAkordPayable("dir-a", s) === 5000);
+  assert("closed job remaining still balance", resolveAkordPayable("dir-a", s) === 5000);
 }
 
 // --- static: no PWRB / week-employees CAS in payable module ---
@@ -322,10 +346,10 @@ assert("14 double-count covered", true);
   const src = readFileSync(resolve("src/lib/payroll-piecework-payable.ts"), "utf8");
   assert("no pwr in payable", !src.includes("pwrPush") && !src.includes("kw-week-employees"));
   const carry = readFileSync(resolve("src/lib/payroll-carry-forward.ts"), "utf8");
-  assert("carry uses resolveAkordPayable", carry.includes("resolveAkordPayable"));
+  assert("carry uses resolveAkordWeekAdvances", carry.includes("resolveAkordWeekAdvances"));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
-console.log("AKORD V1: remaining + extras + manualAdjustment via shared SSOT (no double remaining on carry-in / biweekly).");
+console.log("AKORD: balance (remaining) ≠ weekly payout; weekly = current-week advances only.");
 console.log("CLOUD TEST LIMITATION: merge semantics unit-tested; live Edge CAS covered by Phase 4A suite.");
 if (fail) process.exit(1);

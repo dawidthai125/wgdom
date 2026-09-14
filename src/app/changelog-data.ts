@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.225",
+    label: "PAYROLL AKORD — zaliczki tygodniowe ≠ saldo",
+    items: [
+      {
+        type: "fix",
+        text: "Akord: do wypłaty tygodniowej/sobotniej wchodzą tylko zaliczki z bieżącego tygodnia — uzgodniona kwota i „pozostało” są informacyjne. Panel PL + komunikat, picker tylko robót w trakcie. Hourly bez zmian.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.224",
     label: "PAYROLL AKORD Phase 4C.1 — historyczny display",
     items: [

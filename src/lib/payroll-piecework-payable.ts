@@ -1,21 +1,21 @@
 /**
- * PAYROLL AKORD Phase 4B — pure payable from durable piecework (no side effects).
+ * PAYROLL AKORD — piecework balance vs weekly payout contribution.
  *
- * AKORD_BASE_PAYABLE = Σ max(0, agreedAmount − Σ active advances)
- * per active allocation for directoryId.
- *
- * Job.status (active/closed) does NOT zero remaining — weekly settlement ≠ job status.
+ * BALANCE (informational): Σ remaining = agreed − active advances (all time).
+ * WEEKLY PAYOUT: Σ active advances whose paidAt falls in the payroll week.
+ * Remaining must NEVER enter weekly / Saturday / settlement payable.
  */
 
 import { remainingForAllocation } from "@/lib/payroll-piecework";
 import {
   emptyPayrollPieceworkState,
+  isActivePieceworkAdvance,
   isActivePieceworkAllocation,
   isPieceworkDeleted,
   normalizePayrollPieceworkState,
   type PayrollPieceworkState,
-  type PieceworkAllocation,
   type PieceworkAdvance,
+  type PieceworkAllocation,
 } from "@/lib/payroll-piecework-types";
 
 export type AkordAllocationBreakdownRow = {
@@ -30,6 +30,7 @@ export type AkordAllocationBreakdownRow = {
 
 export type AkordPayableBreakdown = {
   directoryId: string;
+  /** Σ remaining — AKORD balance, NOT weekly payout. */
   payable: number;
   allocations: AkordAllocationBreakdownRow[];
 };
@@ -45,15 +46,79 @@ function activeAdvancesSum(advances: PieceworkAdvance[], allocationId: string): 
   return +sum.toFixed(2);
 }
 
+/** ISO date YYYY-MM-DD from paidAt (datetime or date). */
+export function pieceworkAdvancePaidDay(paidAt: string | undefined): string {
+  const s = String(paidAt ?? "").trim();
+  if (s.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  return "";
+}
+
 /**
- * Pure SSOT: sum of remaining across all active allocations for an employee.
- * Closed PieceworkJob still contributes remaining (independent of weekly settlement).
+ * Advance belongs to payroll week when paidAt (date) is within [weekFrom, weekTo],
+ * or when advance.weekFrom/weekTo exactly match the payroll range.
+ */
+export function isPieceworkAdvanceInPayrollWeek(
+  advance: PieceworkAdvance,
+  weekFrom: string,
+  weekTo: string,
+): boolean {
+  const from = String(weekFrom ?? "").trim();
+  const to = String(weekTo ?? "").trim();
+  if (!from || !to) return false;
+  const awf = String(advance.weekFrom ?? "").trim();
+  const awt = String(advance.weekTo ?? "").trim();
+  if (awf && awt && awf === from && awt === to) return true;
+  const day = pieceworkAdvancePaidDay(advance.paidAt);
+  if (!day) return false;
+  return day >= from && day <= to;
+}
+
+/**
+ * Pure SSOT balance: sum of remaining across active allocations.
+ * Informational only — not weekly payable.
  */
 export function resolveAkordPayable(
   directoryId: string,
   pieceworkState: PayrollPieceworkState | null | undefined,
 ): number {
   return resolveAkordAllocationBreakdown(directoryId, pieceworkState).payable;
+}
+
+/** Alias — balance / „pozostało z akordu”. */
+export function resolveAkordBalance(
+  directoryId: string,
+  pieceworkState: PayrollPieceworkState | null | undefined,
+): number {
+  return resolveAkordPayable(directoryId, pieceworkState);
+}
+
+/**
+ * Weekly AKORD payout contribution = sum of active advances in this payroll week.
+ * Previous-week advances do not enter current weekly payable.
+ */
+export function resolveAkordWeekAdvances(
+  directoryId: string,
+  pieceworkState: PayrollPieceworkState | null | undefined,
+  weekFrom: string,
+  weekTo: string,
+): number {
+  const dir = String(directoryId ?? "").trim();
+  const state = normalizePayrollPieceworkState(pieceworkState ?? emptyPayrollPieceworkState());
+  if (!dir) return 0;
+  const allocIds = new Set(
+    state.allocations
+      .filter((a) => isActivePieceworkAllocation(a) && a.directoryId === dir)
+      .map((a) => a.id),
+  );
+  let sum = 0;
+  for (const adv of state.advances) {
+    if (!isActivePieceworkAdvance(adv)) continue;
+    if (!allocIds.has(adv.allocationId)) continue;
+    if (!(adv.amount > 0)) continue;
+    if (!isPieceworkAdvanceInPayrollWeek(adv, weekFrom, weekTo)) continue;
+    sum += adv.amount;
+  }
+  return +sum.toFixed(2);
 }
 
 export function resolveAkordAllocationBreakdown(
