@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.216 — PAYROLL D4 richer-prev same-week only (2026-09-14)
+
+- `shouldShowPayrollPrevRecoveryBanner` / `applyPrevRecoveryToLiveRoster` wymagają same-week binding (`canSoftRestoreHoursFromPrevRoster`)
+- Unbound / inny tydzień → banner OFF, restore no-op, brak Domain Push
+- Rotacyjny `kw-week-employees-prev` bez `prevRosterWeekFrom/To` nie jest uznawany za bieżący tydzień
+- Test: `test-payroll-prev-recovery-soft-restore-d4-d5.mjs` T1–T7
+
 ## 2.66.215 — PAYROLL MA pull LWW vs hours (2026-09-14)
 
 - `pickPayrollManualAdjustment` — LWW po `updatedAt`; pusta strona z nowszym `dataUpdatedAt` (godziny) nie czyści korekty

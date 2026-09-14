@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.216",
+    label: "PAYROLL — D4 richer-prev tylko ten sam tydzień",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: baner „bogatsza kopia godzin (-prev)” i Przywróć z -prev tylko przy dowodzie tego samego tygodnia (reuse D5 canSoftRestoreHoursFromPrevRoster). Rotacyjny kw-week-employees-prev bez weekFrom/weekTo = OFF — nie kopiuje godzin 07.09–12.09 do 14.09–19.09. Test: test-payroll-prev-recovery-soft-restore-d4-d5.mjs T1–T7.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.215",
     label: "PAYROLL — MA pull LWW (hours nie czyszczą korekty)",
     items: [

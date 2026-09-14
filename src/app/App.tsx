@@ -565,7 +565,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const showPayrollPrevRecoveryBanner = useMemo(() => {
     void payrollPrevRecoveryDismissTick;
     if (isPayrollPrevRecoveryDismissed(weekFrom, weekTo, payrollPrevRoster)) return false;
-    return shouldShowPayrollPrevRecoveryBanner(weekEmployees, payrollPrevRoster);
+    // Rotational kw-week-employees-prev has no week stamp — do not invent prev week from live.
+    return shouldShowPayrollPrevRecoveryBanner(weekEmployees, payrollPrevRoster, {
+      weekFrom,
+      weekTo,
+    });
   }, [weekEmployees, payrollPrevRoster, weekFrom, weekTo, payrollPrevRecoveryDismissTick]);
 
   const commitDirectory = useCallback(() => {
@@ -1938,7 +1942,9 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
 
   /** D4 CTA — restore hours from -prev via Domain Push (≠ archive banner). */
   const restorePayrollHoursFromPrev = useCallback(() => {
-    if (!shouldShowPayrollPrevRecoveryBanner(weekEmployees, payrollPrevRoster)) {
+    // Unbound rotational -prev: no prevRosterWeekFrom/To (never copy live week as proof).
+    const d4WeekBinding = { weekFrom, weekTo };
+    if (!shouldShowPayrollPrevRecoveryBanner(weekEmployees, payrollPrevRoster, d4WeekBinding)) {
       toast.message("Brak bogatszej kopii -prev dla bieżącego składu.");
       return;
     }
@@ -1946,7 +1952,11 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       `Przywrócić godziny z ostatniej kopii chmurowej (-prev) dla pracowników na liście?\n\nTo zapisze listę płac do chmury (Domain Push).`,
     )) return;
     const before = weekEmployees;
-    const next = applyPrevRecoveryToLiveRoster(before, payrollPrevRoster);
+    const next = applyPrevRecoveryToLiveRoster(before, payrollPrevRoster, d4WeekBinding);
+    if (next === before) {
+      toast.message("Brak bogatszej kopii -prev dla bieżącego składu.");
+      return;
+    }
     withPayrollWeekEmployeesWriteSource("restorePayrollHoursFromPrev", () => {
       setWeekEmployees(next);
     });
@@ -2308,7 +2318,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     // Soft Restore: session same-week only on ADD path.
     // Do NOT pass rotational kw-week-employees-prev here — after rollover it holds
     // the previous calendar week's hours (cross-week leak / ea1b0a6e regression).
-    // D4 banner still uses payrollPrevRoster for explicit Owner CTA restore.
+    // D4 banner/restore: same UNBOUND = OFF (no invented prev week identity).
     const { roster: newEmps, restoredDirectoryIds } = applyPayrollSoftRestoreOverlay(created, {
       weekFrom,
       weekTo,

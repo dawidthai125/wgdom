@@ -36,6 +36,7 @@ const {
   applyPrevRecoveryToLiveRoster,
   overlappingPrevLiveSlices,
   isPayrollPrevRecoveryBannerEnabled,
+  canApplyPayrollPrevRecovery,
 } = await import("../src/lib/payroll-prev-recovery.ts");
 
 const {
@@ -78,12 +79,77 @@ const liveThin = [emp("live-1", "dir-1", daysInactive)];
 const prevRich = [emp("prev-1", "dir-1", daysActive)];
 const archiveRich = [emp("arch-1", "dir-1", daysActive)];
 
+const WEEK_CUR = { from: "2026-09-14", to: "2026-09-19" };
+const WEEK_OLD = { from: "2026-09-07", to: "2026-09-12" };
+const bindSame = {
+  weekFrom: WEEK_CUR.from,
+  weekTo: WEEK_CUR.to,
+  prevRosterWeekFrom: WEEK_CUR.from,
+  prevRosterWeekTo: WEEK_CUR.to,
+};
+const bindCross = {
+  weekFrom: WEEK_CUR.from,
+  weekTo: WEEK_CUR.to,
+  prevRosterWeekFrom: WEEK_OLD.from,
+  prevRosterWeekTo: WEEK_OLD.to,
+};
+const bindLiveOnly = { weekFrom: WEEK_CUR.from, weekTo: WEEK_CUR.to };
+
+const days9h = {
+  Pn: { ...activeDay, from: "07:00", to: "16:00" },
+  Wt: { ...inactiveDay },
+  Sr: { ...inactiveDay },
+  Cz: { ...inactiveDay },
+  Pt: { ...inactiveDay },
+  So: { ...inactiveDay },
+};
+const liveCurrent9h = [emp("live-1409", "dir-1", days9h)];
+const prevOldRich = [emp("prev-0709", "dir-1", daysActive)];
+
 assert("prev richer than live", prevPayrollRicherThanLive(prevRich, liveThin) === true);
-assert("D4 banner ON overlapping", shouldShowPayrollPrevRecoveryBanner(liveThin, prevRich) === true);
-assert("D4 banner OFF equal", shouldShowPayrollPrevRecoveryBanner(prevRich, prevRich) === false);
-assert("D4 banner OFF no overlap", shouldShowPayrollPrevRecoveryBanner(
+
+// T1 — incident: current 14–19 vs prev 07–12, same directoryId, prev hours >
+assert("T1 cross-week banner OFF", shouldShowPayrollPrevRecoveryBanner(liveCurrent9h, prevOldRich, bindCross) === false);
+assert("T1 canApply cross-week false", canApplyPayrollPrevRecovery(bindCross) === false);
+
+// T2 — restore no-op (same reference, hours unchanged)
+const t2 = applyPrevRecoveryToLiveRoster(liveCurrent9h, prevOldRich, bindCross);
+assert("T2 restore same reference", t2 === liveCurrent9h);
+assert("T2 hours still 9h day", t2[0].days.Pn.active === true && t2[0].days.Wt.active === false);
+
+// T3 — App restore must not pwrPush when banner/gate false (cross-week / unbound)
+const appSrc = readFileSync(new URL("../src/app/App.tsx", import.meta.url), "utf8");
+const restoreFn = appSrc.match(/const restorePayrollHoursFromPrev = useCallback\(\(\) => \{[\s\S]*?\}, \[weekEmployees, payrollPrevRoster, weekFrom, weekTo, setWeekEmployees\]\);/);
+assert("T3 restore handler present", Boolean(restoreFn));
+assert(
+  "T3 shouldShow before pwrPush",
+  restoreFn && restoreFn[0].indexOf("shouldShowPayrollPrevRecoveryBanner") < restoreFn[0].indexOf("pwrPush"),
+);
+assert(
+  "T3 early return when banner false",
+  Boolean(restoreFn && restoreFn[0].includes("return;") && restoreFn[0].indexOf("return;") < restoreFn[0].indexOf("pwrPush")),
+);
+assert(
+  "T3 no-op skip pwrPush (next === before)",
+  Boolean(restoreFn && restoreFn[0].includes("next === before") && restoreFn[0].indexOf("next === before") < restoreFn[0].indexOf("pwrPush")),
+);
+assert(
+  "T3 does not invent prev week from live",
+  Boolean(restoreFn && !restoreFn[0].includes("prevRosterWeekFrom: weekFrom") && !restoreFn[0].includes("prevRosterWeekTo: weekTo")),
+);
+assert("T3 cross-week would not show → no push", shouldShowPayrollPrevRecoveryBanner(liveCurrent9h, prevOldRich, bindCross) === false);
+
+// T4 — same-week + richer + explicit binding preserves overlay
+assert("T4 same-week richer banner ON", shouldShowPayrollPrevRecoveryBanner(liveThin, prevRich, bindSame) === true);
+const restored = applyPrevRecoveryToLiveRoster(liveThin, prevRich, bindSame);
+assert("T4 restore keeps live UUID", restored[0].id === "live-1");
+assert("T4 restore overlays days", restored[0].days.Pn.active === true);
+assert("T4 restore richer metrics", payrollMetrics(restored).totalHours > payrollMetrics(liveThin).totalHours);
+
+assert("D4 banner OFF no overlap (bound)", shouldShowPayrollPrevRecoveryBanner(
   [emp("l2", "dir-X", daysInactive)],
   [emp("p2", "dir-Y", daysActive)],
+  bindSame,
 ) === false);
 
 // Archive banner still independent (≠ D4)
@@ -96,18 +162,24 @@ assert(
     .match(/import\s*\{[^}]*shouldShowPayrollRestoreBanner/),
 );
 
-const restored = applyPrevRecoveryToLiveRoster(liveThin, prevRich);
-assert("restore keeps live UUID", restored[0].id === "live-1");
-assert("restore overlays days", restored[0].days.Pn.active === true);
-assert("restore richer metrics", payrollMetrics(restored).totalHours > payrollMetrics(liveThin).totalHours);
-
 const slices = overlappingPrevLiveSlices(liveThin, prevRich);
 assert("overlap slices", slices && slices.liveOverlap.length === 1);
 
-// Kill-switch
+// T5 — same-week but not richer
+assert("T5 equal hours banner OFF", shouldShowPayrollPrevRecoveryBanner(prevRich, prevRich, bindSame) === false);
+assert("T5 live richer than prev banner OFF", shouldShowPayrollPrevRecoveryBanner(prevRich, liveThin, bindSame) === false);
+
+// T6 — unbound rotational -prev
+assert("T6 unbound 2-arg banner OFF", shouldShowPayrollPrevRecoveryBanner(liveThin, prevRich) === false);
+assert("T6 live-week-only banner OFF", shouldShowPayrollPrevRecoveryBanner(liveThin, prevRich, bindLiveOnly) === false);
+assert("T6 canApply unbound false", canApplyPayrollPrevRecovery(bindLiveOnly) === false);
+const t6 = applyPrevRecoveryToLiveRoster(liveThin, prevRich);
+assert("T6 unbound restore no-op", t6 === liveThin);
+
+// T7 — kill-switch still OFF even with same-week richer binding
 localStorage.setItem("wg-payroll-recovery-banner-prev", "0");
-assert("kill-switch disables banner", shouldShowPayrollPrevRecoveryBanner(liveThin, prevRich) === false);
-assert("kill-switch helper false", isPayrollPrevRecoveryBannerEnabled() === false);
+assert("T7 kill-switch disables banner", shouldShowPayrollPrevRecoveryBanner(liveThin, prevRich, bindSame) === false);
+assert("T7 kill-switch helper false", isPayrollPrevRecoveryBannerEnabled() === false);
 localStorage.removeItem("wg-payroll-recovery-banner-prev");
 
 // --- D5 Soft Restore ---

@@ -3,17 +3,44 @@
  *
  * Zakaz: reuse shouldShowPayrollRestoreBanner (archive).
  * REUSE: payrollMetrics + richer-than pattern.
+ * Week-scope: same-week proof via D5 `canSoftRestoreHoursFromPrevRoster`.
+ * Rotational kw-week-employees-prev without prevRosterWeekFrom/To → UNBOUND = OFF.
  */
 import type { WeekEmployee } from "@/app/app-domain";
 import {
   PAYROLL_RESTORE_BANNER_EPS_HOURS,
   payrollMetrics,
 } from "@/lib/cloud-sync";
+import { canSoftRestoreHoursFromPrevRoster } from "@/lib/payroll-soft-restore";
 
 const KILL_SWITCH = "wg-payroll-recovery-banner-prev";
 const DISMISS_PREFIX = "wg-payroll-prev-recovery-dismiss:";
 
 export const PAYROLL_PREV_KEY = "kw-week-employees-prev";
+
+/** Live week + optional identity of -prev. Missing prev week → unbound (OFF). */
+export type PayrollPrevRecoveryWeekBinding = {
+  weekFrom: string;
+  weekTo: string;
+  prevRosterWeekFrom?: string;
+  prevRosterWeekTo?: string;
+};
+
+/**
+ * True only with proven same-week -prev.
+ * Do not invent prevRosterWeekFrom/To from the live week — rotational KV is not proof.
+ */
+export function canApplyPayrollPrevRecovery(
+  weekBinding?: PayrollPrevRecoveryWeekBinding | null,
+): boolean {
+  if (!weekBinding) return false;
+  return canSoftRestoreHoursFromPrevRoster({
+    weekFrom: weekBinding.weekFrom,
+    weekTo: weekBinding.weekTo,
+    prevRosterWeekFrom: weekBinding.prevRosterWeekFrom,
+    prevRosterWeekTo: weekBinding.prevRosterWeekTo,
+  });
+}
 
 function asList(list: unknown): WeekEmployee[] {
   return Array.isArray(list) ? (list as WeekEmployee[]) : [];
@@ -86,14 +113,16 @@ export function overlappingPrevLiveSlices(
 }
 
 /**
- * AC-D4-1 — show when overlapping live ≪ -prev (metrics).
- * Does NOT consult archive.
+ * AC-D4-1 — show when overlapping live ≪ -prev (metrics) AND same-week bound.
+ * Does NOT consult archive. Unbound / cross-week → false (do not invent prev week).
  */
 export function shouldShowPayrollPrevRecoveryBanner(
   liveRoster: unknown,
   prevRoster: unknown,
+  weekBinding?: PayrollPrevRecoveryWeekBinding | null,
 ): boolean {
   if (!isPayrollPrevRecoveryBannerEnabled()) return false;
+  if (!canApplyPayrollPrevRecovery(weekBinding)) return false;
   const slices = overlappingPrevLiveSlices(liveRoster, prevRoster);
   if (!slices) return false;
   return prevPayrollRicherThanLive(slices.prevOverlap, slices.liveOverlap);
@@ -130,11 +159,16 @@ export function dismissPayrollPrevRecovery(
 /**
  * Overlay richer -prev days onto live by directoryId (keep live UUID).
  * Domain-push ready — no archive, no SSOT change beyond returned roster.
+ * Unbound / cross-week → same live reference (no-op, caller must not pwrPush).
  */
 export function applyPrevRecoveryToLiveRoster(
   liveRoster: WeekEmployee[],
   prevRoster: unknown,
+  weekBinding?: PayrollPrevRecoveryWeekBinding | null,
 ): WeekEmployee[] {
+  if (!canApplyPayrollPrevRecovery(weekBinding)) {
+    return liveRoster;
+  }
   const live = asList(liveRoster);
   const prev = asList(prevRoster);
   const prevBy = new Map<string, WeekEmployee>();
