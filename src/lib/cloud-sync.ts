@@ -3433,6 +3433,11 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
       if (key === WORK_CATALOG_STORAGE_KEY) {
         return;
       }
+      // Phase 4A/4B — piecework Cloud writes only via CAS (pushPayrollPieceworkToCloudSafe).
+      // Deferred bootstrap persists merge to LS; never blind LWW push of stale LS.
+      if (key === "kw-payroll-piecework") {
+        return;
+      }
       if (bootstrapMergedShouldPush(key, merged, cloudVal)) {
         pushKeys.push(key);
         pushValues.push(merged);
@@ -3459,6 +3464,17 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
         [...pushKeys, CONTACTS_DELETED_IDS_KEY, EMPLOYEE_LEAVES_DELETED_IDS_KEY, RECOVERABLE_CHARGES_DELETED_IDS_KEY],
         [...pushValues, mergedContactsDeleted, mergedLeavesDeleted, mergedChargesDeleted],
       ).catch(() => {});
+    }
+
+    try {
+      const { PAYROLL_PIECEWORK_META_KEY, normalizePayrollPieceworkMeta, writePayrollPieceworkMetaToLs } =
+        await import("@/lib/payroll-piecework-meta");
+      const [metaRaw] = await fetchKeysFromCloud([PAYROLL_PIECEWORK_META_KEY]);
+      if (metaRaw != null) {
+        writePayrollPieceworkMetaToLs(normalizePayrollPieceworkMeta(metaRaw));
+      }
+    } catch {
+      /* offline — revision stays at LS / 0 */
     }
 
     if (deferredPipelineForCanonical !== undefined) {

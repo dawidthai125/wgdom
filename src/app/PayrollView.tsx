@@ -510,6 +510,7 @@ function PayrollAssignmentBadge({ status }: { status: PayrollAssignmentBadgeStat
 
 export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
+  payrollPiecework,
   onWeekChange, onConfirmSettle, onUnsettleEmployee, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive,
   onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeManualAdjustment, onUpdateWeekEmployeeEarlyPayouts, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
@@ -535,6 +536,8 @@ export function PayrollView({
   rawWeekEmployeesCount?: number;
   directory: DirectoryEmployee[];
   employeeLeaves: EmployeeLeave[];
+  /** Phase 4B — AKORD payable from durable piecework. */
+  payrollPiecework?: import("@/lib/payroll-piecework-types").PayrollPieceworkState | null;
   contacts: EmailContact[];
   jobs: Job[];
   onWeekChange:(f:string,t:string)=>void;
@@ -703,9 +706,10 @@ export function PayrollView({
           archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
           livePayroll: !isClosedWeek,
           savedWeeks,
+          pieceworkState: payrollPiecework,
         }),
       })),
-    [displayEmployees, weekFrom, weekTo, employeeLeaves, isClosedWeek, archivedForWeek, savedWeeks],
+    [displayEmployees, weekFrom, weekTo, employeeLeaves, isClosedWeek, archivedForWeek, savedWeeks, payrollPiecework],
   );
 
   const cashSplit = useMemo(
@@ -721,6 +725,7 @@ export function PayrollView({
             employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
             savedWeeks,
             archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
+            pieceworkState: payrollPiecework,
           }),
         (e, from, to) =>
           calcBiweeklyWeekNetWithLeave(e, from, to, {
@@ -729,7 +734,7 @@ export function PayrollView({
             hasRolloverBlockers,
           }),
       ),
-    [displayEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek, hasRolloverBlockers],
+    [displayEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek, hasRolloverBlockers, payrollPiecework],
   );
 
   const backlogCheck = useMemo(
@@ -754,12 +759,13 @@ export function PayrollView({
               savedWeeks,
               hasRolloverBlockers,
             }),
+            { pieceworkState: payrollPiecework },
           ),
         );
       }
     }
     return m;
-  }, [rows, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, hasRolloverBlockers]);
+  }, [rows, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, hasRolloverBlockers, payrollPiecework]);
 
   const settleTargetEmp = settleTargetId
     ? displayEmployees.find((e) => e.id === settleTargetId) ?? null
@@ -886,6 +892,7 @@ export function PayrollView({
           employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
           savedWeeks,
           archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
+          pieceworkState: payrollPiecework,
         }),
       (e, from, to) =>
         calcBiweeklyWeekNetWithLeave(e, from, to, {
@@ -906,6 +913,7 @@ export function PayrollView({
     isClosedWeek,
     archivedForWeek,
     hasRolloverBlockers,
+    payrollPiecework,
   ]);
 
   const payrollCashContext = biweeklyCashContextLine(displayCashSplit, weekTo);
@@ -1949,6 +1957,7 @@ export function PayrollView({
               employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
               archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
               livePayroll: !isClosedWeek,
+              pieceworkState: payrollPiecework,
             },
           )}
           settledByName={session.displayName}
@@ -1964,6 +1973,7 @@ export function PayrollView({
                 employeeLeaves: isClosedWeek ? undefined : employeeLeaves,
                 archivedSnapshot: isClosedWeek ? archivedForWeek : undefined,
                 livePayroll: !isClosedWeek,
+                pieceworkState: payrollPiecework,
               },
             );
             onConfirmSettle(settleTargetEmp.id, { paymentMethod: method, amount });

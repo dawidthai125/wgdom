@@ -357,6 +357,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [contacts, setContacts] = useLocalStorage<EmailContact[]>("kw-contacts", []);
   const [employeeLeaves, setEmployeeLeaves] = useLocalStorage<EmployeeLeave[]>("kw-employee-leaves", []);
   const [recoverableCharges, setRecoverableCharges] = useLocalStorage<RecoverableCharge[]>("kw-recoverable-charges", []);
+  const [payrollPiecework, setPayrollPiecework] = useLocalStorage<import("@/lib/payroll-piecework-types").PayrollPieceworkState>(
+    "kw-payroll-piecework",
+    { jobs: [], allocations: [], advances: [] },
+  );
   const [operationalNotes, setOperationalNotes] = useLocalStorage<OperationalNote[]>("kw-operational-notes", []);
   const [operationalNotesReadState, setOperationalNotesReadState] = useLocalStorage<OperationalNoteReadReceipt[]>(
     "kw-operational-notes-read-state",
@@ -1436,6 +1440,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       if (patch.contacts) setContacts(patch.contacts);
       if (patch.employeeLeaves) setEmployeeLeaves(patch.employeeLeaves);
       if (patch.recoverableCharges) setRecoverableCharges(patch.recoverableCharges);
+      if (patch.payrollPiecework) setPayrollPiecework(patch.payrollPiecework);
       if (patch.operationalNotes) setOperationalNotes(patch.operationalNotes);
       if (patch.operationalNotesReadState) setOperationalNotesReadState(patch.operationalNotesReadState);
       if (patch.operationalNotesAuditLog) setOperationalNotesAuditLog(patch.operationalNotesAuditLog);
@@ -1456,6 +1461,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setContacts,
     setEmployeeLeaves,
     setRecoverableCharges,
+    setPayrollPiecework,
     setOperationalNotes,
     setOperationalNotesReadState,
     setOperationalNotesAuditLog,
@@ -3570,6 +3576,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           recoverableCharges={recoverableCharges}
           setRecoverableCharges={setRecoverableCharges}
           commitRecoverableCharges={commitRecoverableCharges}
+          payrollPiecework={payrollPiecework}
           operationalNotes={operationalNotes}
           setOperationalNotes={setOperationalNotes}
           operationalNotesReadState={operationalNotesReadState}

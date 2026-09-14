@@ -15,6 +15,9 @@ import {
   findEmployeeSnapshot,
   resolveLiveCarryForwardIn,
 } from "@/lib/payroll-carry-snapshot";
+import { isAkordWeekEmployee } from "@/lib/payroll-compensation-model";
+import { resolveAkordPayable } from "@/lib/payroll-piecework-payable";
+import type { PayrollPieceworkState } from "@/lib/payroll-piecework-types";
 
 export { resolveLiveCarryForwardIn, snapshotCarryFieldsForEmployee } from "@/lib/payroll-carry-snapshot";
 
@@ -77,6 +80,46 @@ export function resolveArchivedCarryAdjustments(
   };
 }
 
+/**
+ * Apply AKORD remaining into weekly calc without changing hourly math.
+ * V1: AKORD_BASE_PAYABLE + approved extras + manualAdjustment (− zaliczki, usually 0).
+ * Leave zeros labor/remaining (same overlay as hourly labor).
+ */
+function applyAkordPayableToCalc(
+  emp: WeekEmployee,
+  withLeave: PayrollCalcWithLeave,
+  pieceworkState: PayrollPieceworkState | null | undefined,
+  opts?: { excludeRemaining?: boolean },
+): PayrollCalcWithLeave {
+  if (!isAkordWeekEmployee(emp)) return withLeave;
+
+  const extrasManualZal = +(
+    withLeave.totalExtraCosts + withLeave.totalManualAdjustment - withLeave.totalZaliczka
+  ).toFixed(2);
+
+  if (withLeave.leaveStatus) {
+    return {
+      ...withLeave,
+      grossPay: 0,
+      weekGross: 0,
+      weekNet: extrasManualZal,
+      netPay: extrasManualZal,
+    };
+  }
+
+  const remaining = opts?.excludeRemaining
+    ? 0
+    : resolveAkordPayable(emp.directoryId, pieceworkState);
+  const netPay = +(remaining + extrasManualZal).toFixed(2);
+  return {
+    ...withLeave,
+    grossPay: remaining,
+    weekGross: remaining,
+    weekNet: netPay,
+    netPay,
+  };
+}
+
 export function calcWeekEmployeeForPayroll(
   emp: WeekEmployee,
   options: {
@@ -86,16 +129,22 @@ export function calcWeekEmployeeForPayroll(
     archivedSnapshot?: WeekSnapshot;
     livePayroll?: boolean;
     savedWeeks?: WeekSnapshot[];
+    /** Phase 4B — durable piecework for AKORD payable (hourly ignores). */
+    pieceworkState?: PayrollPieceworkState | null;
   },
 ): PayrollCalcWithAdjustments {
   const withLeave = calcWeekEmployeeWithLeave(emp, options);
+  const akord = isAkordWeekEmployee(emp);
 
   // Leave: displayNetPay = payable (extras + manual adj − zaliczki), not forced 0.
+  // AKORD: remaining treated as labor → zeroed by leave overlay semantics.
   if (withLeave.leaveStatus) {
-    return { ...withLeave, displayNetPay: withLeave.netPay };
+    const akordLeave = applyAkordPayableToCalc(emp, withLeave, options.pieceworkState);
+    return { ...akordLeave, displayNetPay: akordLeave.netPay };
   }
 
   if (options.archivedSnapshot) {
+    // Phase 4B: archive freeze not implemented — use frozen snapshot amounts.
     const archived = resolveArchivedCarryAdjustments(options.archivedSnapshot, emp);
     return {
       ...withLeave,
@@ -106,8 +155,9 @@ export function calcWeekEmployeeForPayroll(
   }
 
   if (emp.payrollCarryForward?.amount != null && emp.payrollCarryForward.amount > 0) {
+    const base = applyAkordPayableToCalc(emp, withLeave, options.pieceworkState);
     return {
-      ...withLeave,
+      ...base,
       carryForwardOut: emp.payrollCarryForward.amount,
       netPay: 0,
       weekNet: 0,
@@ -120,9 +170,13 @@ export function calcWeekEmployeeForPayroll(
     : undefined;
 
   if (carryIn) {
-    const displayNetPay = +(withLeave.netPay + carryIn.amount).toFixed(2);
+    // AKORD double-count guard: carry-in already froze prior remaining; do not re-add live remaining.
+    const live = applyAkordPayableToCalc(emp, withLeave, options.pieceworkState, {
+      excludeRemaining: akord,
+    });
+    const displayNetPay = +(live.netPay + carryIn.amount).toFixed(2);
     return {
-      ...withLeave,
+      ...live,
       carryForwardIn: carryIn.amount,
       carryForwardInFrom: carryIn.fromWeek,
       displayNetPay,
@@ -130,7 +184,8 @@ export function calcWeekEmployeeForPayroll(
     };
   }
 
-  return { ...withLeave, displayNetPay: withLeave.netPay };
+  const base = applyAkordPayableToCalc(emp, withLeave, options.pieceworkState);
+  return { ...base, displayNetPay: base.netPay };
 }
 
 export function weeklyDisplayNetBeforeDefer(
@@ -191,6 +246,7 @@ export function calcWeeklyNetWithCarry(
     employeeLeaves?: EmployeeLeave[];
     savedWeeks?: WeekSnapshot[];
     archivedSnapshot?: WeekSnapshot;
+    pieceworkState?: PayrollPieceworkState | null;
   },
 ): number {
   const row = calcWeekEmployeeForPayroll(emp, {
@@ -198,6 +254,7 @@ export function calcWeeklyNetWithCarry(
     weekTo,
     employeeLeaves: options.employeeLeaves,
     savedWeeks: options.savedWeeks,
+    pieceworkState: options.pieceworkState,
     archivedSnapshot: options.archivedSnapshot,
     livePayroll: !options.archivedSnapshot,
   });

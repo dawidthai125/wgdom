@@ -9,6 +9,12 @@ import type { OperationalNote } from "@/lib/operational-notes";
 import { normalizeOperationalNotes } from "@/lib/operational-notes";
 import type { OperationalNoteAuditEntry } from "@/lib/operational-notes-audit";
 import type { OperationalNoteReadReceipt } from "@/lib/operational-notes-read-state";
+import type { PayrollPieceworkState } from "@/lib/payroll-piecework-types";
+import {
+  emptyPayrollPieceworkState,
+  normalizePayrollPieceworkState,
+  PAYROLL_PIECEWORK_KEY,
+} from "@/lib/payroll-piecework-types";
 import type { WmPrintHistoryEntry } from "@/lib/wm-print/history";
 import { normalizeWmPrintHistory } from "@/lib/wm-print/history";
 import { normalizeWmPrintJobDocuments } from "@/lib/wm-print/job-documents";
@@ -35,6 +41,7 @@ export type DeferredAdminHydrationPatch = {
   contacts?: EmailContact[];
   employeeLeaves?: EmployeeLeave[];
   recoverableCharges?: RecoverableCharge[];
+  payrollPiecework?: PayrollPieceworkState;
   operationalNotes?: OperationalNote[];
   operationalNotesReadState?: OperationalNoteReadReceipt[];
   operationalNotesAuditLog?: OperationalNoteAuditEntry[];
@@ -89,6 +96,13 @@ export async function collectDeferredAdminHydrationPatch(): Promise<DeferredAdmi
       chargesRaw as RecoverableCharge[],
       getDeletedRecoverableChargeIds(),
     );
+  }
+
+  const pieceworkRaw = readLocalStorageDataKey(PAYROLL_PIECEWORK_KEY);
+  if (pieceworkRaw != null) {
+    patch.payrollPiecework = normalizePayrollPieceworkState(pieceworkRaw);
+  } else {
+    patch.payrollPiecework = emptyPayrollPieceworkState();
   }
 
   const notesRaw = readLocalStorageDataKey("kw-operational-notes");

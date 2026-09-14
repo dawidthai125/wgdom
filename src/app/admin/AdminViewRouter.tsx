@@ -123,6 +123,8 @@ export type AdminViewRouterProps = {
   recoverableCharges: RecoverableCharge[];
   setRecoverableCharges: (v: RecoverableCharge[] | ((prev: RecoverableCharge[]) => RecoverableCharge[])) => void;
   commitRecoverableCharges: (next?: RecoverableCharge[], deletedId?: string) => void;
+  /** Phase 4B — durable piecework for AKORD payable (read in PayrollView). */
+  payrollPiecework: import("@/lib/payroll-piecework-types").PayrollPieceworkState;
   operationalNotes: OperationalNote[];
   setOperationalNotes: (v: OperationalNote[] | ((prev: OperationalNote[]) => OperationalNote[])) => void;
   operationalNotesReadState: OperationalNoteReadReceipt[];
@@ -320,6 +322,7 @@ export function AdminViewRouter({
   recoverableCharges,
   setRecoverableCharges,
   commitRecoverableCharges,
+  payrollPiecework,
   adminSession,
   alertsSeenTick,
   onAlertsSeen,
@@ -523,6 +526,7 @@ export function AdminViewRouter({
               weekTo={weekTo}
               directory={directory}
               employeeLeaves={employeeLeaves}
+              payrollPiecework={payrollPiecework}
               contacts={contacts}
               jobs={jobs}
               onSetJobs={setJobs}

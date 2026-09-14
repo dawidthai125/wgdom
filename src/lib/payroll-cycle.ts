@@ -11,6 +11,9 @@ import {
   normalizeEarlyPayoutList,
   type PayrollEarlyPayout,
 } from "@/lib/payroll-early-payout-types";
+import { isAkordWeekEmployee } from "@/lib/payroll-compensation-model";
+import { resolveAkordPayable } from "@/lib/payroll-piecework-payable";
+import type { PayrollPieceworkState } from "@/lib/payroll-piecework-types";
 
 const DAY_KEYS = ["Pn", "Wt", "Sr", "Cz", "Pt", "So"] as const;
 
@@ -668,6 +671,10 @@ export function calcBiweeklyRowDisplay(
   weekTo: string,
   savedWeeks: WeekArchiveRef[],
   calcBiweeklyWeekNet?: CalcBiweeklyWeekNetFn,
+  options?: {
+    /** Phase 4B — inject AKORD remaining once (week nets stay extras-only for akord). */
+    pieceworkState?: PayrollPieceworkState | null;
+  },
 ): BiweeklyRowDisplay | null {
   const anchor = biweeklyAnchorFor(emp, directory);
   if (!anchor) return null;
@@ -683,21 +690,33 @@ export function calcBiweeklyRowDisplay(
   const prevWeekNet = prevEmp ? weekNetFor(prevEmp, prevRange.from, prevRange.to) : 0;
 
   const early = getEarlyPaidForPeriod(emp, directory, weekFrom, weekTo, savedWeeks, periodKey);
+  const akord = isAkordWeekEmployee(emp);
+  // Durable remaining is cross-week — never sum this+prev remaining. Inject once.
+  const akordRemaining = akord
+    ? resolveAkordPayable(
+        String((emp as { directoryId?: string }).directoryId ?? ""),
+        options?.pieceworkState,
+      )
+    : 0;
+  // AKORD early payout HOLD — do not subtract payrollEarlyPayouts from AKORD display.
+  const earlyDeduct = akord ? 0 : early.total;
 
   if (!isPayoutWeek) {
-    const displayNetBeforeEarly = thisWeekNet;
-    const displayNet = Math.max(0, +(displayNetBeforeEarly - early.total).toFixed(2));
+    const displayNetBeforeEarly = akord
+      ? +(akordRemaining + thisWeekNet).toFixed(2)
+      : thisWeekNet;
+    const displayNet = Math.max(0, +(displayNetBeforeEarly - earlyDeduct).toFixed(2));
     return {
       isBiweekly: true,
       isPayoutWeek: false,
       nextPayoutDate,
-      thisWeekNet,
+      thisWeekNet: akord ? +(akordRemaining + thisWeekNet).toFixed(2) : thisWeekNet,
       prevWeekNet: 0,
       displayNetBeforeEarly,
       displayNet,
-      earlyPaid: early.total,
-      earlyCash: early.cash,
-      earlyTransfer: early.transfer,
+      earlyPaid: earlyDeduct,
+      earlyCash: akord ? 0 : early.cash,
+      earlyTransfer: akord ? 0 : early.transfer,
       periodKey,
       accruedOnly: true,
       prevWeekFrom: prevRange.from,
@@ -706,19 +725,21 @@ export function calcBiweeklyRowDisplay(
     };
   }
 
-  const displayNetBeforeEarly = +(thisWeekNet + prevWeekNet).toFixed(2);
-  const displayNet = Math.max(0, +(displayNetBeforeEarly - early.total).toFixed(2));
+  const displayNetBeforeEarly = akord
+    ? +(akordRemaining + thisWeekNet + prevWeekNet).toFixed(2)
+    : +(thisWeekNet + prevWeekNet).toFixed(2);
+  const displayNet = Math.max(0, +(displayNetBeforeEarly - earlyDeduct).toFixed(2));
   return {
     isBiweekly: true,
     isPayoutWeek: true,
     nextPayoutDate,
-    thisWeekNet,
+    thisWeekNet: akord ? +(akordRemaining + thisWeekNet).toFixed(2) : thisWeekNet,
     prevWeekNet,
     displayNetBeforeEarly,
     displayNet,
-    earlyPaid: early.total,
-    earlyCash: early.cash,
-    earlyTransfer: early.transfer,
+    earlyPaid: earlyDeduct,
+    earlyCash: akord ? 0 : early.cash,
+    earlyTransfer: akord ? 0 : early.transfer,
     periodKey,
     accruedOnly: false,
     prevWeekFrom: prevRange.from,

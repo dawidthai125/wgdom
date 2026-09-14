@@ -13,6 +13,7 @@ import {
   isBiweeklyPayrollEmployee,
 } from "@/lib/payroll-cycle";
 import type { PayrollEarlyPayoutMethod } from "@/lib/payroll-early-payout-types";
+import type { PayrollPieceworkState } from "@/lib/payroll-piecework-types";
 export { pickPayrollSettlementForMerge } from "./payroll-settlement-merge-pick";
 
 /** Alias — do NOT invent a second cash/transfer enum. */
@@ -130,6 +131,7 @@ export function resolveSettlementPayableAmount(
     employeeLeaves?: EmployeeLeave[];
     archivedSnapshot?: WeekSnapshot | null;
     livePayroll?: boolean;
+    pieceworkState?: PayrollPieceworkState | null;
   },
 ): number {
   const r = calcWeekEmployeeForPayroll(emp, {
@@ -139,6 +141,7 @@ export function resolveSettlementPayableAmount(
     archivedSnapshot: opts?.archivedSnapshot ?? undefined,
     livePayroll: opts?.livePayroll !== false,
     savedWeeks,
+    pieceworkState: opts?.pieceworkState,
   });
   const leaveStatus = r.leaveStatus;
   const carryOut = r.carryForwardOut != null && r.carryForwardOut > 0;
@@ -146,7 +149,15 @@ export function resolveSettlementPayableAmount(
   const biweekly =
     !leaveStatus && !carryOut && !carryIn && isBiweeklyPayrollEmployee(emp, directory);
   const bw = biweekly
-    ? calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks)
+    ? calcBiweeklyRowDisplay(
+        emp,
+        directory,
+        weekFrom,
+        weekTo,
+        savedWeeks,
+        undefined,
+        { pieceworkState: opts?.pieceworkState },
+      )
     : null;
   if (carryOut) return 0;
   if (leaveStatus) return +(r.displayNetPay ?? r.netPay ?? 0).toFixed(2);
