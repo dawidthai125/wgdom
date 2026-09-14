@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.217 — PAYROLL carryForward field-intent / 409 (2026-09-14)
+
+- `payrollCoreFieldsEqual` includes `payrollCarryForward` — defer is not extraCosts-only
+- Field-intent: baselineOk → after; conflict → Cloud wins (no stale whole-roster retry)
+- CLEAR: no tombstone / clearedAt — ARCH GAP (Phase 2 does not invent)
+- Test: `test-payroll-carry-forward.mjs`
+
 ## 2.66.216 — PAYROLL D4 richer-prev same-week only (2026-09-14)
 
 - `shouldShowPayrollPrevRecoveryBanner` / `applyPrevRecoveryToLiveRoster` wymagają same-week binding (`canSoftRestoreHoursFromPrevRoster`)

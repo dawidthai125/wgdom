@@ -17,11 +17,16 @@ function payrollCoreFieldsEqual(b: WeekEmployee, a: WeekEmployee): boolean {
     b.settledUpdatedAt === a.settledUpdatedAt &&
     JSON.stringify(b.payrollSettlement ?? null) === JSON.stringify(a.payrollSettlement ?? null) &&
     JSON.stringify(b.payrollManualAdjustment ?? null) === JSON.stringify(a.payrollManualAdjustment ?? null) &&
-    JSON.stringify(b.payrollEarlyPayouts ?? null) === JSON.stringify(a.payrollEarlyPayouts ?? null)
+    JSON.stringify(b.payrollEarlyPayouts ?? null) === JSON.stringify(a.payrollEarlyPayouts ?? null) &&
+    JSON.stringify(b.payrollCarryForward ?? null) === JSON.stringify(a.payrollCarryForward ?? null)
   );
 }
 
-/** Worker intent: only extraCosts[] (+ dataUpdatedAt) may differ before→after. */
+/**
+ * Worker intent: only extraCosts[] (+ dataUpdatedAt) may differ before→after.
+ * payrollCarryForward is a core field — defer must not be classified extraCosts-only
+ * (that rebase path ignores carry and would drop the intent).
+ */
 export function isPayrollExtraCostsOnlyIntent(
   before: WeekEmployee[],
   after: WeekEmployee[],

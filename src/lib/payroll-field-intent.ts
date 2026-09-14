@@ -70,6 +70,10 @@ function extraCostsEqual(a: unknown, b: unknown): boolean {
   return JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
 }
 
+function carryForwardEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
 function dayEqual(a: DayData | undefined, b: DayData | undefined): boolean {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
@@ -242,7 +246,26 @@ function applyFieldsOntoCloudEmp(
     }
   }
 
-  next.payrollCarryForward = cloudEmp.payrollCarryForward;
+  // --- Carry forward (defer). Clock = createdAt on the record. Conflict → Cloud wins.
+  // CLEAR ARCH GAP: absent field has no tombstone — pull/conflict cannot distinguish
+  // never-deferred vs conscious clear. Do not invent clearedAt in Phase 2.
+  {
+    const beforeCf = beforeEmp?.payrollCarryForward;
+    const afterCf = afterEmp?.payrollCarryForward;
+    const cloudCf = cloudEmp.payrollCarryForward;
+    const cfEdited =
+      !!beforeEmp
+      && !!afterEmp
+      && !carryForwardEqual(beforeCf, afterCf);
+    const baselineOk = !!beforeEmp && carryForwardEqual(beforeCf, cloudCf);
+    if (cfEdited && baselineOk) {
+      next.payrollCarryForward = afterCf ? cloneJson(afterCf) : undefined;
+      if (!carryForwardEqual(next.payrollCarryForward, cloudCf)) changed = true;
+    } else {
+      next.payrollCarryForward = cloudCf ? cloneJson(cloudCf) : undefined;
+      if (cfEdited) changed = true;
+    }
+  }
 
   // --- Settlement (settled + settledUpdatedAt + payrollSettlement atomic; own clock) ---
   {

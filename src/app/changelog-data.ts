@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.217",
+    label: "PAYROLL — carryForward field-intent / 409",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: przeniesienie wypłaty (payrollCarryForward) nie ginie przy 409 — pole jest w core fields (nie extraCosts-only) i w field-intent (baseline OK → local; konflikt → Cloud). Test: test-payroll-carry-forward.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.216",
     label: "PAYROLL — D4 richer-prev tylko ten sam tydzień",
     items: [
