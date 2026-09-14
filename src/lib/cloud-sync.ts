@@ -92,6 +92,12 @@ import {
 } from "@/lib/tender-pipeline/tender-pipeline-cloud-route";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
 import { mergeRecoverableCharges, normalizeRecoverableCharges } from "@/lib/recoverable-charges";
+import {
+  emptyPayrollPieceworkState,
+  normalizePayrollPieceworkState,
+  PAYROLL_PIECEWORK_KEY,
+} from "@/lib/payroll-piecework-types";
+import { mergePayrollPieceworkState } from "@/lib/payroll-piecework-merge";
 import { mergeElectricalMeasurements } from "@/lib/electrical-measurements/merge";
 import {
   ELECTRICAL_MEASUREMENTS_DELETED_IDS_KEY,
@@ -294,6 +300,7 @@ export const DATA_KEYS = [
   "kw-contacts",
   "kw-employee-leaves",
   "kw-recoverable-charges",
+  "kw-payroll-piecework",
   "kw-operational-notes",
   "kw-wm-print-templates",
   "kw-wm-print-job-docs",
@@ -377,6 +384,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-price-intelligence-demand",
   "kw-contacts",
   "kw-recoverable-charges",
+  "kw-payroll-piecework",
   "kw-operational-notes",
   "kw-wm-print-templates",
   "kw-wm-print-job-docs",
@@ -2111,6 +2119,14 @@ function reconcileFreshnessScore(key: DataKey, value: unknown): number {
       for (const n of value) max = Math.max(max, parseTs((n as { updatedAt?: string }).updatedAt));
       return max;
     }
+    case "kw-payroll-piecework": {
+      const s = normalizePayrollPieceworkState(value);
+      let max = 0;
+      for (const row of [...s.jobs, ...s.allocations, ...s.advances]) {
+        max = Math.max(max, parseTs(row.updatedAt), parseTs(row.deletedAt), parseTs(row.createdAt));
+      }
+      return max;
+    }
     default:
       return 0;
   }
@@ -3056,6 +3072,8 @@ export function mergeDataKey(
       return mergeEmployeeLeaves(local, cloud, deletedEmployeeLeaveIds);
     case "kw-recoverable-charges":
       return mergeRecoverableCharges(local, cloud, deletedRecoverableChargeIds);
+    case "kw-payroll-piecework":
+      return mergePayrollPieceworkState(local, cloud);
     case "kw-operational-notes":
       return mergeOperationalNotes(local, cloud, deletedOperationalNoteIds);
     case "kw-wm-print-templates":
@@ -3574,6 +3592,10 @@ export function dataKeyRichness(key: DataKey, value: unknown): number {
     case "kw-electrical-schematics":
     case "kw-wm-technical-drawings":
       return normalizeArrayValue(value).length + (typeof value === "object" && value && "entries" in value ? recordRichness(value) : 0);
+    case "kw-payroll-piecework": {
+      const s = normalizePayrollPieceworkState(value);
+      return s.jobs.length + s.allocations.length + s.advances.length;
+    }
     default:
       return value != null && value !== "" ? 1 : 0;
   }
@@ -3624,6 +3646,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) return createEmptyRegistryState();
   if (key === ELECTRICAL_SCHEMATICS_KEY) return [];
   if (key === WM_TECHNICAL_DRAWINGS_KEY) return [];
+  if (key === PAYROLL_PIECEWORK_KEY || key === "kw-payroll-piecework") return emptyPayrollPieceworkState();
   if (key.startsWith("kw-")) return [];
   return {};
 }
@@ -3636,6 +3659,9 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   }
   if (key === ELECTRICAL_SCHEMATICS_KEY) {
     return normalizeElectricalSchematics(coerced);
+  }
+  if (key === PAYROLL_PIECEWORK_KEY || key === "kw-payroll-piecework") {
+    return normalizePayrollPieceworkState(coerced);
   }
   if (key === ELECTRICAL_MEASUREMENT_SETTINGS_KEY) return normalizeElectricalMeasurementSettings(coerced);
   if (key === ELECTRICAL_MEASUREMENT_REGISTRY_KEY) {
