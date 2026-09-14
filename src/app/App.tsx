@@ -136,7 +136,35 @@ import {
   buildWeekSnapshot,
   normalizePayrollManualAdjustment,
 } from "@/app/app-domain";
+import { freezeAkordArchivePayables } from "@/lib/payroll-archive-akord";
 import { useAdminAccess } from "@/app/admin-access";
+
+/** Phase 4C — archive with AKORD payable freeze (live piecework at save time). */
+function buildWeekSnapshotFrozen(
+  weekFrom: string,
+  weekTo: string,
+  weekEmployees: WeekEmployee[],
+  jobs: Job[],
+  existing: WeekSnapshot | undefined,
+  employeeLeaves: EmployeeLeave[] | undefined,
+  savedWeeksForCarry: WeekSnapshot[] | undefined,
+  pieceworkState: import("@/lib/payroll-piecework-types").PayrollPieceworkState | null | undefined,
+): WeekSnapshot {
+  const snap = buildWeekSnapshot(
+    weekFrom,
+    weekTo,
+    weekEmployees,
+    jobs,
+    existing,
+    employeeLeaves,
+    savedWeeksForCarry,
+  );
+  return freezeAkordArchivePayables(snap, weekEmployees, {
+    pieceworkState,
+    employeeLeaves,
+    savedWeeks: savedWeeksForCarry,
+  });
+}
 import { syncAlertsSeenFromCloud } from "@/lib/inspector-stats";
 import { syncAppSettingsFromCloud, loadAppSettingsLocal, type AppSettings } from "@/lib/app-settings";
 import { maybePromoteWmRysunki01FromLs } from "@/lib/wm-technical-drawings/flag";
@@ -2221,10 +2249,10 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setSavedWeeks((prev) => {
       const existing = prev.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
       if (!existing) return prev;
-      const snapshot = buildWeekSnapshot(weekFrom, weekTo, nextEmployees, jobs, existing, employeeLeaves, prev);
+      const snapshot = buildWeekSnapshotFrozen(weekFrom, weekTo, nextEmployees, jobs, existing, employeeLeaves, prev, payrollPiecework);
       return prev.map((w) => (w.id === existing.id ? snapshot : w));
     });
-  }, [weekFrom, weekTo, jobs, employeeLeaves, savedWeeks, directory, setSavedWeeks]);
+  }, [weekFrom, weekTo, jobs, employeeLeaves, savedWeeks, directory, setSavedWeeks, payrollPiecework]);
 
   /**
    * D2 UI + schedule domain push.
@@ -2714,7 +2742,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
             }),
           )
         ) {
-          const snapshot = buildWeekSnapshot(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks);
+          const snapshot = buildWeekSnapshotFrozen(weekFrom, weekTo, next, jobs, existing, employeeLeaves, savedWeeks, payrollPiecework);
           const archive = savedWeeks.map((w) => (w.id === existing.id ? snapshot : w));
           try { localStorage.setItem("kw-archive", JSON.stringify(archive)); } catch { /* ignore */ }
           setSavedWeeks(archive);
@@ -2723,17 +2751,17 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       });
       });
     });
-  }, [directory, savedWeeks, weekFrom, weekTo, jobs, employeeLeaves, setWeekEmployees, setSavedWeeks, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit]);
+  }, [directory, savedWeeks, weekFrom, weekTo, jobs, employeeLeaves, setWeekEmployees, setSavedWeeks, commitLivePayrollRosterEdit, runPayrollWeekEmployeeFieldEdit, payrollPiecework]);
 
   const patchArchiveWeek = useCallback((weekId: string, patchEmployees: (emps: WeekEmployee[]) => WeekEmployee[]) => {
     setSavedWeeks((prev) => {
       const week = prev.find((w) => w.id === weekId);
       if (!week?.weekEmployees?.length) return prev;
       const nextEmployees = patchEmployees(week.weekEmployees);
-      const snapshot = buildWeekSnapshot(week.weekFrom, week.weekTo, nextEmployees, jobs, week, employeeLeaves, savedWeeks);
+      const snapshot = buildWeekSnapshotFrozen(week.weekFrom, week.weekTo, nextEmployees, jobs, week, employeeLeaves, savedWeeks, payrollPiecework);
       return prev.map((w) => (w.id === weekId ? snapshot : w));
     });
-  }, [jobs, setSavedWeeks, employeeLeaves, savedWeeks]);
+  }, [jobs, setSavedWeeks, employeeLeaves, savedWeeks, payrollPiecework]);
   const updateArchiveWeekEmployee = useCallback((weekId: string, updatedEmp: WeekEmployee) => {
     patchArchiveWeek(weekId, (emps) => emps.map((e) => (e.id === updatedEmp.id ? updatedEmp : e)));
   }, [patchArchiveWeek]);
@@ -2961,19 +2989,19 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const saveBiweeklyBacklogWeek = useCallback((backlogFrom: string, backlogTo: string, employees: WeekEmployee[]) => {
     if (employees.length === 0) return;
     const existing = savedWeeks.find((w) => w.weekFrom === backlogFrom && w.weekTo === backlogTo);
-    const snapshot = buildWeekSnapshot(backlogFrom, backlogTo, employees, jobs, existing, employeeLeaves, savedWeeks);
+    const snapshot = buildWeekSnapshotFrozen(backlogFrom, backlogTo, employees, jobs, existing, employeeLeaves, savedWeeks, payrollPiecework);
     snapshot.backlog = true;
     snapshot.backlogNote = "Zaległa lista płac — wypłata co 2 tygodnie";
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];
     setSavedWeeks(nextArchive);
-  }, [savedWeeks, jobs, setSavedWeeks, employeeLeaves]);
+  }, [savedWeeks, jobs, setSavedWeeks, employeeLeaves, payrollPiecework]);
 
   const doSaveWeek = useCallback(() => {
     if (weekEmployees.length === 0) return;
     const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks);
+    const snapshot = buildWeekSnapshotFrozen(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks, payrollPiecework);
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];
@@ -2981,7 +3009,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     setShowSaveConfirm(false);
     toast.success(`Tydzień zapisany · ${fmtDate(weekFrom)}–${fmtDate(weekTo)}`);
     triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
-  }, [weekFrom, weekTo, weekEmployees, jobs, savedWeeks, setSavedWeeks, employeeLeaves]);
+  }, [weekFrom, weekTo, weekEmployees, jobs, savedWeeks, setSavedWeeks, employeeLeaves, payrollPiecework]);
 
   const saveWeek = () => {
     if (weekEmployees.length === 0) return;
@@ -3006,7 +3034,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     let nextArchive = savedWeeks;
     if (weekEmployees.length > 0) {
       const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-      const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks);
+      const snapshot = buildWeekSnapshotFrozen(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks, payrollPiecework);
       nextArchive = existing
         ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
         : [...savedWeeks, snapshot];
@@ -3034,7 +3062,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           });
         }
       });
-  }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves]);
+  }, [weekEmployees, weekFrom, weekTo, savedWeeks, jobs, setSavedWeeks, setWeekFrom, setWeekTo, setWeekEmployees, employeeLeaves, payrollPiecework]);
 
   const payrollRolloverCtx = useMemo(
     () => ({ employeeLeaves, savedWeeks }),
@@ -3071,13 +3099,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     const existing = savedWeeks.find((w) => w.weekFrom === weekFrom && w.weekTo === weekTo);
-    const snapshot = buildWeekSnapshot(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks);
+    const snapshot = buildWeekSnapshotFrozen(weekFrom, weekTo, weekEmployees, jobs, existing, employeeLeaves, savedWeeks, payrollPiecework);
     const nextArchive = existing
       ? savedWeeks.map((w) => (w.id === existing.id ? snapshot : w))
       : [...savedWeeks, snapshot];
     setSavedWeeks(nextArchive);
     triggerWeeklyBackupEmail(weekFrom, weekTo, jobs, nextArchive);
-  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, savedWeeks, jobs, setSavedWeeks, employeeLeaves]);
+  }, [weekFrom, weekTo, weekEmployees, directory, payrollRolloverCtx, savedWeeks, jobs, setSavedWeeks, employeeLeaves, payrollPiecework]);
 
   const tryPayrollWeekCycle = useCallback(() => {
     const current = getPayrollWeekRange();
@@ -3577,6 +3605,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           setRecoverableCharges={setRecoverableCharges}
           commitRecoverableCharges={commitRecoverableCharges}
           payrollPiecework={payrollPiecework}
+          onPieceworkCommitted={setPayrollPiecework}
           operationalNotes={operationalNotes}
           setOperationalNotes={setOperationalNotes}
           operationalNotesReadState={operationalNotesReadState}

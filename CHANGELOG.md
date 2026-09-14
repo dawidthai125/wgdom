@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.223 — PAYROLL AKORD Phase 4C UI + archive + PDF (2026-09-14)
+
+- Lista Płac Akord: Job/allocation/zaliczki w szczegółach (Phase 4A CAS), badge + Do wypłaty na liście
+- Archiwum niedzielne: zamrożony payable (późniejsze zaliczki nie mutują historii)
+- PDF/email: model akord + rozbicie robót; Do wypłaty = ten sam SSOT co lista/settlement
+- Early payout Akord = HOLD; hourly bez zmian
+- Test: `scripts/test-payroll-akord-ui-archive-pdf-p4c.mjs`
+
 ## 2.66.222 — PAYROLL AKORD Phase 3 attendance (2026-09-14)
 
 - Lista Płac: Akord w tej samej liście — Był/Nie był bez Od/Do; obecność ≠ kwota akordu

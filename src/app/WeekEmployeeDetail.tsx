@@ -49,6 +49,10 @@ import {
   normalizePayrollManualAdjustment,
 } from "@/app/app-domain";
 import { isAkordWeekEmployee, weekEmployeeCompensationModel } from "@/lib/payroll-compensation-model";
+import { AkordPieceworkPanel } from "@/app/AkordPieceworkPanel";
+import { emptyPayrollPieceworkState, type PayrollPieceworkState } from "@/lib/payroll-piecework-types";
+import { resolveAkordPayable } from "@/lib/payroll-piecework-payable";
+import type { Job } from "@/app/app-domain";
 import { visibleExtraCosts } from "@/lib/payroll-extra-costs-merge";
 
 const MANUAL_ADJ_KIND_OPTIONS: { value: PayrollManualAdjustmentKind; label: string }[] = [
@@ -83,6 +87,9 @@ export function WeekEmployeeDetail({
   weekTo,
   directory,
   savedWeeks,
+  jobs = [],
+  payrollPiecework,
+  onPieceworkCommitted,
   isClosedWeek = false,
   readOnly = false,
   payrollRow,
@@ -100,6 +107,9 @@ export function WeekEmployeeDetail({
   weekTo: string;
   directory: DirectoryEmployee[];
   savedWeeks: WeekSnapshot[];
+  jobs?: Job[];
+  payrollPiecework?: PayrollPieceworkState | null;
+  onPieceworkCommitted?: (next: PayrollPieceworkState) => void;
   isClosedWeek?: boolean;
   readOnly?: boolean;
   payrollRow?: { emp: WeekEmployee } & PayrollCalcWithAdjustments;
@@ -115,10 +125,16 @@ export function WeekEmployeeDetail({
   const safeEmp = ensureWeekEmployeeDays(emp);
   const locked = readOnly;
   const { canViewRates } = useAdminAccess();
+  const piecework = payrollPiecework ?? emptyPayrollPieceworkState();
   const biweekly = isBiweeklyPayrollEmployee(safeEmp, directory);
-  const biweeklyRow = biweekly ? calcBiweeklyRowDisplay(safeEmp, directory, weekFrom, weekTo, savedWeeks) : null;
+  const biweeklyRow = biweekly
+    ? calcBiweeklyRowDisplay(safeEmp, directory, weekFrom, weekTo, savedWeeks, undefined, {
+        pieceworkState: piecework,
+      })
+    : null;
   const akord = isAkordWeekEmployee(safeEmp);
   const compensationModel = weekEmployeeCompensationModel(safeEmp);
+  const akordPayable = akord ? resolveAkordPayable(safeEmp.directoryId, piecework) : 0;
   const updateDayData = useCallback((key: DayKey, next: DayData) => {
     onPatchDay(key, next);
   }, [onPatchDay]);
@@ -225,7 +241,7 @@ export function WeekEmployeeDetail({
           </div>
         )}
 
-        {biweekly && biweeklyRow && onPatchEarlyPayouts && (
+        {biweekly && biweeklyRow && onPatchEarlyPayouts && !akord && (
           <EarlyPayoutPanel
             emp={safeEmp}
             weekFrom={weekFrom}
@@ -235,6 +251,18 @@ export function WeekEmployeeDetail({
             isClosedWeek={isClosedWeek}
             locked={locked}
             onPatchEarlyPayouts={onPatchEarlyPayouts}
+          />
+        )}
+
+        {akord && onPieceworkCommitted && (
+          <AkordPieceworkPanel
+            directoryId={safeEmp.directoryId}
+            jobs={jobs}
+            piecework={piecework}
+            weekFrom={weekFrom}
+            weekTo={weekTo}
+            readOnly={locked}
+            onPieceworkCommitted={onPieceworkCommitted}
           />
         )}
 
@@ -496,8 +524,14 @@ export function WeekEmployeeDetail({
                   {DAYS.filter((d) => safeEmp.days[d]?.active).length}/6
                 </span>
               </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50 text-sm">
+                <span className="text-muted-foreground">Pozostało (akord)</span>
+                <span className="font-semibold text-primary" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                  {fmt(akordPayable)} PLN
+                </span>
+              </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Obecność jest informacyjna — nie wylicza kwoty akordu. Uzgodniona kwota i zaliczki AKORD: w kolejnych fazach.
+                Obecność jest informacyjna — nie wylicza kwoty. Do wypłaty = suma remaining z allocation + koszty/korekty.
               </p>
             </>
           ) : (

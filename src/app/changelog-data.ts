@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.223",
+    label: "PAYROLL AKORD Phase 4C — UI, archiwum, PDF",
+    items: [
+      {
+        type: "new",
+        text: "Lista Płac Akord: roboty/allocation/zaliczki w szczegółach (Cloud CAS), badge i Do wypłaty na liście, zamrożenie archiwum niedzielnego, PDF z tym samym SSOT wypłaty. Early payout Akord = HOLD. Test: test-payroll-akord-ui-archive-pdf-p4c.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.222",
     label: "PAYROLL AKORD Phase 3 — obecność Był/Nie był",
     items: [

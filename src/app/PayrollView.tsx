@@ -67,6 +67,9 @@ import { useAdminAccess } from "@/app/admin-access";
 import { Checkbox, PayrollDayCellDisplay } from "@/app/app-ui";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
 import { isAkordWeekEmployee, weekEmployeeCompensationModel } from "@/lib/payroll-compensation-model";
+import { resolveAkordAllocationBreakdown, resolveAkordPayable } from "@/lib/payroll-piecework-payable";
+import type { PayrollPieceworkState } from "@/lib/payroll-piecework-types";
+import { emptyPayrollPieceworkState } from "@/lib/payroll-piecework-types";
 import {
   type WeekEmployee,
   type WeekSnapshot,
@@ -120,13 +123,19 @@ export function toPayrollCalcRows(
   weekFrom: string,
   weekTo: string,
   savedWeeks: WeekSnapshot[],
+  pieceworkState?: import("@/lib/payroll-piecework-types").PayrollPieceworkState | null,
+  jobs: Job[] = [],
 ): PayrollCalcRow[] {
   return rows.map((r) => {
     const leaveStatus = r.leaveStatus;
     const carryOut = r.carryForwardOut != null && r.carryForwardOut > 0;
     const carryIn = r.carryForwardIn != null && r.carryForwardIn > 0;
     const biweekly = !leaveStatus && !carryOut && !carryIn && isBiweeklyPayrollEmployee(r.emp, directory);
-    const bw = biweekly ? calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks) : null;
+    const bw = biweekly
+      ? calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks, undefined, {
+          pieceworkState,
+        })
+      : null;
     let netPay: number;
     if (carryOut) netPay = 0;
     else if (leaveStatus) netPay = r.displayNetPay ?? r.netPay ?? 0;
@@ -134,6 +143,10 @@ export function toPayrollCalcRows(
     else if (bw) netPay = bw.displayNet;
     else netPay = r.displayNetPay ?? r.netPay ?? 0;
     const grossPay = leaveStatus ? 0 : (biweekly ? r.weekGross : r.grossPay);
+    const akord = isAkordWeekEmployee(r.emp);
+    const breakdown = akord
+      ? resolveAkordAllocationBreakdown(r.emp.directoryId, pieceworkState)
+      : null;
     return {
       emp: {
         name: r.emp.name,
@@ -155,7 +168,25 @@ export function toPayrollCalcRows(
       weekNet: leaveStatus ? r.weekNet : (carryOut ? 0 : r.weekNet),
       prevSatNet: biweekly ? 0 : r.prevSatNet,
       netPay,
-      rateNum: r.rateNum,
+      rateNum: akord ? 0 : r.rateNum,
+      compensationModel: akord ? "akord" as const : "hourly" as const,
+      ...(breakdown
+        ? {
+            akordPayable: breakdown.payable,
+            akordAllocations: breakdown.allocations.map((a) => {
+              const job = jobs.find((j) => j.id === a.jobId);
+              const label = job
+                ? `${(job.address || "—").trim()}${job.flatNumber ? ` m.${job.flatNumber}` : ""}`
+                : a.jobId ?? a.allocationId;
+              return {
+                jobLabel: label,
+                agreedAmount: a.agreedAmount,
+                advancesSum: a.activeAdvancesSum,
+                remaining: a.remaining,
+              };
+            }),
+          }
+        : {}),
       biweekly: biweekly || undefined,
       biweeklyPayoutWeek: bw?.isPayoutWeek,
       biweeklyAccruedOnly: bw?.accruedOnly,
@@ -181,6 +212,7 @@ export function PayrollEmailModal({
   jobs,
   directory,
   savedWeeks,
+  payrollPiecework,
   onClose,
   onManageContacts,
 }: {
@@ -192,6 +224,7 @@ export function PayrollEmailModal({
   jobs: Job[];
   directory: DirectoryEmployee[];
   savedWeeks: WeekSnapshot[];
+  payrollPiecework?: import("@/lib/payroll-piecework-types").PayrollPieceworkState | null;
   onClose: () => void;
   onManageContacts: () => void;
 }) {
@@ -211,7 +244,10 @@ export function PayrollEmailModal({
   const useManual = contactId === "__manual__" || payrollContacts.length === 0;
   const selectedContact = payrollContacts.find((c) => c.id === contactId) || null;
   const recipientEmail = useManual ? manualEmail.trim() : (selectedContact?.email.trim() || "");
-  const calcRows = useMemo(() => toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks), [rows, directory, weekFrom, weekTo, savedWeeks]);
+  const calcRows = useMemo(
+    () => toPayrollCalcRows(rows as never, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs),
+    [rows, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs],
+  );
   const canSend = Boolean(recipientEmail) && (attachPdf || attachWord) && !sending;
 
   const handleSend = async () => {
@@ -511,6 +547,7 @@ function PayrollAssignmentBadge({ status }: { status: PayrollAssignmentBadgeStat
 export function PayrollView({
   weekEmployees, weekFrom, weekTo, directory, contacts, jobs, employeeLeaves,
   payrollPiecework,
+  onPieceworkCommitted,
   onWeekChange, onConfirmSettle, onUnsettleEmployee, onSaveWeek, savedWeeks,
   onAddFromDirectory, onRemoveWeekEmployee, onClearAllWeekEmployees, onReplaceWithAllActive,
   onUpdateWeekEmployeeExtraCosts, onUpdateWeekEmployeeManualAdjustment, onUpdateWeekEmployeeEarlyPayouts, onUpdateWeekEmployeeDay, onUpdateWeekEmployeeRate,
@@ -537,7 +574,8 @@ export function PayrollView({
   directory: DirectoryEmployee[];
   employeeLeaves: EmployeeLeave[];
   /** Phase 4B — AKORD payable from durable piecework. */
-  payrollPiecework?: import("@/lib/payroll-piecework-types").PayrollPieceworkState | null;
+  payrollPiecework?: PayrollPieceworkState | null;
+  onPieceworkCommitted?: (next: PayrollPieceworkState) => void;
   contacts: EmailContact[];
   jobs: Job[];
   onWeekChange:(f:string,t:string)=>void;
@@ -1015,7 +1053,7 @@ export function PayrollView({
   };
 
   const payrollExportArgs = () => {
-    const calcRows = toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks);
+    const calcRows = toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs);
     const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
     const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const extraCostLines = buildPayrollExtraCostLines(rows.map((r) => r.emp));
@@ -1472,7 +1510,7 @@ export function PayrollView({
                                     )}
                                   </p>
                                   <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}{canViewRates && !isAkordWeekEmployee(r.emp) && <> · {fmt(r.rateNum)} PLN/h</>}
-                                    {isAkordWeekEmployee(r.emp) && <span className="ml-1 text-[10px] bg-amber-500/15 text-amber-400 px-1 py-0.5 rounded-full">akord</span>}
+                                    {isAkordWeekEmployee(r.emp) && <span className="ml-1 text-[10px] bg-amber-500/15 text-amber-400 px-1 py-0.5 rounded-full">akord{resolveAkordAllocationBreakdown(r.emp.directoryId, payrollPiecework).allocations.length > 0 ? ` · ${resolveAkordAllocationBreakdown(r.emp.directoryId, payrollPiecework).allocations.length} rob.` : ""}</span>}
                                     {biweeklyRowMap.has(r.emp.id) && <span className="ml-1 text-[10px] bg-sky-500/15 text-sky-400 px-1 py-0.5 rounded-full">co 2 tyg.</span>}
                                   </p>
                                 </div>
@@ -1482,7 +1520,14 @@ export function PayrollView({
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.prevSatHours>0&&!biweeklyRowMap.has(r.emp.id)?<span className="text-amber-500">{fmtH(r.prevSatHours)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right font-medium whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(biweeklyRowMap.has(r.emp.id) ? r.weekHours : r.totalHours)>0?fmtH(biweeklyRowMap.has(r.emp.id) ? r.weekHours : r.totalHours):<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right text-muted-foreground whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRowMap.has(r.emp.id)?r.weekGross:r.grossPay)}</td>
-                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka)>0?<span className="text-destructive">−{fmt(biweeklyRowMap.has(r.emp.id)?r.weekZaliczka:r.totalZaliczka)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
+                            <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{(() => {
+                              if (isAkordWeekEmployee(r.emp)) {
+                                const adv = resolveAkordAllocationBreakdown(r.emp.directoryId, payrollPiecework).allocations.reduce((s, a) => s + a.activeAdvancesSum, 0);
+                                return adv > 0 ? <span className="text-destructive">−{fmt(adv)}</span> : <span className="text-muted-foreground/40">—</span>;
+                              }
+                              const zal = biweeklyRowMap.has(r.emp.id) ? r.weekZaliczka : r.totalZaliczka;
+                              return zal > 0 ? <span className="text-destructive">−{fmt(zal)}</span> : <span className="text-muted-foreground/40">—</span>;
+                            })()}</td>
                             <td className="px-2 py-3.5 text-right whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>{r.totalExtraCosts>0?<span className="text-green-500">+{fmt(r.totalExtraCosts)}</span>:<span className="text-muted-foreground/40">—</span>}</td>
                             <td className="px-2 py-3.5 text-right font-bold text-primary whitespace-nowrap" style={{fontFamily:"'JetBrains Mono', monospace"}}>
                               {(() => {
@@ -1708,7 +1753,14 @@ export function PayrollView({
                             <td className="px-3 py-3 min-w-[120px]">
                               <p className="font-medium leading-tight truncate flex items-center gap-1.5">
                                 {r.emp.name || <span className="italic text-muted-foreground">Bez nazwy</span>}
-                                {isAkordWeekEmployee(r.emp) && <span className="text-[10px] font-medium bg-amber-500/15 text-amber-400 px-1 py-0.5 rounded-full shrink-0">akord</span>}
+                                {isAkordWeekEmployee(r.emp) && (
+                                  <span className="text-[10px] font-medium bg-amber-500/15 text-amber-400 px-1 py-0.5 rounded-full shrink-0">
+                                    akord
+                                    {resolveAkordAllocationBreakdown(r.emp.directoryId, payrollPiecework).allocations.length > 0
+                                      ? ` · ${resolveAkordAllocationBreakdown(r.emp.directoryId, payrollPiecework).allocations.length} rob.`
+                                      : ""}
+                                  </span>
+                                )}
                               </p>
                               <p className="text-[10px] text-muted-foreground truncate">
                                 {r.emp.position || "—"}
@@ -1859,6 +1911,9 @@ export function PayrollView({
               weekTo={weekTo}
               directory={directory}
               savedWeeks={savedWeeks}
+              jobs={jobs}
+              payrollPiecework={payrollPiecework}
+              onPieceworkCommitted={onPieceworkCommitted}
               isClosedWeek={isClosedWeek}
               readOnly={isClosedWeek}
               payrollRow={selectedPayrollRow}
@@ -2001,6 +2056,7 @@ export function PayrollView({
           jobs={jobs}
           directory={directory}
           savedWeeks={savedWeeks}
+          payrollPiecework={payrollPiecework}
           onClose={() => setShowEmailModal(false)}
           onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
         />

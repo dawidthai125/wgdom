@@ -198,6 +198,10 @@ export interface EmployeeSnapshot {
   /** BIWEEKLY — zamrożone early payouts (pełna lista z weekEmployees). */
   earlyPaidTotal?: number;
   payrollEarlyPayouts?: import("@/lib/payroll-early-payout").PayrollEarlyPayout[];
+  /** Phase 4C — snapshot compensation model at archive time. */
+  compensationModel?: import("@/lib/payroll-compensation-model").PayrollCompensationModel;
+  /** Phase 4C — AKORD remaining frozen at archive (≠ live piecework). */
+  akordPayableFrozen?: number;
 }
 
 /** Wpis czasu na robocie zapisany w archiwum tygodnia */

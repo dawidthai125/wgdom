@@ -51,6 +51,15 @@ export interface PayrollCalcRow {
   carryForwardOut?: number;
   carryForwardIn?: number;
   carryForwardInFrom?: { from: string; to: string };
+  /** Phase 4C — AKORD */
+  compensationModel?: "hourly" | "akord";
+  akordPayable?: number;
+  akordAllocations?: Array<{
+    jobLabel: string;
+    agreedAmount: number;
+    advancesSum: number;
+    remaining: number;
+  }>;
 }
 
 export function payrollSettlementStatusText(emp: Pick<PayrollCalcRowEmp, "settled" | "payrollSettlement">): string {
@@ -302,14 +311,33 @@ function payrollExtraCostTotals(lines: WeekExtraCostLine[]): number {
 
 function payrollEmployeeLabel(r: PayrollCalcRow): string {
   const name = r.emp.name || "—";
-  if (!r.biweekly) return name;
+  const modelTag = r.compensationModel === "akord" ? " [akord]" : "";
+  if (!r.biweekly) return `${name}${modelTag}`;
   if (r.biweeklyAccruedOnly && r.biweeklyNextPayout) {
-    return `${name} [co 2 tyg. → ${fmtDate(r.biweeklyNextPayout)}]`;
+    return `${name}${modelTag} [co 2 tyg. → ${fmtDate(r.biweeklyNextPayout)}]`;
   }
   if (r.biweeklyPayoutWeek && r.biweeklyPrevWeekLabel) {
-    return `${name} [co 2 tyg. + ${r.biweeklyPrevWeekLabel}]`;
+    return `${name}${modelTag} [co 2 tyg. + ${r.biweeklyPrevWeekLabel}]`;
   }
-  return `${name} [co 2 tyg.]`;
+  return `${name}${modelTag} [co 2 tyg.]`;
+}
+
+/** Phase 4C — rate / hours cells for AKORD (no PLN/h basis). */
+function payrollRateCellText(r: PayrollCalcRow): string {
+  return r.compensationModel === "akord" ? "akord" : fmt(r.rateNum);
+}
+
+function payrollAkordAdvancesSum(r: PayrollCalcRow): number {
+  if (r.compensationModel !== "akord" || !r.akordAllocations?.length) return r.totalZaliczka;
+  return +r.akordAllocations.reduce((s, a) => s + a.advancesSum, 0).toFixed(2);
+}
+
+function payrollAkordDetailLines(r: PayrollCalcRow): string[] {
+  if (r.compensationModel !== "akord" || !r.akordAllocations?.length) return [];
+  return r.akordAllocations.map(
+    (a) =>
+      `${a.jobLabel}: uzgodn. ${fmt(a.agreedAmount)} · zal. ${fmt(a.advancesSum)} · do wypłaty ${fmt(a.remaining)}`,
+  );
 }
 
 function payrollCashSummaryLines(totals: PayrollExportTotals, weekTo: string): string[] {
@@ -546,15 +574,17 @@ export async function buildPayrollEmailHtml(
   const dataRows = rows
     .map((r, i) => {
       const bg = i % 2 === 0 ? C.white : C.lightGray;
+      const akord = r.compensationModel === "akord";
+      const zal = akord ? payrollAkordAdvancesSum(r) : r.totalZaliczka;
       return `<tr>
         ${td(escapeHtml(String(i + 1)), { align: "center", bold: true, bg })}
         ${td(escapeHtml(payrollEmployeeLabel(r)), { bg })}
-        ${td(escapeHtml(fmt(r.rateNum)), { align: "right", color: C.muted, bg })}
-        ${td(r.weekHours > 0 ? escapeHtml(fmtH(r.weekHours)) : "—", { align: "right", bg })}
-        ${td(r.prevSatHours > 0 ? escapeHtml(fmtH(r.prevSatHours)) : "—", { align: "right", color: C.gold, bg })}
-        ${td(escapeHtml(fmtH(r.totalHours)), { align: "right", bold: true, bg })}
+        ${td(escapeHtml(payrollRateCellText(r)), { align: "right", color: C.muted, bg })}
+        ${td(!akord && r.weekHours > 0 ? escapeHtml(fmtH(r.weekHours)) : "—", { align: "right", bg })}
+        ${td(!akord && r.prevSatHours > 0 ? escapeHtml(fmtH(r.prevSatHours)) : "—", { align: "right", color: C.gold, bg })}
+        ${td(!akord ? escapeHtml(fmtH(r.totalHours)) : "—", { align: "right", bold: true, bg })}
         ${td(escapeHtml(fmt(r.grossPay)), { align: "right", color: C.muted, bg })}
-        ${td(r.totalZaliczka > 0 ? escapeHtml(fmt(r.totalZaliczka)) : "—", { align: "right", bg })}
+        ${td(zal > 0 ? escapeHtml(fmt(zal)) : "—", { align: "right", bg })}
         ${td(r.totalExtraCosts > 0 ? escapeHtml(fmt(r.totalExtraCosts)) : "—", { align: "right", color: C.green, bg })}
         ${td(escapeHtml(payrollNetDisplayText(r)), { align: "right", bold: true, color: r.leaveStatus || r.carryForwardOut ? C.navy : C.red, bg })}
         ${td(payrollSettlementStatusText(r.emp).split("\n").map(escapeHtml).join("<br/>"), {
@@ -566,6 +596,21 @@ export async function buildPayrollEmailHtml(
       </tr>`;
     })
     .join("");
+
+  const akordDetailBlock = rows.some((r) => r.compensationModel === "akord" && (r.akordAllocations?.length ?? 0) > 0)
+    ? `<div style="margin:16px 0 0;padding:12px 14px;background:${C.lightNavy};border-left:3px solid ${C.gold}">
+        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:${C.navy}">AKORD — rozbicie robót (Do wypłaty = SSOT z listy)</p>
+        ${rows
+          .filter((r) => r.compensationModel === "akord" && (r.akordAllocations?.length ?? 0) > 0)
+          .map((r) => {
+            const lines = payrollAkordDetailLines(r)
+              .map((l) => `<li style="margin:0 0 4px">${escapeHtml(l)}</li>`)
+              .join("");
+            return `<p style="margin:8px 0 4px;font-size:13px;font-weight:600;color:${C.navy}">${escapeHtml(r.emp.name || "—")}</p><ul style="margin:0;padding-left:18px;font-size:12px;color:${C.muted}">${lines}</ul><p style="margin:4px 0 0;font-size:12px;color:${C.red}"><strong>Do wypłaty:</strong> ${escapeHtml(payrollNetDisplayText(r))} PLN</p>`;
+          })
+          .join("")}
+      </div>`
+    : "";
 
   const mkSumRow = (
     label: string,
@@ -674,6 +719,7 @@ export async function buildPayrollEmailHtml(
           <tbody>${dataRows}${sumRows}</tbody>
         </table>
       </div>
+      ${akordDetailBlock}
       <p style="margin:20px 0 0;padding:12px 14px;background:${C.lightNavy};border-left:3px solid ${C.red};font-size:13px;line-height:1.5;color:${C.muted}">
         W załącznikach znajdują się pełne dokumenty <strong>PDF</strong> i <strong>Word</strong> z listą płac
         (strona 2: rozpis tygodniowy; karta dodatkowych godzin ze stawką i kwotą; ewent. Sob. poprz.).
@@ -716,15 +762,17 @@ export async function generatePayrollPdfBlob(
 
   const dataRows = rows.map((r, i) => {
     const bg = i % 2 === 0 ? C.white : C.lightGray;
+    const akord = r.compensationModel === "akord";
+    const zal = akord ? payrollAkordAdvancesSum(r) : r.totalZaliczka;
     return [
       { text: String(i + 1), alignment: "center" as const, fillColor: bg, bold: true, fontSize: 10 },
-      { text: payrollEmployeeLabel(r), fillColor: bg, fontSize: r.biweekly ? 9 : 10 },
-      { text: `${fmt(r.rateNum)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 10 },
-      { text: r.weekHours > 0 ? fmtH(r.weekHours) : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
-      { text: r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "—", alignment: "right" as const, fillColor: bg, color: C.gold, fontSize: 10 },
-      { text: fmtH(r.totalHours), alignment: "right" as const, fillColor: bg, bold: true, fontSize: 10 },
+      { text: payrollEmployeeLabel(r), fillColor: bg, fontSize: r.biweekly || akord ? 9 : 10 },
+      { text: payrollRateCellText(r), alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 10 },
+      { text: !akord && r.weekHours > 0 ? fmtH(r.weekHours) : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
+      { text: !akord && r.prevSatHours > 0 ? fmtH(r.prevSatHours) : "—", alignment: "right" as const, fillColor: bg, color: C.gold, fontSize: 10 },
+      { text: !akord ? fmtH(r.totalHours) : "—", alignment: "right" as const, fillColor: bg, bold: true, fontSize: 10 },
       { text: `${fmt(r.grossPay)}`, alignment: "right" as const, fillColor: bg, color: C.muted, fontSize: 10 },
-      { text: r.totalZaliczka > 0 ? `${fmt(r.totalZaliczka)}` : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
+      { text: zal > 0 ? `${fmt(zal)}` : "—", alignment: "right" as const, fillColor: bg, fontSize: 10 },
       { text: r.totalExtraCosts > 0 ? `${fmt(r.totalExtraCosts)}` : "—", alignment: "right" as const, fillColor: bg, color: C.green, fontSize: 10 },
       { text: payrollNetDisplayText(r), bold: true, color: r.leaveStatus || r.carryForwardOut ? C.navy : C.red, alignment: "right" as const, fillColor: bg, fontSize: 10 },
       {
@@ -737,6 +785,33 @@ export async function generatePayrollPdfBlob(
       },
     ];
   });
+
+  const akordPdfStack: object[] = [];
+  for (const r of rows) {
+    if (r.compensationModel !== "akord" || !r.akordAllocations?.length) continue;
+    akordPdfStack.push({
+      text: r.emp.name || "—",
+      bold: true,
+      fontSize: 10,
+      color: C.navy,
+      margin: [0, 6, 0, 2] as [number, number, number, number],
+    });
+    for (const line of payrollAkordDetailLines(r)) {
+      akordPdfStack.push({
+        text: line,
+        fontSize: 8,
+        color: C.muted,
+        margin: [8, 0, 0, 1] as [number, number, number, number],
+      });
+    }
+    akordPdfStack.push({
+      text: `Do wypłaty (SSOT): ${payrollNetDisplayText(r)} PLN`,
+      fontSize: 9,
+      bold: true,
+      color: C.red,
+      margin: [8, 2, 0, 2] as [number, number, number, number],
+    });
+  }
 
   const mkSum = (label: string, weekH: number, prevH: number, totH: number, gross: number, zal: number, extra: number, net: number, bold = false) => [
     { text: "", fillColor: C.lightNavy },
@@ -1228,6 +1303,18 @@ export async function generatePayrollPdfBlob(
           paddingBottom: () => 4,
         },
       },
+      ...(akordPdfStack.length > 0
+        ? [
+            {
+              text: "AKORD — rozbicie robót (Do wypłaty = SSOT z listy)",
+              bold: true,
+              fontSize: 11,
+              color: C.navy,
+              margin: [0, 12, 0, 4] as [number, number, number, number],
+            },
+            { stack: akordPdfStack },
+          ]
+        : []),
       ...dailyDetailPdfBlock,
       ...extraHourAppendixPdfBlock,
       ...extraCostAppendixPdfBlock,
