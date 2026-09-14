@@ -2,31 +2,50 @@
 
 > **ID:** PAYROLL-ARCHITECTURE-SSOT / PAYROLL-AI-GUARD-DOCS-01  
 > **STATUS:** **ACTIVE** · **SSOT for AI & humans**  
-> **Data:** 2026-08-29 (**Freshness + canonical payload CLOSED @ 2.66.126**) · prior 2026-08-24 WEEK-ROSTER-INVARIANT · 2026-08-19 ROLLOVER-CLOUD-PUSH · O1 CAS  
-> **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT) · Payroll tip **2.66.126** / `c7337a2a`  
+> **Data:** 2026-09-14 (**AKORD V1 CLOSED** @ tip **2.66.226** / **`892e04c4`**) · prior Final Hardening **2.66.220** / `73aededf` · Freshness **2.66.126** · WEEK-ROSTER-INVARIANT · ROLLOVER-CLOUD-PUSH · O1 CAS  
+> **Production tip:** [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) (SSOT) · live `version.json` · Payroll tip **2.66.226** / **`892e04c4`**  
+> **AKORD payable / domain SSOT:** [`PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](PAYROLL-AKORD-PAYABLE-SSOT-4B.md) · CAS [`PAYROLL-PIECEWORK-CLOUD-CAS-4A.md`](PAYROLL-PIECEWORK-CLOUD-CAS-4A.md)  
 > **AI Entry:** [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md)  
 > **Hours-wipe EPIC:** **CLOSED** — [`architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md`](architecture/PAYROLL-EPIC-CLOSE-01-CLOSEOUT.md)  
 > **Freshness + payload:** **CLOSED** — [`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md)  
-> **Zakaz:** ten plik **nie** zastępuje Design Freeze; **nie** implementuj Payroll bez Owner GO · **Freshness ≠ canonical payload**
+> **Zakaz:** ten plik **nie** zastępuje Design Freeze; **nie** implementuj Payroll bez Owner GO · **Freshness ≠ canonical payload** · **remaining ≠ Saturday payout**  
+> **★★ PROTECTED MODULE:** [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) — GO6.1 → GO8.1 → GO9.2 → GO10 FROZEN · AKORD **nie** zmienia tych granic
 
 ```text
 ════════════════════════════════════════════════════════
-LISTA PŁAC = PRIORYTET PRODUKCYJNY #1
+LISTA PŁAC = PRIORYTET PRODUKCYJNY #1 · PROTECTED CORE
 Przeczytaj ten dokument PRZED każdą zmianą Payroll / cloud-sync / Edge merge.
+NOWY FEATURE ≠ powód do modyfikacji Payroll sync „przy okazji”.
 ════════════════════════════════════════════════════════
 ```
+
+### PAYROLL — CRITICAL PROTECTED MODULE (skrót)
+
+Payroll to krytyczny moduł biznesowy (UI + PWRB + LS/KV + merge + CAS + FIFO + settlement + fence).  
+Szczegóły, anti-rollback, multi-device, zakazy agenta, testy: **[`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md)**.
+
+| Gate | Status |
+|------|--------|
+| GO6.1 resurrection/tombstone | **FROZEN / PASS** |
+| GO8.1 settlement intent | **FROZEN / PASS** (`1f63e5c4`) |
+| GO4 settlement ACK | **ACTIVE** (HTTP 200 ≠ success) |
+| GO9.2 CAS single-flight | **FROZEN / PASS** (`96dd9324`) |
+| GO10 unsettle + meta | **ACCEPTED / NO-FIX** (`settled` = active · `payrollSettlement` = history) |
 
 **Jak używać (Zero Duplicate):**
 
 | Potrzeba | Ten plik | Inny SSOT |
 |----------|----------|-----------|
 | Pełny przepływ + zakazy + AI checklist | **TU** | — |
+| **CRITICAL PROTECTED + GO6.1–GO10** | → | [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) |
 | **Entry / Gate / Manual / Indexes** | → | [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md) · [`AI/AI_PAYROLL_SAFETY_MANUAL.md`](AI/AI_PAYROLL_SAFETY_MANUAL.md) · Incident/RCA INDEX |
 | **Quick Start / Playbook / Guard Rails / Dependency / Regression** | → | [`AI/PAYROLL_QUICK_START.md`](AI/PAYROLL_QUICK_START.md) · [`AI/PAYROLL_AI_PLAYBOOK.md`](AI/PAYROLL_AI_PLAYBOOK.md) · [`AI/PAYROLL_GUARD_RAILS.md`](AI/PAYROLL_GUARD_RAILS.md) · [`AI/PAYROLL_DEPENDENCY_MAP.md`](AI/PAYROLL_DEPENDENCY_MAP.md) · [`AI/PAYROLL_REGRESSION_HISTORY.md`](AI/PAYROLL_REGRESSION_HISTORY.md) |
 | Detale Domain Push / merge / Edge | → | [`PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md) |
 | PWRB kontrakt I-1…I-4 | → | [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) |
 | Hours-wipe D1–D5 design | → | [`architecture/PAYROLL-DESIGN-FREEZE-01.md`](architecture/PAYROLL-DESIGN-FREEZE-01.md) + Amendment |
 | Tip produkcji | → | [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) |
+| **AKORD V1 (hourly\|akord · piecework · week advances · biweekly cash)** | → | [`PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](PAYROLL-AKORD-PAYABLE-SSOT-4B.md) |
+| Piecework Cloud CAS (4A) | → | [`PAYROLL-PIECEWORK-CLOUD-CAS-4A.md`](PAYROLL-PIECEWORK-CLOUD-CAS-4A.md) |
 | Audyt docs hardening (2026-07-25) | → | [`architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md`](architecture/PAYROLL-DOCS-HARDENING-AI-SAFETY-01-AUDIT.md) |
 | Audyt docs (poprzedni pass 2026-07-24) | → | [`architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md`](architecture/PAYROLL-AI-GUARD-DOCS-01-AUDIT.md) **SUPERSEDED** |
 
@@ -165,12 +184,16 @@ UI/domain intent
 | **I-FRESH** | Każdy outbound Payroll write przechodzi `ensureCloudFreshBeforeWrite` (chyba intentional bootstrap/internal skip) | Stale session / resume / storage |
 | **I-CANON** | Po freshness outgoing live roster = Cloud ⊕ verified intents (`rebuildPayrollOutgoingAfterFreshness`); argument ≠ canonical sam w sobie | Closed-over A po ensure |
 | **I-EXTRACOSTS** | `extraCosts`: apply after tylko gdy `before ≡ cloud`; inaczej Cloud wins | Słabsza ochrona przed 2.66.126 |
+| **I-CAS-SF** | Payroll week CAS: **≤1** aktywny writer (GO9.2 FIFO); bootstrap w tym samym chain | Sibling parallel = self-conflict revision |
+| **I-SETTLE-META** | `settled` = active · `payrollSettlement` = history; unsettle **nie** czyści meta (GO10) | Clear meta = regresja R19 |
+| **I-ANTI-RB** | Stary LS / stale device **nie** nadpisuje canonical Cloud bez CAS/LWW/freshness | Anti-rollback |
 
 ---
 
 ## 3. PAYROLL SAFETY RULES — NIE WOLNO
 
 ```text
+0. NIGDY nie traktuj FEATURE jako pretekstu do refaktoru Payroll sync (Protected Core).
 1. NIGDY nie pisać bezpośrednio do Cloud / Edge z UI (omijając Domain Push / PWRB).
 2. NIGDY nie omijać Domain Push dla godzin live.
 3. NIGDY nie używać skipPayrollGuard poza intentionalHoursClear === true.

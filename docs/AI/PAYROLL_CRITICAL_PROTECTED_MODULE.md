@@ -1,7 +1,9 @@
 # PAYROLL — CRITICAL PROTECTED MODULE
 
 > **STATUS:** **ACTIVE** · **SSOT dokumentacyjny ochrony + CURRENT HARDENED BASELINE**  
-> **Aktualizacja:** 2026-09-14 · **PAYROLL GREEN / HARDENED / CLOSED** @ prod **2.66.220** / **`73aededf`**  
+> **Aktualizacja:** 2026-09-14 · **PAYROLL GREEN / HARDENED / CLOSED** · **AKORD V1 CLOSED** @ tip **2.66.226** / **`892e04c4`** (verify live `version.json`)  
+> **Prior Final Hardening tip (HISTORY):** **2.66.220** / **`73aededf`** — Soft Restore / ExtraCosts / Phase 3 REMOVE / …  
+> **AKORD payable SSOT:** [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md)  
 > **Zakaz:** ten plik **nie** zmienia kodu · **nie** zastępuje Design Freeze · **nie** uprawnia do IMPLEMENT  
 > **AI Entry:** [`AI_ENTRY.md`](AI_ENTRY.md) → Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) → Never Break [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) → Architecture SSOT [`../PAYROLL-ARCHITECTURE-SSOT.md`](../PAYROLL-ARCHITECTURE-SSOT.md)  
 > **Operacje sync:** [`../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md`](../PAYROLL-CLOUD-SYNC-ARCHITECTURE-AGENT-GUIDE.md)  
@@ -13,7 +15,10 @@
 LISTA PŁAC / PAYROLL = KLUCZOWY I KRYTYCZNY MODUŁ WGDOM
 = CRITICAL PROTECTED CORE (wgdom.fun)
 Przypadkowe uszkodzenie Payroll podczas FEATURE / IK = NIEDOPUSZCZALNE.
-CURRENT STATUS = GREEN / HARDENED / CLOSED (2.66.220 / 73aededf)
+CURRENT STATUS = GREEN / HARDENED / CLOSED · AKORD V1 CLOSED
+TIP = 2.66.226 / 892e04c4 (FETCH version.json)
+Brak obecnie potwierdzonych P0/P1.
+Nowe zmiany wymagają nowego RCA i Owner GO.
 ════════════════════════════════════════════════════════
 ```
 
@@ -218,19 +223,22 @@ Nie przepisywać historycznych HAR/RCA. Ten plik = **aktualny kontrakt ochrony**
 
 ---
 
-## 11. CURRENT PRODUCTION BASELINE (HARDENED)
+## 11. CURRENT PRODUCTION BASELINE (HARDENED + AKORD V1)
 
 | Pole | Wartość |
 |------|---------|
-| **Production UI** | **2.66.220** |
-| **Production commit** | **`73aededf`** (`73aededf8a12d869d9ec9c8be18177880b926b20`) |
-| **Git** | `HEAD` = `origin/main` = **`73aededf`** (weryfikuj `git rev-parse`) |
-| **Live check** | `https://www.wgdom.fun/version.json` |
-| **Status** | **PAYROLL GREEN / HARDENED / CLOSED** |
-| **Prod writes during final hardening** | **ZERO** |
-| **HISTORY (nie CURRENT)** | 2.66.218 / `2a4e3ae` (Phase 3) · 2.66.219 / `7eadde17` (P1 remove UX) — superseded by **2.66.220** |
+| **Production UI (tip)** | **2.66.226** |
+| **Production commit (tip)** | **`892e04c4`** (`892e04c4b497682bbb658210d995a9edb004ddcd`) |
+| **Git** | `HEAD` = `origin/main` = **`892e04c4`** (weryfikuj `git rev-parse`) |
+| **Live check** | `https://www.wgdom.fun/version.json` — **FETCH** (authority) |
+| **Status** | **PAYROLL GREEN / HARDENED / CLOSED** · **AKORD V1 CLOSED / PRODUCTION VERIFIED** |
+| **AKORD payout acceptance** | **PAYROLL_AKORD_PAYOUT_FIX_ACCEPTED** |
+| **HISTORY — Final Hardening (nie tip)** | **2.66.220** / **`73aededf`** — Soft Restore · ExtraCosts F1+delete · Phase 3 REMOVE · P1 remove UX |
+| **HISTORY — prior** | 2.66.218 / `2a4e3ae` · 2.66.219 / `7eadde17` |
 
-Tip SSOT w docs: [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md). **Nie** hardcoduj starszych tipów jako CURRENT.
+**Werdykt:** Brak obecnie potwierdzonych P0/P1. Payroll jest zamknięty po hardeningu + AKORD V1. Nowe zmiany wymagają nowego RCA i Owner GO.
+
+Tip SSOT w docs: [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md). **Nie** hardcoduj starszych tipów jako CURRENT bez FETCH live.
 
 ---
 
@@ -247,8 +255,11 @@ Bez nowego RCA + Owner GO **nie** otwieraj ponownie:
 | **E** | CarryForward Phase 2 | Defer ginął w multi-device / 409 | Core field + SET field-intent + 409 rebase | **CLOSED** · **CLEAR / `clearedAt` NIE wdrożone** (brak UI CLEAR) |
 | **F** | Phase 3 `pwrRemove` | REMOVE niebezpieczne przy 409 | CAS · `pushRosterWithRebase` · intentional REMOVE · tomb filter · ACK `result.roster` · fail-loud | **CLOSED / FROZEN** |
 | **G** | P1 Remove Failure Recovery | Optimistic drop → UI bez B, Cloud z B | Brak optimistic membership drop · pending UI · failure = B widoczny + toast | **CLOSED** |
-| **H** | ExtraCosts DELETE tombstones | DELETE bez trwałego markeru → resurrect | Soft-delete `deletedAt` · tomb vs stale live · same-ID blocked · new UUID | **CLOSED** |
-| **I** | Failed REMOVE tomb recovery | Failed REMOVE zostawiał lokalny tomb mimo Cloud∋B | Po final fail: jeśli Cloud ma osobę → revoke week-scoped tomb; I1 **bez redesignu** | **CLOSED** |
+| **H** | Failed REMOVE tomb recovery | Failed REMOVE zostawiał lokalny tomb mimo Cloud∋B | Po final fail: jeśli Cloud ma osobę → revoke week-scoped tomb; I1 **bez redesignu** | **CLOSED** @ 2.66.220 |
+| **I** | ExtraCosts DELETE tombstones | DELETE bez trwałego markeru → resurrect | Soft-delete `deletedAt` · tomb vs stale live · same-ID blocked · new UUID | **CLOSED** @ 2.66.220 |
+| **AKORD V1** | Piecework + week-advance payable + biweekly cash | P1–P3 · 4A–4C.1 · `028c3925` · `892e04c4` | **CLOSED / PRODUCTION VERIFIED** · SSOT [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md) |
+
+**AKORD nie zmienia:** PWRB · week-employees CAS · roster tombstones · settlement ACK · ExtraCosts F1 · Manual Adj LWW · early payout writers · Carry CLEAR (nadal nie wdrożone).
 
 Historia objawów: [`PAYROLL_REGRESSION_HISTORY.md`](PAYROLL_REGRESSION_HISTORY.md).
 
@@ -363,7 +374,9 @@ AUDIT → RCA → PLAN → Owner GO → IMPLEMENT → TEST → BUILD
 
 ---
 
-## 19. TEST / VERIFICATION EVIDENCE (Final Hardening @ 2.66.220)
+## 19. TEST / VERIFICATION EVIDENCE
+
+### 19a. Final Hardening (HISTORY @ 2.66.220 / `73aededf`)
 
 Dowody z workstreamu final gaps (nie twierdź więcej niż te wyniki):
 
@@ -387,6 +400,25 @@ Dowody z workstreamu final gaps (nie twierdź więcej niż te wyniki):
 
 Skrypty (orientacyjnie): `test-payroll-p1-remove-failure-recovery.mjs` · `test-payroll-pwr-remove-cas.mjs` · `test-payroll-extracosts-f1-union.mjs` · `test-payroll-extracosts-delete-tombstone.mjs` · `test-payroll-failed-remove-tombstone.mjs` · `test-payroll-final-gaps-cross.mjs` · `test-payroll-carry-forward.mjs` · `test-payroll-manual-adjustment.mjs` · + battery §8.
 
+### 19b. AKORD V1 (CURRENT tip @ 2.66.226 / `892e04c4`)
+
+| Suite | Wynik (documented at close) |
+|-------|----------------------------|
+| `test-payroll-akord-week-advance-payout.mjs` | **39 PASS** |
+| `test-payroll-akord-biweekly-cash.mjs` | **27 PASS** |
+| `test-payroll-akord-payable-p4b.mjs` | **35 PASS** |
+| `test-payroll-akord-ui-archive-pdf-p4c.mjs` | **84 PASS** |
+| `test-payroll-piecework-cas-p4a.mjs` | **37 PASS** |
+| `test-payroll-compensation-model-p1.mjs` | **37 PASS** |
+| `test-payroll-piecework-p2.mjs` | **67 PASS** |
+| `test-payroll-akord-attendance-p3.mjs` | **46 PASS** |
+| `smoke-test-payroll-carry-forward-20.1b.mjs` | **PASS** |
+| `npm run build` | **PASS** |
+| Acceptance | **PAYROLL_AKORD_PAYOUT_FIX_ACCEPTED** |
+| Live tip | **2.66.226** / **`892e04c`** (FETCH `version.json`) |
+
+Pełny kontrakt: [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md).
+
 ---
 
 ## 20. PAYROLL COLD-START (NOWY GPT / CURSOR)
@@ -399,9 +431,10 @@ Skrypty (orientacyjnie): `test-payroll-p1-remove-failure-recovery.mjs` · `test-
 5. curl version.json · porównaj z §11 / 09
 6. Traktuj Payroll jako CRITICAL PROTECTED
 7. Bez Owner GO = brak IMPLEMENT
-8. Nie reopen CLOSED A–I
+8. Nie reopen CLOSED A–I ani AKORD remaining-as-payout
 9. Nie ruszaj Payroll „przy okazji” IK/FEATURE
 10. Cloud = authoritative
 11. Używaj istniejących CAS/rebase/intents/tombstones — SEARCH BEFORE CREATE
 12. Tip = 09 + version.json (nie historia czatu)
+13. AKORD SSOT = docs/PAYROLL-AKORD-PAYABLE-SSOT-4B.md (week advances ≠ remaining)
 ```

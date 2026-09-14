@@ -37,9 +37,13 @@
 □ NIGDY osłabiania extraCosts DELETE tombstone (`deletedAt` wins over stale live)
 □ NIGDY wymyślania CarryForward clearedAt / CLEAR bez realnego UI UNDEFER + Owner GO
 □ NIGDY zmiany Payroll sync/CAS/settlement „przy okazji” IK lub FEATURE
+□ NIGDY traktowania `agreedAmount` / AKORD remaining jako tygodniowej / sobotniej wypłaty
+□ NIGDY pomijania `pieceworkState` w `computePayrollCashSplit` (biweekly cash)
+□ NIGDY reinject `resolveAkordPayable` (remaining) do `applyAkordPayableToCalc` / cash path
 ```
 
 **Gdy wątpliwość → STOP → AUDIT / Owner.**
 
-**Protected module + GO6.1–GO10 + Final Hardened (2.66.220):** [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md)  
+**Protected module + GO6.1–GO10 + HARDENED + AKORD V1 (tip 2.66.226 / `892e04c4`):** [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) · AKORD SSOT [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md)  
+**HISTORY Final Hardening:** 2.66.220 / `73aededf`  
 **Closeout 2.66.126:** [`../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](../architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md)

@@ -6,9 +6,10 @@
 
 ```text
 LISTA PŁAC = PRIORYTET #1 · CRITICAL PROTECTED MODULE (wgdom.fun)
-Status CURRENT = GREEN / HARDENED / CLOSED @ 2.66.220 / 73aededf
+Status CURRENT = GREEN / HARDENED / CLOSED · AKORD V1 CLOSED @ 2.66.226 / 892e04c4
 Nie zgaduj architektury. Nie obchodź guardów. Nie mieszaj FEATURE/IK z CORE Payroll.
 SSOT ochrony: docs/AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md
+AKORD SSOT: docs/PAYROLL-AKORD-PAYABLE-SSOT-4B.md
 Gate: docs/AI/PAYROLL_SAFETY_GATE.md
 ```
 
@@ -21,7 +22,7 @@ Gate: docs/AI/PAYROLL_SAFETY_GATE.md
 3. **STABILIZATION WINDOW** — nowy EPIC tylko po **Owner GO**.  
 4. Commit / push **tylko** na wyraźną prośbę Ownera.  
 5. Nie czytaj `App.tsx` od zera — mapa: [`../AGENT-APP-MAP.md`](../AGENT-APP-MAP.md).  
-5b. **Payroll** = CRITICAL PROTECTED — Gate + [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md); **nie** ruszaj przy IK; tip live **2.66.220 / 73aededf** (verify `version.json`).  
+5b. **Payroll** = CRITICAL PROTECTED — Gate + [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md); **nie** ruszaj przy IK; tip live **2.66.226 / `892e04c4`** (verify `version.json`); AKORD remaining **≠** weekly/Saturday payout.  
 6. **CATALOG-COVERAGE-01 P0e CLOSED** (2.65.91 · `b69aeaae`) — FULL seed zaprawianie/folia/multiswitch; BIZ A; coverage 78.1%; Guard/Pack unchanged.
 7. **CATALOG-COVERAGE-01 P0d-A CLOSED** (2.65.90 · `b9da6bff`) — Precision + SAFE seed; Negation Guard Alias|Core; coverage 76.7%.
 8. **CATALOG-COVERAGE-01 P0c CLOSED** (2.65.89 · `aebf9d09`) — Alias Resolver Wave 1; DATA FIRST no-op bez work.

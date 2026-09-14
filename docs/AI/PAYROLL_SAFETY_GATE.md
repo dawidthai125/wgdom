@@ -100,14 +100,15 @@ Owner GO needed: YES|NO
 
 ---
 
-## 5. CURRENT BASELINE (HARDENED)
+## 5. CURRENT BASELINE (HARDENED + AKORD V1)
 
 | | |
 |--|--|
-| **Prod** | **2.66.220** / **`73aededf`** — live: `version.json` |
-| **Status** | **PAYROLL GREEN / HARDENED / CLOSED** |
-| **SSOT ochrony + CLOSED A–I** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) §11–§20 |
-| **HISTORY tips** | 2.66.218 Phase 3 · 2.66.219 P1 remove UX — **nie** CURRENT |
+| **Prod (tip)** | **2.66.226** / **`892e04c4`** — live: `version.json` (FETCH) |
+| **Status** | **PAYROLL GREEN / HARDENED / CLOSED** · **AKORD V1 CLOSED / PRODUCTION VERIFIED** |
+| **SSOT ochrony + CLOSED A–I + AKORD** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) §11–§20 |
+| **AKORD payable SSOT** | [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md) |
+| **HISTORY — Final Hardening** | 2.66.220 / `73aededf` · 2.66.218 Phase 3 · 2.66.219 P1 remove UX — **nie** CURRENT tip |
 
 ---
 

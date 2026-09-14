@@ -17,7 +17,7 @@ Tryb = UTRZYMANIE · NEXT EPIC = NONE bez Owner GO
 
 **Lista Płac = priorytet produkcyjny #1 · CRITICAL PROTECTED MODULE.**  
 Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.  
-**SSOT ochrony:** [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) (GO6.1 → GO10 · **Final Hardened GREEN @ 2.66.220 / `73aededf`**).  
+**SSOT ochrony:** [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) (GO6.1 → GO10 · **GREEN / HARDENED / AKORD V1 CLOSED @ 2.66.226 / `892e04c4`** · verify live `version.json`).  
 **NOWY FEATURE ≠** powód do modyfikacji Payroll sync bez Owner GO.  
 **IK ≠** upoważnienie do zmiany Payroll CAS/settlement „przy okazji”.
 

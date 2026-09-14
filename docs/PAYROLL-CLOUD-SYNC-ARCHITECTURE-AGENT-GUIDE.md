@@ -10,12 +10,17 @@
 >
 > **★ RC-B-1:** [`recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md`](recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md) · PWRB `payroll-week-roster-bundle.ts`
 >
-> **Powiązane:** [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) · [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) §11 · Hours-wipe DF [`architecture/PAYROLL-DESIGN-FREEZE-01.md`](architecture/PAYROLL-DESIGN-FREEZE-01.md)
+> **Powiązane:** [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md) · [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) · [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) §11 · Hours-wipe DF [`architecture/PAYROLL-DESIGN-FREEZE-01.md`](architecture/PAYROLL-DESIGN-FREEZE-01.md)
 
 ---
 
 ## 0. TL;DR dla agenta (przeczytaj najpierw)
 
+- **★★ CRITICAL PROTECTED (2026-08-30):** Lista Płac = Protected Core. **NOWY FEATURE ≠** modyfikacja Payroll sync. GO6.1 / GO8.1 / GO9.2 **FROZEN**; GO10 unsettle+meta **NO-FIX**. SSOT: [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md).
+- **★ AKORD V1 (CLOSED @ tip 2.66.226 / `892e04c4`):** durable piecework = **osobny** CAS (`kw-payroll-piecework`) — **≠** `kw-week-employees` / PWRB. Payable = week advances **≠** remaining. SSOT: [`PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](PAYROLL-AKORD-PAYABLE-SSOT-4B.md) · CAS [`PAYROLL-PIECEWORK-CLOUD-CAS-4A.md`](PAYROLL-PIECEWORK-CLOUD-CAS-4A.md).
+- **★ GO9.2 single-flight (ACTIVE):** `enqueueKwWeekEmployeesWrite` — sibling payroll CAS writers **serializowane**; bootstrap payroll CAS w tym samym FIFO; **zakaz** inline `fn()` przy `depth > 0`. Tip `96dd9324`.
+- **★ GO8.1 settlement (ACTIVE):** retain conscious settle intent vs stale Cloud unsettled; Cloud already settled chronione. Tip parent `1f63e5c4`. **GO4:** HTTP 200 ≠ settlement ACK.
+- **★ GO10 model:** `settled` = active · `payrollSettlement` = historical metadata; unsettle **nie** czyści meta.
 - **★ Freshness + canonical (ACTIVE @ 2.66.125–126):** `ensureCloudFreshBeforeWrite` → Cloud fetch → **`rebuildPayrollOutgoingAfterFreshness`** (Cloud ⊕ verified intents) → P0/P2 → CAS. **Freshness ≠ canonical payload.** `extraCosts`: `before ≡ cloud` albo Cloud wins. Closeout: [`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`](architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md).
 - **★ Hours-wipe (ACTIVE):** Domain Gate (D2) + `intentionalHoursClear` ⇔ `skipPayrollGuard` (D3) · `-prev` banner (D4) · Soft Restore overlay (D5) · `weekEmployeeFromDir` **PURE** · szczegóły: [`PAYROLL-ARCHITECTURE-SSOT.md`](PAYROLL-ARCHITECTURE-SSOT.md).
 - **Model danych = LocalStorage ↔ Supabase KV**. **Merge jest UNION** (nie replace) — klasyczna pułapka Payroll.
@@ -23,7 +28,7 @@
 - **RS Push:** **bez** `kw-week-employees` — by design. Nie przywracać LP do RS.
 - **PWRB:** skład = para roster + deleted-ids · **tylko** `payroll-week-roster-bundle.ts`.
 - **Parytet klient↔Edge** · `payroll-week-employee-merge.ts`.
-- **Regression:** freshness + hardening + P0/P2 + S2 domain-push + S1 RS-no-payroll + D1/D2–D3/D4–D5 + gate B.
+- **Regression:** GO9.2 single-flight + settlement-ack + metadata + freshness + P0/P2 + FIFO + invariant + resurrection + tombstone + build.
 
 ---
 
@@ -41,7 +46,7 @@
 | **KV store Edge** | `supabase/functions/make-server-0afb8820/kv_store.tsx` | `get`/`set`/`mget`/`mset` → Postgres `kv_store_0afb8820` (upsert) |
 | **Kernel identyfikacji (parity)** | `src/lib/payroll-week-employee-merge.ts` | `weekEmployeeMergeKey`, `hasWeekEmployeesRosterExpansion` — **wspólny** klient+Edge (B6) |
 | **Throttle / metryki (S7-4A)** | `src/lib/cloud-sync-throttle.ts` | `AUTO_SYNC_DEBOUNCE_MS`, `MIN_PULL_INTERVAL_MS`, `shouldPullNow`, `bundleFingerprint`, metryki `batchGet/batchSet/pushSkipped` |
-| **Guard mutacji** | `src/lib/cloud-sync-mutation-guard.ts` | `CloudSyncMutationGuard` — blokuje pull podczas mutacji roster/jobs |
+| **Guard mutacji + FIFO** | `src/lib/cloud-sync-mutation-guard.ts` | `CloudSyncMutationGuard` · **GO9.2** `enqueueKwWeekEmployeesWrite` (single-flight payroll CAS) |
 | **LocalStorage hook** | `src/app/hooks/useLocalStorage.ts` | `skipApplyWriteTimestamps`, stabilne update'y (`Object.is`) |
 
 ---

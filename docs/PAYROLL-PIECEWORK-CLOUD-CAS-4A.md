@@ -1,6 +1,12 @@
 # PAYROLL AKORD — Piecework Cloud CAS (Phase 4A)
 
-**Status:** Phase 4A — Cloud CAS + advance-cap invariant only (no UI / payable).
+> **STATUS:** **CLOSED / PRODUCTION VERIFIED** (part of **AKORD V1**)  
+> **Aktualizacja:** 2026-09-14  
+> **Commit:** `0e3fa0cb` · tip chain → **`892e04c4`** / UI **2.66.226**  
+> **Payable SSOT (week advances ≠ remaining):** [`PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](PAYROLL-AKORD-PAYABLE-SSOT-4B.md)  
+> **Protected week roster:** unchanged — piecework CAS **≠** `kw-week-employees` / PWRB
+
+**Scope note:** 4A delivered Cloud CAS + advance-cap only. UI / archive / PDF / payout semantics completed in later CLOSED phases (see AKORD SSOT §10).
 
 ## Keys
 
@@ -20,6 +26,8 @@
 5. On `piecework_invariant_violated` → throw (no blind retry)
 6. Non-CAS / legacy piecework writes → Edge **409** `piecework_legacy_client_rejected`
 
+UI / domain mutations: `commitPieceworkOp` → above path only (no blind `persistKey` / generic whole-document write for piecework).
+
 ## Edge
 
 `batch-set` branch for `kw-payroll-piecework`:
@@ -33,7 +41,7 @@
 
 ## Invariant
 
-Active advance = row without `deletedAt`. Cap is hard-block (no owner override in 4A).
+Active advance = row without `deletedAt`. Cap is hard-block (no owner override in V1).
 
 ## Isolation
 
@@ -45,4 +53,4 @@ Same optimistic-revision class as work-catalog / payroll-week CAS (KV upsert + r
 
 ## Tests
 
-`npx vite-node scripts/test-payroll-piecework-cas-p4a.mjs`
+`npx vite-node scripts/test-payroll-piecework-cas-p4a.mjs` — **37 PASS** (closeout evidence).

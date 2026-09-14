@@ -149,7 +149,8 @@ Obrona: Dependency Map + Guard Rails + #CORE-013 + Gate B payroll
 | RC-B / PWRB | `recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md` |
 | **Freshness + canonical payload** | **`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`** |
 | Sync forensics głęboko | `docs/recovery/PAYROLL-*` (HISTORICAL) |
-| **Final Hardened baseline** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) §11–§19 |
+| **Final Hardened baseline (HISTORY)** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) §11–§19a · tip then **2.66.220** |
+| **AKORD V1 (CURRENT tip)** | [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md) · Regression §13 · tip **2.66.226** / **`892e04c4`** |
 
 ---
 
@@ -168,3 +169,23 @@ Obrona: Dependency Map + Guard Rails + #CORE-013 + Gate B payroll
 **Świadoma granica:** CarryForward CLEAR / `clearedAt` — **nie** wdrożone (brak UI CLEAR).  
 **PV:** 2.66.220 / `73aededf` · prod writes podczas hardening: **ZERO**.  
 **Nie eksponuj** prywatnych wartości wypłat / imion w docs — tylko architektura.
+
+---
+
+## 13. AKORD V1 series (2026-09-14) · CLOSED @ tip 2.66.226 / `892e04c4`
+
+| # | Objaw / zakres | RC | Fix | Commit | Status |
+|---|----------------|----|-----|--------|--------|
+| **13a** | Model hourly\|akord | — | Directory `compensationModel` | `192b2a93` | **CLOSED** |
+| **13b** | Durable piecework | — | jobs/allocations/advances KV | `0c878fce` | **CLOSED** |
+| **13c** | AKORD attendance | — | TAK/NIE · 0h · 0 pay from attendance | `a9fd187e` | **CLOSED** |
+| **13d** | Piecework Cloud CAS + hard cap | — | dedicated piecework CAS | `0e3fa0cb` | **CLOSED** |
+| **13e** | First payable wire | remaining→display | `0aa49a99` (later corrected) | `0aa49a99` | **CLOSED** (semantics superseded) |
+| **13f** | UI / archive / PDF | — | Polish UI · freeze · PDF | `872502c1` | **CLOSED** |
+| **13g** | Historical Archive/PDF | live remaining bled into history | freeze consistency | `5fe46912` | **CLOSED** |
+| **13h** | remaining = weekly payout (wrong) | 4B used `resolveAkordPayable` | week advances only | `028c3925` | **CLOSED** |
+| **13i** | biweekly cash totalSaturdayCash=0 | cash split bez `pieceworkState` | pass piecework into cash split | `892e04c4` | **CLOSED** · tip |
+
+**SSOT:** [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md)  
+**Acceptance:** **PAYROLL_AKORD_PAYOUT_FIX_ACCEPTED** · live tip **2.66.226** / **`892e04c`** (FETCH `version.json`).  
+**Evidence (documented at close):** week-advance **39** · biweekly-cash **27** · 4B **35** · 4C/4C.1 **84** · 4A **37** · P1 **37** · P2 **67** · P3 **46** · carry 20.1B **PASS** · build **PASS**.
