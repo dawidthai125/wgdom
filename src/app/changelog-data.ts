@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.219",
+    label: "PAYROLL — P1 remove failure no optimistic drop",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: Usuń pracownika nie usuwa go z UI przed ACK chmury — po błędzie pwrRemove osoba zostaje widoczna; sukces nadal ustawia result.roster (Phase 3 bez zmian). Test: test-payroll-p1-remove-failure-recovery.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.218",
     label: "PAYROLL — pwrRemove 409 rebase",
     items: [

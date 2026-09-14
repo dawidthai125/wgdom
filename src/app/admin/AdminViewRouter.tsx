@@ -223,6 +223,8 @@ export type AdminViewRouterProps = {
   saveWeek: () => void;
   addFromDirectory: (ids: string[], options?: { preferEmptyHours?: boolean }) => void;
   removeWeekEmployee: (id: string) => void;
+  /** P1 — employee ids with in-flight pwrRemove (membership still visible). */
+  removingWeekEmployeeIds?: string[];
   clearAllWeekEmployees: () => void;
   replaceWeekWithAllActive: () => void;
   updateWeekEmployee: (updated: WeekEmployee) => void;
@@ -333,6 +335,7 @@ export function AdminViewRouter({
   saveWeek,
   addFromDirectory,
   removeWeekEmployee,
+  removingWeekEmployeeIds = [],
   clearAllWeekEmployees,
   replaceWeekWithAllActive,
   updateWeekEmployee,
@@ -533,6 +536,7 @@ export function AdminViewRouter({
               savedWeeks={savedWeeks}
               onAddFromDirectory={addFromDirectory}
               onRemoveWeekEmployee={removeWeekEmployee}
+              removingWeekEmployeeIds={removingWeekEmployeeIds}
               onClearAllWeekEmployees={clearAllWeekEmployees}
               onReplaceWithAllActive={replaceWeekWithAllActive}
               onUpdateWeekEmployeeExtraCosts={updateWeekEmployeeExtraCosts}

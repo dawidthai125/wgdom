@@ -527,6 +527,7 @@ export function PayrollView({
   rawWeekEmployeesCount,
   payrollFreshnessUxLevel,
   payrollFreshnessCheckedLabel,
+  removingWeekEmployeeIds = [],
 }:{
   weekEmployees: WeekEmployee[]; weekFrom:string; weekTo:string;
   /** TEMP · PAYROLL-DISPLAY-RUNTIME-TRACE-01 — surowy stan LS/React (bez filtra test); tylko diagnostyka. */
@@ -542,6 +543,8 @@ export function PayrollView({
   savedWeeks:WeekSnapshot[];
   onAddFromDirectory:(ids:string[], options?: { preferEmptyHours?: boolean })=>void;
   onRemoveWeekEmployee:(id:string)=>void;
+  /** P1 — in-flight remove; row stays visible, delete controls disabled. */
+  removingWeekEmployeeIds?: string[];
   onClearAllWeekEmployees?:()=>void;
   onReplaceWithAllActive?:()=>void;
   onUpdateWeekEmployeeExtraCosts:(empId:string, nextExtraCosts:WeekEmployee["extraCosts"])=>void;
@@ -579,6 +582,7 @@ export function PayrollView({
   const [pickerSelected, setPickerSelected] = useState<Set<string>>(new Set());
   const [pickerPreferEmptyHours, setPickerPreferEmptyHours] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string|null>(null);
+  const isRemovingEmp = (empId: string) => removingWeekEmployeeIds.includes(empId);
   const [satDismissed, setSatDismissed] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showPdfPreview, setShowPdfPreview] = useState(false);
@@ -1521,13 +1525,15 @@ export function PayrollView({
                               {renderSettlementBadge(r.emp)}
                             </td>
                             <td className={`sticky right-0 z-10 px-2 py-3.5 ${r.emp.id===selectedEmpId?"bg-primary/5":"bg-card group-hover:bg-secondary/30"}`} onClick={(e)=>e.stopPropagation()}>
-                              {deleteConfirm===r.emp.id?(
+                              {isRemovingEmp(r.emp.id) ? (
+                                <span className="text-[10px] text-muted-foreground whitespace-nowrap" title="Usuwanie…">…</span>
+                              ) : deleteConfirm===r.emp.id?(
                                 <div className="flex items-center gap-1">
-                                  <button onClick={()=>{onRemoveWeekEmployee(r.emp.id);setDeleteConfirm(null);}} className="text-xs bg-destructive text-white px-2 py-0.5 rounded">Usuń</button>
-                                  <button onClick={()=>setDeleteConfirm(null)} className="text-xs text-muted-foreground hover:text-foreground px-1"><X size={11}/></button>
+                                  <button type="button" onClick={()=>{onRemoveWeekEmployee(r.emp.id);setDeleteConfirm(null);}} className="text-xs bg-destructive text-white px-2 py-0.5 rounded">Usuń</button>
+                                  <button type="button" onClick={()=>setDeleteConfirm(null)} className="text-xs text-muted-foreground hover:text-foreground px-1"><X size={11}/></button>
                                 </div>
                               ):(
-                                <button onClick={()=>setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded"><Trash2 size={13}/></button>
+                                <button type="button" onClick={()=>setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded" aria-label="Usuń z tygodnia"><Trash2 size={13}/></button>
                               )}
                             </td>
                             </>
@@ -1606,7 +1612,9 @@ export function PayrollView({
                             {!isClosedWeek && (
                             <>
                             {renderSettlementBadge(r.emp, { compact: true })}
-                            {deleteConfirm === r.emp.id ? (
+                            {isRemovingEmp(r.emp.id) ? (
+                              <span className="text-[10px] text-muted-foreground px-1" title="Usuwanie…">…</span>
+                            ) : deleteConfirm === r.emp.id ? (
                               <div className="flex items-center gap-1">
                                 <button type="button" onClick={() => { onRemoveWeekEmployee(r.emp.id); setDeleteConfirm(null); }} className="text-xs bg-destructive text-white px-2 py-1 rounded">Usuń</button>
                                 <button type="button" onClick={() => setDeleteConfirm(null)} className="text-xs text-muted-foreground px-1"><X size={11}/></button>
@@ -1715,13 +1723,15 @@ export function PayrollView({
                               {renderSettlementBadge(r.emp)}
                             </td>
                             <td className={`sticky right-0 z-10 px-2 py-3 align-top ${r.emp.id === selectedEmpId ? "bg-primary/5" : "bg-card group-hover:bg-secondary/30"}`} onClick={(e) => e.stopPropagation()}>
-                              {deleteConfirm === r.emp.id ? (
+                              {isRemovingEmp(r.emp.id) ? (
+                                <span className="text-[10px] text-muted-foreground whitespace-nowrap" title="Usuwanie…">…</span>
+                              ) : deleteConfirm === r.emp.id ? (
                                 <div className="flex items-center gap-1">
-                                  <button onClick={() => { onRemoveWeekEmployee(r.emp.id); setDeleteConfirm(null); }} className="text-xs bg-destructive text-white px-2 py-0.5 rounded">Usuń</button>
-                                  <button onClick={() => setDeleteConfirm(null)} className="text-xs text-muted-foreground hover:text-foreground px-1"><X size={11}/></button>
+                                  <button type="button" onClick={() => { onRemoveWeekEmployee(r.emp.id); setDeleteConfirm(null); }} className="text-xs bg-destructive text-white px-2 py-0.5 rounded">Usuń</button>
+                                  <button type="button" onClick={() => setDeleteConfirm(null)} className="text-xs text-muted-foreground hover:text-foreground px-1"><X size={11}/></button>
                                 </div>
                               ) : (
-                                <button onClick={() => setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded"><Trash2 size={13}/></button>
+                                <button type="button" onClick={() => setDeleteConfirm(r.emp.id)} className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded" aria-label="Usuń z tygodnia"><Trash2 size={13}/></button>
                               )}
                             </td>
                             </>

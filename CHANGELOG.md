@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.219 — PAYROLL P1 remove failure no optimistic drop (2026-09-14)
+
+- `removeWeekEmployee` no longer drops membership before Cloud ACK
+- pending remove disables delete controls; failure keeps employee visible
+- Phase 3 `pwrRemove` / I1 / tombstone contract unchanged
+- Test: `test-payroll-p1-remove-failure-recovery.mjs`
+
 ## 2.66.218 — PAYROLL pwrRemove 409 rebase (2026-09-14)
 
 - `pwrRemove` uses `pushRosterWithRebase` (same CAS/409 path as pwrPush/pwrAdd)

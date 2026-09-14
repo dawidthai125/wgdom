@@ -428,6 +428,11 @@ console.log("=== PAYROLL PHASE 3 — pwrRemove CAS ===\n");
   assert("T11 ACK no K", !result.roster.some((e) => e.id === K.id));
   const appSrc = readFileSync(join(__dir, "../src/app/App.tsx"), "utf8");
   assert("T11 App pwrRemove.ack", appSrc.includes('pwrRemove.ack') && appSrc.includes("setWeekEmployees(result.roster"));
+  assert(
+    "T11 App no optimistic membership drop (P1)",
+    appSrc.includes("no optimistic membership drop")
+      && !/const removeWeekEmployee[\s\S]{0,1200}prev\.filter\(\(e\)\s*=>\s*e\.id\s*!==\s*id\)/.test(appSrc),
+  );
 }
 
 // T12 — pwrAdd unchanged (still uses pushRosterWithRebase; smoke ADD)

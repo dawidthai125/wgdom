@@ -166,7 +166,6 @@ import {
 } from "@/lib/payroll-week-roster-bundle";
 import {
   rememberPayrollPendingAdds,
-  revokePayrollPendingAdd,
   clearPayrollPendingAddIntents,
   unionRosterWithPendingAdds,
 } from "@/lib/payroll-pending-add-intent";
@@ -349,6 +348,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   const [weekEmployees, setWeekEmployees] = useLocalStorage<WeekEmployee[]>("kw-week-employees", []);
   const weekEmployeesRef = useRef(weekEmployees);
   weekEmployeesRef.current = weekEmployees;
+  /** P1 — in-flight pwrRemove ids; membership stays until Cloud ACK (no optimistic drop). */
+  const [removingWeekEmployeeIds, setRemovingWeekEmployeeIds] = useState<string[]>([]);
   const [savedWeeks, setSavedWeeks] = useLocalStorage<WeekSnapshot[]>("kw-archive", []);
   const [weekFrom, setWeekFrom] = useLocalStorage("kw-weekFrom", week.from);
   const [weekTo, setWeekTo] = useLocalStorage("kw-weekTo", week.to);
@@ -2371,41 +2372,42 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   };
 
   const removeWeekEmployee = (id: string) => {
-    withPayrollWeekEmployeesWriteSource("removeWeekEmployee", () => {
-    setWeekEmployees((prev) => {
-      const removed = prev.find((e) => e.id === id);
-      if (removed) {
-        rememberPayrollSoftRestoreSnapshot(removed, weekFrom, weekTo);
-        revokePayrollPendingAdd(removed);
-      }
-      const next = prev.filter((e) => e.id !== id);
-      if (next.length !== prev.length) {
-        // Remove ≠ D2 hours-collapse; guard stays active (no bare skip)
-        // GO9.2 — pwrRemove owns FIFO enqueue
-        void pwrRemove({
-          weekFrom,
-          weekTo,
-          employeeId: id,
-          currentRoster: prev,
-        }).then((result) => {
-          if (result.pushed) {
-            withPayrollWeekEmployeesWriteSource("pwrRemove.ack", () => {
-              setWeekEmployees(result.roster as WeekEmployee[]);
-            });
-            refreshSavedActiveWeekSnapshot(result.roster as WeekEmployee[]);
-          }
-        }).catch((e) => {
-          const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
-          toast.error("Nie udało się zapisać składu do chmury", {
-            description: msg,
-            id: "payroll-roster-push",
+    const current = weekEmployeesRef.current;
+    const removed = current.find((e) => e.id === id);
+    if (!removed) return;
+    if (removingWeekEmployeeIds.includes(id)) return;
+
+    // Soft-restore memory for same-week re-add — does not change visible membership.
+    rememberPayrollSoftRestoreSnapshot(removed, weekFrom, weekTo);
+
+    // P1 — no optimistic membership drop. Roster changes only on pwrRemove ACK.
+    setRemovingWeekEmployeeIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+
+    // GO9.2 — pwrRemove owns FIFO enqueue (tombstone + CAS/rebase unchanged Phase 3).
+    void pwrRemove({
+      weekFrom,
+      weekTo,
+      employeeId: id,
+      currentRoster: current,
+    })
+      .then((result) => {
+        setRemovingWeekEmployeeIds((prev) => prev.filter((x) => x !== id));
+        if (result.pushed) {
+          withPayrollWeekEmployeesWriteSource("pwrRemove.ack", () => {
+            setWeekEmployees(result.roster as WeekEmployee[]);
           });
+          refreshSavedActiveWeekSnapshot(result.roster as WeekEmployee[]);
+        }
+      })
+      .catch((e) => {
+        setRemovingWeekEmployeeIds((prev) => prev.filter((x) => x !== id));
+        // Membership never left React state — no rollback snapshot.
+        const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
+        toast.error("Nie udało się zapisać składu do chmury", {
+          description: msg,
+          id: "payroll-roster-push",
         });
-        refreshSavedActiveWeekSnapshot(next);
-      }
-      return next;
-    });
-    });
+      });
   };
 
   const clearAllWeekEmployees = () => {
@@ -3637,6 +3639,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           saveWeek={saveWeek}
           addFromDirectory={addFromDirectory}
           removeWeekEmployee={removeWeekEmployee}
+          removingWeekEmployeeIds={removingWeekEmployeeIds}
           clearAllWeekEmployees={clearAllWeekEmployees}
           replaceWeekWithAllActive={replaceWeekWithAllActive}
           updateWeekEmployee={updateWeekEmployee}
