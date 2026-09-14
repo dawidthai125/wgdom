@@ -219,6 +219,60 @@ function pickPayrollCarryForward(l: Record<string, unknown>, c: Record<string, u
   return undefined;
 }
 
+type PayrollManualAdjustmentLike = {
+  amount?: number;
+  description?: string;
+  kind?: string;
+  updatedAt?: string;
+};
+
+function asManualAdjustment(raw: unknown): PayrollManualAdjustmentLike | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const o = raw as PayrollManualAdjustmentLike;
+  const amount = typeof o.amount === "number" && Number.isFinite(o.amount) ? o.amount : 0;
+  if (!(amount > 0)) return undefined;
+  return o;
+}
+
+function cloneManualAdjustment(m: PayrollManualAdjustmentLike): PayrollManualAdjustmentLike {
+  return { ...m };
+}
+
+/**
+ * Phase 1 — MA pull LWW on own `updatedAt`, never `WeekEmployee.dataUpdatedAt`.
+ * Presence on one side is kept. Hours-newer empty MA cannot wipe the other side.
+ *
+ * CLEAR ARCH GAP: absent field has no clock / tombstone. Pull cannot distinguish
+ * unpublished local MA vs remote conscious clear (both = one side undefined).
+ * Remote clear is applied on Domain Push (baselineOk → after / else Cloud wins).
+ * Do not invent clearedAt in this phase.
+ */
+export function pickPayrollManualAdjustment(
+  local: Record<string, unknown>,
+  cloud: Record<string, unknown>,
+): PayrollManualAdjustmentLike | undefined {
+  const lMa = asManualAdjustment(local.payrollManualAdjustment);
+  const cMa = asManualAdjustment(cloud.payrollManualAdjustment);
+  if (!lMa && !cMa) return undefined;
+  if (lMa && !cMa) return cloneManualAdjustment(lMa);
+  if (!lMa && cMa) return cloneManualAdjustment(cMa);
+
+  const lAt = parsePayrollRecordTs(lMa!.updatedAt);
+  const cAt = parsePayrollRecordTs(cMa!.updatedAt);
+  const lExp = lAt > 0;
+  const cExp = cAt > 0;
+  if (lExp && cExp) {
+    if (lAt > cAt) return cloneManualAdjustment(lMa!);
+    if (cAt > lAt) return cloneManualAdjustment(cMa!);
+    return cloneManualAdjustment(lMa!);
+  }
+  if (lExp && !cExp) return cloneManualAdjustment(lMa!);
+  if (cExp && !lExp) return cloneManualAdjustment(cMa!);
+
+  // Both legacy (no parseable updatedAt) — deterministic prefer local.
+  return cloneManualAdjustment(lMa!);
+}
+
 function pickPrevSaturdayByTimestamps(
   l: Record<string, unknown>,
   c: Record<string, unknown>,
@@ -324,5 +378,6 @@ export function mergeWeekEmployeeRecord(local: unknown, cloud: unknown): unknown
       l.payrollEarlyPayouts,
       c.payrollEarlyPayouts,
     ),
+    payrollManualAdjustment: pickPayrollManualAdjustment(l, c),
   };
 }

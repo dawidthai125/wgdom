@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.215",
+    label: "PAYROLL — MA pull LWW (hours nie czyszczą korekty)",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: korekta wypłaty (payrollManualAdjustment) nie znika przy scalaniu z nowszymi godzinami — własny LWW po updatedAt, niezależnie od dataUpdatedAt. Świadomy clear po stronie pull bez tombstone = ograniczenie (Domain Push bez zmian). Test: test-payroll-manual-adjustment.mjs T1–T9.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.214",
     label: "PAYROLL — F1 extraCosts union-by-id (cross-device lost update)",
     items: [

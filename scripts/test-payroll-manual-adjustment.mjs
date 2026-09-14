@@ -391,5 +391,134 @@ const leavesVacation = [{
   assert("R22 overlay net 0", base.netPay === 0 && base.grossPay === 0);
 }
 
+const {
+  mergeWeekEmployeeRecord,
+  pickPayrollManualAdjustment,
+} = await import("../src/lib/payroll-week-employee-record-merge.ts");
+
+function maOf(emp) {
+  return emp?.payrollManualAdjustment ?? null;
+}
+
+// --- Phase 1 pull-merge MA vs hours dataUpdatedAt ---
+{
+  const cloudMa = { amount: 1000, description: "urlop", kind: "vacation", updatedAt: "2026-09-14T10:00:00.000Z" };
+  const cloud = makeEmp("e1", "Jan", { adj: cloudMa });
+  const localHoursNewer = {
+    ...cloud,
+    payrollManualAdjustment: undefined,
+    dataUpdatedAt: "2026-09-14T15:00:00.000Z",
+    days: {
+      ...cloud.days,
+      Pn: { active: true, from: "07:00", to: "18:00", zaliczka: "", updatedAt: "2026-09-14T15:00:00.000Z" },
+    },
+  };
+  const merged = mergeWeekEmployeeRecord(localHoursNewer, cloud);
+  assert("T1 hours-newer does not wipe cloud MA", maOf(merged)?.amount === 1000);
+  assert("T1 hours still from local day clock", merged.days.Pn.to === "18:00");
+}
+
+{
+  const older = { amount: 100, description: "old", kind: "other", updatedAt: "2026-09-14T10:00:00.000Z" };
+  const newer = { amount: 200, description: "new", kind: "other", updatedAt: "2026-09-14T12:00:00.000Z" };
+  const local = makeEmp("e1", "Jan", { adj: newer });
+  const cloud = makeEmp("e1", "Jan", { adj: older });
+  assert("T2 local MA newer", pickPayrollManualAdjustment(local, cloud)?.amount === 200);
+}
+
+{
+  const older = { amount: 100, description: "old", kind: "other", updatedAt: "2026-09-14T10:00:00.000Z" };
+  const newer = { amount: 200, description: "new", kind: "other", updatedAt: "2026-09-14T12:00:00.000Z" };
+  const localOld = makeEmp("e1", "Jan", { adj: older });
+  const cloudNew = makeEmp("e1", "Jan", { adj: newer });
+  assert("T3 cloud MA newer", pickPayrollManualAdjustment(localOld, cloudNew)?.amount === 200);
+}
+
+{
+  const ma = { amount: 500, description: "local-only", kind: "vacation", updatedAt: "2026-09-14T11:00:00.000Z" };
+  const local = makeEmp("e1", "Jan", { adj: ma });
+  const cloud = makeEmp("e1", "Jan");
+  delete cloud.payrollManualAdjustment;
+  assert("T4 local MA only", pickPayrollManualAdjustment(local, cloud)?.amount === 500);
+  const merged = mergeWeekEmployeeRecord(local, cloud);
+  assert("T4 merge keeps local MA", maOf(merged)?.amount === 500);
+}
+
+{
+  const ma = { amount: 500, description: "cloud-only", kind: "vacation", updatedAt: "2026-09-14T11:00:00.000Z" };
+  const local = makeEmp("e1", "Jan");
+  delete local.payrollManualAdjustment;
+  const cloud = makeEmp("e1", "Jan", { adj: ma });
+  assert("T5 cloud MA only", pickPayrollManualAdjustment(local, cloud)?.amount === 500);
+}
+
+{
+  const legacy = { amount: 300, description: "legacy", kind: "vacation" };
+  const local = makeEmp("e1", "Jan", { adj: legacy });
+  const cloud = makeEmp("e1", "Jan");
+  delete cloud.payrollManualAdjustment;
+  assert("T6 legacy local + cloud undefined", pickPayrollManualAdjustment(local, cloud)?.amount === 300);
+}
+
+{
+  const legacy = { amount: 300, description: "legacy", kind: "vacation" };
+  const local = makeEmp("e1", "Jan");
+  delete local.payrollManualAdjustment;
+  const cloud = makeEmp("e1", "Jan", { adj: legacy });
+  assert("T7 legacy cloud + local undefined", pickPayrollManualAdjustment(local, cloud)?.amount === 300);
+}
+
+{
+  const a = { amount: 10, description: "A", kind: "other" };
+  const b = { amount: 20, description: "B", kind: "other" };
+  const r1 = pickPayrollManualAdjustment(makeEmp("e1", "Jan", { adj: a }), makeEmp("e1", "Jan", { adj: b }));
+  const r2 = pickPayrollManualAdjustment(makeEmp("e1", "Jan", { adj: a }), makeEmp("e1", "Jan", { adj: b }));
+  assert("T8 legacy both deterministic", r1?.amount === 10 && r2?.amount === 10 && r1?.description === "A");
+}
+
+{
+  const cloud = makeEmp("e1", "Jan", {
+    adj: { amount: 1000, description: "urlop", kind: "vacation", updatedAt: "2026-09-14T10:00:00.000Z" },
+  });
+  const local = {
+    ...makeEmp("e1", "Jan", {
+      adj: { amount: 1000, description: "urlop", kind: "vacation", updatedAt: "2026-09-14T10:00:00.000Z" },
+    }),
+    dataUpdatedAt: "2026-09-14T16:00:00.000Z",
+    days: {
+      ...cloud.days,
+      Wt: { active: true, from: "07:00", to: "19:00", zaliczka: "", updatedAt: "2026-09-14T16:00:00.000Z" },
+    },
+  };
+  const merged = mergeWeekEmployeeRecord(local, cloud);
+  assert("T9 MA preserved", maOf(merged)?.amount === 1000);
+  assert("T9 hours from B", merged.days.Wt.to === "19:00");
+}
+
+{
+  const cloudMa = { amount: 1000, description: "urlop", kind: "vacation", updatedAt: "2026-09-14T10:00:00.000Z" };
+  const cloud = makeEmp("e1", "Jan", { adj: cloudMa });
+  const staleB = {
+    ...makeEmp("e1", "Jan"),
+    payrollManualAdjustment: undefined,
+    dataUpdatedAt: "2026-09-14T18:00:00.000Z",
+    days: {
+      ...cloud.days,
+      Sr: { active: true, from: "07:00", to: "12:00", zaliczka: "", updatedAt: "2026-09-14T18:00:00.000Z" },
+    },
+  };
+  const merged = mergeWeekEmployeeRecord(staleB, cloud);
+  assert("T-clear-hours B hours cannot pull-wipe cloud MA", maOf(merged)?.amount === 1000);
+}
+
+{
+  const localMa = { amount: 400, description: "stale-local", kind: "other", updatedAt: "2026-09-14T09:00:00.000Z" };
+  const local = makeEmp("e1", "Jan", { adj: localMa });
+  const cloudCleared = makeEmp("e1", "Jan");
+  delete cloudCleared.payrollManualAdjustment;
+  const picked = pickPayrollManualAdjustment(local, cloudCleared);
+  assert("T-clear-gap pull keeps local MA (no MA tombstone)", picked?.amount === 400);
+}
+
 console.log(`\n=== MANUAL ADJ RESULT ${pass} PASS / ${fail} FAIL ===`);
 process.exit(fail > 0 ? 1 : 0);

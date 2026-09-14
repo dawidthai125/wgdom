@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.215 — PAYROLL MA pull LWW vs hours (2026-09-14)
+
+- `pickPayrollManualAdjustment` — LWW po `updatedAt`; pusta strona z nowszym `dataUpdatedAt` (godziny) nie czyści korekty
+- Pull `mergeWeekEmployeeRecord` nie bierze MA z `dataWinner`
+- Domain Push / field-intent MA bez zmian (baselineOk → after; konflikt → Cloud wins)
+- Świadomy clear na pull: brak tombstone / clock na nieobecności — ARCH GAP (nie wymyślany w Phase 1)
+- Test: `test-payroll-manual-adjustment.mjs` T1–T9
+
 ## 2.66.214 — PAYROLL F1 extraCosts union-by-id (2026-09-14)
 
 - `EmployeeExtraCost.updatedAt` (optional, backward compatible)
