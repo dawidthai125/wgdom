@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.224",
+    label: "PAYROLL AKORD Phase 4C.1 — historyczny display",
+    items: [
+      {
+        type: "fix",
+        text: "Archiwum i PDF zamkniętego tygodnia: Akord pokazuje zamrożony netPay ze snapshota — bez live piecework w breakdown. Hourly bez zmian. Test: test-payroll-akord-ui-archive-pdf-p4c.mjs (4C.1).",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.223",
     label: "PAYROLL AKORD Phase 4C — UI, archiwum, PDF",
     items: [

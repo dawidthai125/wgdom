@@ -144,7 +144,8 @@ export function calcWeekEmployeeForPayroll(
   }
 
   if (options.archivedSnapshot) {
-    // Phase 4B: archive freeze not implemented — use frozen snapshot amounts.
+    // Phase 4C — historical display uses frozen snapshot amounts (freezeAkordArchivePayables at archive time).
+    // Do not recompute AKORD payable from live piecework here.
     const archived = resolveArchivedCarryAdjustments(options.archivedSnapshot, emp);
     return {
       ...withLeave,

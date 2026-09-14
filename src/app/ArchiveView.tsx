@@ -26,8 +26,10 @@ import {
   jobMaterialsCost,
   jobTotalCost,
 } from "@/app/app-domain";
+import { isAkordWeekEmployee } from "@/lib/payroll-compensation-model";
 
-function archiveEmployeePayrollDisplay(
+/** Phase 4C.1 — historical archive display; exported for regression tests. */
+export function archiveEmployeePayrollDisplay(
   full: WeekEmployee | undefined,
   emp: WeekSnapshot["employees"][number],
   directory: DirectoryEmployee[],
@@ -51,6 +53,33 @@ function archiveEmployeePayrollDisplay(
 
   if (!full) {
     return { c: fallback, displayNetPay: emp.netPay, biweeklyHint: null };
+  }
+
+  const historicalAkord =
+    emp.compensationModel === "akord" || isAkordWeekEmployee(full);
+
+  // Phase 4C.1 — historical AKORD: snapshot emp.netPay is authoritative (never live piecework / calcWeekEmployee).
+  if (historicalAkord) {
+    let displayNetPay = emp.netPay;
+    if (emp.carryForwardOut != null && emp.carryForwardOut > 0) {
+      displayNetPay = 0;
+    }
+    return {
+      c: {
+        ...fallback,
+        // Prefer snapshot hours/gross for historical row presentation.
+        weekHours: emp.weekHours ?? fallback.weekHours,
+        prevSatHours: emp.prevSatHours ?? 0,
+        totalHours: emp.totalHours,
+        grossPay: emp.grossPay,
+        totalZaliczka: emp.totalZaliczka,
+        totalExtraCosts: emp.totalExtraCosts ?? 0,
+        netPay: emp.netPay,
+        rateNum: 0,
+      },
+      displayNetPay,
+      biweeklyHint: null,
+    };
   }
 
   const base = calcWeekEmployee(full);

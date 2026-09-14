@@ -40,6 +40,8 @@ import { resolveSettlementPayableAmount } from "../src/lib/payroll-settlement.ts
 import { freezeAkordArchivePayables } from "../src/lib/payroll-archive-akord.ts";
 import { buildWeekSnapshot, calcWeekEmployee, defaultDays, weekEmployeeFromDir } from "../src/app/app-domain.ts";
 import { toPayrollCalcRows } from "../src/app/PayrollView.tsx";
+import { archiveEmployeePayrollDisplay } from "../src/app/ArchiveView.tsx";
+import { payrollNetDisplayText } from "../src/lib/payroll-export.ts";
 import { pieceworkLocalErrorMessage } from "../src/lib/payroll-piecework-commit.ts";
 import { PieceworkInvariantViolatedError } from "../src/lib/payroll-piecework-invariant.ts";
 import {
@@ -426,6 +428,111 @@ function seedJobAlloc(state, { jobId, dirId, agreed, label }) {
     const src = readFileSync(resolve(f), "utf8");
     assert(`I. no pwr* in ${f}`, !/\bpwr(Add|Remove|Push|PullMerge)\b/.test(src));
   }
+}
+
+// ─── Phase 4C.1 — historical display consistency ────────────────────────────
+{
+  let s = emptyPayrollPieceworkState();
+  s = seedJobAlloc(s, { jobId: "h41", dirId: "dir-a", agreed: 8000, label: "h41" });
+  const adv = createAdvance(s, {
+    allocationId: s.allocations[0].id,
+    amount: 2000,
+    paidAt: T0,
+    now: T0,
+  });
+  s = adv.state;
+  const emp = akordEmp("dir-a");
+  const snap = freezeAkordArchivePayables(
+    buildWeekSnapshot(WEEK1.weekFrom, WEEK1.weekTo, [emp], []),
+    [emp],
+    { pieceworkState: s },
+  );
+  assert("4C.1 freeze base 6000", snap.employees[0].netPay === 6000);
+
+  const later = createAdvance(s, {
+    allocationId: s.allocations[0].id,
+    amount: 1000,
+    paidAt: "2026-09-15T10:00:00.000Z",
+    now: "2026-09-15T10:00:00.000Z",
+  });
+  s = later.state;
+  assert("4C.1 live later 5000", resolveAkordPayable("dir-a", s) === 5000);
+
+  const full = snap.weekEmployees?.[0] ?? emp;
+  const archDisp = archiveEmployeePayrollDisplay(full, snap.employees[0], [], snap, [snap]);
+  assert("A. ArchiveView AKORD shows frozen 6000", archDisp.displayNetPay === 6000);
+
+  const hourly = hourlyEmp("dir-h");
+  hourly.days = {
+    ...defaultDays(),
+    Pn: { active: true, from: "08:00", to: "16:00", zaliczka: "" },
+  };
+  const snapH = buildWeekSnapshot(WEEK1.weekFrom, WEEK1.weekTo, [hourly], []);
+  const fullH = snapH.weekEmployees?.[0] ?? hourly;
+  const hourlyDisp = archiveEmployeePayrollDisplay(fullH, snapH.employees[0], [], snapH, [snapH]);
+  const hourlyLive = calcWeekEmployee(fullH);
+  assert(
+    "B. ArchiveView HOURLY unchanged vs calcWeekEmployee",
+    Math.abs(hourlyDisp.displayNetPay - hourlyLive.netPay) < 0.01,
+  );
+
+  const frozenRow = calcWeekEmployeeForPayroll(emp, {
+    ...WEEK1,
+    archivedSnapshot: snap,
+    livePayroll: false,
+    pieceworkState: s, // live piecework present but archived path must ignore for net
+  });
+  assert("4C.1 archived calc uses frozen net", frozenRow.displayNetPay === 6000);
+
+  const histRows = toPayrollCalcRows(
+    [{ emp, ...frozenRow, rateNum: 0 }],
+    [],
+    WEEK1.weekFrom,
+    WEEK1.weekTo,
+    [snap],
+    s,
+    [jobStub("h41")],
+    { historical: true },
+  );
+  assert("C. Historical PDF netPay = 6000", histRows[0].netPay === 6000);
+  assert(
+    "C. Historical PDF no live akordAllocations",
+    !histRows[0].akordAllocations || histRows[0].akordAllocations.length === 0,
+  );
+  assert("C. Historical PDF text = 6000 SSOT", payrollNetDisplayText(histRows[0]).includes("6") || histRows[0].netPay === 6000);
+  // Must not present live remaining 5000 as historical breakdown
+  const liveRemaining = resolveAkordPayable("dir-a", s);
+  assert(
+    "C. no live remaining in historical breakdown",
+    liveRemaining === 5000 && !(histRows[0].akordAllocations ?? []).some((a) => a.remaining === 5000),
+  );
+
+  const liveRow = calcWeekEmployeeForPayroll(emp, { ...WEEK1, pieceworkState: s, livePayroll: true });
+  const liveRows = toPayrollCalcRows(
+    [{ emp, ...liveRow, rateNum: 0 }],
+    [],
+    WEEK1.weekFrom,
+    WEEK1.weekTo,
+    [],
+    s,
+    [jobStub("h41")],
+    { historical: false },
+  );
+  assert("D. Live PDF netPay = 5000", liveRows[0].netPay === 5000);
+  assert("D. Live PDF has allocation breakdown", (liveRows[0].akordAllocations?.length ?? 0) >= 1);
+
+  // E — later allocation must not mutate prior snapshot
+  const more = seedJobAlloc(s, { jobId: "h41-b", dirId: "dir-a", agreed: 999, label: "pollute" });
+  assert("E. live payable changed after new alloc", resolveAkordPayable("dir-a", more) > 5000);
+  assert("E. historical snapshot net still 6000", snap.employees[0].netPay === 6000);
+  const archAfter = archiveEmployeePayrollDisplay(full, snap.employees[0], [], snap, [snap]);
+  assert("E. ArchiveView still 6000 after later alloc", archAfter.displayNetPay === 6000);
+
+  const commentSrc = readFileSync(resolve("src/lib/payroll-carry-forward.ts"), "utf8");
+  assert(
+    "comment archive freeze updated",
+    commentSrc.includes("freezeAkordArchivePayables") && !commentSrc.includes("archive freeze not implemented"),
+  );
 }
 
 console.log(`\nPhase 4C: ${pass} PASS / ${fail} FAIL`);

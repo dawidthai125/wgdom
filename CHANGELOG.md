@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.224 — PAYROLL AKORD Phase 4C.1 historical display (2026-09-14)
+
+- Archiwum: historyczny Akord = zamrożony `emp.netPay` (nie `calcWeekEmployee`)
+- PDF closed week: frozen netPay bez live `akordAllocations`
+- Test: `scripts/test-payroll-akord-ui-archive-pdf-p4c.mjs` (sekcja 4C.1)
+
 ## 2.66.223 — PAYROLL AKORD Phase 4C UI + archive + PDF (2026-09-14)
 
 - Lista Płac Akord: Job/allocation/zaliczki w szczegółach (Phase 4A CAS), badge + Do wypłaty na liście

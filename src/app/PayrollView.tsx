@@ -125,12 +125,20 @@ export function toPayrollCalcRows(
   savedWeeks: WeekSnapshot[],
   pieceworkState?: import("@/lib/payroll-piecework-types").PayrollPieceworkState | null,
   jobs: Job[] = [],
+  /** Phase 4C.1 — closed/historical week: frozen row netPay; never attach live akordAllocations. */
+  options?: { historical?: boolean },
 ): PayrollCalcRow[] {
+  const historical = options?.historical === true;
   return rows.map((r) => {
     const leaveStatus = r.leaveStatus;
     const carryOut = r.carryForwardOut != null && r.carryForwardOut > 0;
     const carryIn = r.carryForwardIn != null && r.carryForwardIn > 0;
-    const biweekly = !leaveStatus && !carryOut && !carryIn && isBiweeklyPayrollEmployee(r.emp, directory);
+    const biweekly =
+      !historical &&
+      !leaveStatus &&
+      !carryOut &&
+      !carryIn &&
+      isBiweeklyPayrollEmployee(r.emp, directory);
     const bw = biweekly
       ? calcBiweeklyRowDisplay(r.emp, directory, weekFrom, weekTo, savedWeeks, undefined, {
           pieceworkState,
@@ -138,15 +146,18 @@ export function toPayrollCalcRows(
       : null;
     let netPay: number;
     if (carryOut) netPay = 0;
+    else if (historical) netPay = r.displayNetPay ?? r.netPay ?? 0;
     else if (leaveStatus) netPay = r.displayNetPay ?? r.netPay ?? 0;
     else if (carryIn) netPay = r.displayNetPay ?? r.netPay ?? 0;
     else if (bw) netPay = bw.displayNet;
     else netPay = r.displayNetPay ?? r.netPay ?? 0;
     const grossPay = leaveStatus ? 0 : (biweekly ? r.weekGross : r.grossPay);
     const akord = isAkordWeekEmployee(r.emp);
-    const breakdown = akord
-      ? resolveAkordAllocationBreakdown(r.emp.directoryId, pieceworkState)
-      : null;
+    // Historical: never present live piecework as archive-era allocation breakdown.
+    const breakdown =
+      akord && !historical
+        ? resolveAkordAllocationBreakdown(r.emp.directoryId, pieceworkState)
+        : null;
     return {
       emp: {
         name: r.emp.name,
@@ -213,6 +224,7 @@ export function PayrollEmailModal({
   directory,
   savedWeeks,
   payrollPiecework,
+  historical = false,
   onClose,
   onManageContacts,
 }: {
@@ -225,6 +237,8 @@ export function PayrollEmailModal({
   directory: DirectoryEmployee[];
   savedWeeks: WeekSnapshot[];
   payrollPiecework?: import("@/lib/payroll-piecework-types").PayrollPieceworkState | null;
+  /** Phase 4C.1 — closed week: frozen netPay, no live akordAllocations. */
+  historical?: boolean;
   onClose: () => void;
   onManageContacts: () => void;
 }) {
@@ -245,8 +259,11 @@ export function PayrollEmailModal({
   const selectedContact = payrollContacts.find((c) => c.id === contactId) || null;
   const recipientEmail = useManual ? manualEmail.trim() : (selectedContact?.email.trim() || "");
   const calcRows = useMemo(
-    () => toPayrollCalcRows(rows as never, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs),
-    [rows, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs],
+    () =>
+      toPayrollCalcRows(rows as never, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs, {
+        historical,
+      }),
+    [rows, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs, historical],
   );
   const canSend = Boolean(recipientEmail) && (attachPdf || attachWord) && !sending;
 
@@ -1053,7 +1070,9 @@ export function PayrollView({
   };
 
   const payrollExportArgs = () => {
-    const calcRows = toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs);
+    const calcRows = toPayrollCalcRows(rows, directory, weekFrom, weekTo, savedWeeks, payrollPiecework, jobs, {
+      historical: isClosedWeek,
+    });
     const weeklyGrid = payrollWeeklyGrid(rows.map((r) => r.emp), weekFrom);
     const extraHourLines = payrollWeekExtraHourLines(rows.map((r) => r.emp));
     const extraCostLines = buildPayrollExtraCostLines(rows.map((r) => r.emp));
@@ -2057,6 +2076,7 @@ export function PayrollView({
           directory={directory}
           savedWeeks={savedWeeks}
           payrollPiecework={payrollPiecework}
+          historical={isClosedWeek}
           onClose={() => setShowEmailModal(false)}
           onManageContacts={() => { setShowEmailModal(false); onManageContacts(); }}
         />
