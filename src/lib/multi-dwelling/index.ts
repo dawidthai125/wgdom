@@ -50,6 +50,21 @@ export {
 } from "@/lib/multi-dwelling/store";
 
 export {
+  evaluateCanonicalIdentityUpgradeMerge,
+  applyCanonicalIdentityFieldsFromLocal,
+  mergeOfferBoqPreferringCanonicalIdentityUpgrades,
+  mergeTenderPackageOnScoreTie,
+  scoreTenderPackageRichness,
+  isCanonicalLaborLeafWorkId,
+  isLegacyOrNonCanonicalWorkId,
+} from "@/lib/multi-dwelling/canonical-identity-upgrade-merge";
+
+export type {
+  CanonicalIdentityUpgradeDecision,
+  CanonicalIdentityUpgradeMergeResult,
+} from "@/lib/multi-dwelling/canonical-identity-upgrade-merge";
+
+export {
   emptyDwellingSubtotals,
   subtotalsFromShadowAndGate,
   evaluateDwellingPositionCost,

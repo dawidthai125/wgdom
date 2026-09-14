@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.209 — Cloud merge preserve canonical identity upgrades (2026-09-14)
+
+- Score-tie: field-level `evaluateCanonicalIdentityUpgradeMerge` (legacy→`cw.knr.*` + `auto_contract`)
+- No blind cloud-win · no whole-package local replace · 0815-05 / rates / BOM untouched
+- Test: `test-canonical-identity-upgrade-merge.mjs` (+ MOPS snapshot sim, no KV write)
+
 ## 2.66.208 — Canonical labor leaf rebind paint/prime (2026-09-13)
 
 - Umbrella: exact primitive + COMPOUND CLLR + LABOR→canonical (1134-01/02)

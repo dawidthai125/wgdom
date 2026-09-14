@@ -9,6 +9,10 @@ import {
   MULTI_DWELLING_PACKAGE_SCHEMA_VERSION,
   normalizeDwellingId,
 } from "@/lib/multi-dwelling/constants";
+import {
+  mergeTenderPackageOnScoreTie,
+  scoreTenderPackageRichness,
+} from "@/lib/multi-dwelling/canonical-identity-upgrade-merge";
 import { dwellingHasValidDocumentMapping } from "@/lib/multi-dwelling/package-gate";
 import type {
   DwellingCostUnit,
@@ -137,11 +141,18 @@ export function mergeMultiDwellingPackageStore(
       byTenderId[tid] = pkg;
       continue;
     }
-    // Prefer side with more dwellings / offerBoq attestations
-    const score = (p: TenderPackage) =>
-      p.dwellings.length
-      + p.dwellings.filter((d) => d.offerBoq != null).length * 10;
-    byTenderId[tid] = score(pkg) >= score(existing) ? pkg : existing;
+    // Prefer side with more dwellings / offerBoq attestations.
+    // On equal score: do NOT blind-cloud-win — apply field-level canonical
+    // identity upgrades from local onto the cloud structural shell.
+    const scoreCloud = scoreTenderPackageRichness(pkg);
+    const scoreLocal = scoreTenderPackageRichness(existing);
+    if (scoreCloud > scoreLocal) {
+      byTenderId[tid] = pkg;
+    } else if (scoreCloud < scoreLocal) {
+      byTenderId[tid] = existing;
+    } else {
+      byTenderId[tid] = mergeTenderPackageOnScoreTie(existing, pkg);
+    }
   }
   return { version: MULTI_DWELLING_PACKAGE_SCHEMA_VERSION, byTenderId };
 }

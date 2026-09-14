@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-14",
+    version: "2.66.209",
+    label: "Cloud merge — preserve canonical identity upgrades on score tie",
+    items: [
+      {
+        type: "fix",
+        text: "mergeMultiDwellingPackageStore: equal richness score no longer blind-cloud-wins. Pure evaluateCanonicalIdentityUpgradeMerge accepts monotonic legacy→cw.knr.* auto_contract deltas (IdentityPhase attestation) field-level on cloud shell · preserves documentToDwelling/qty/unit/rates/BOM · blocks fuzzy/downgrade/0815-05. Test: test-canonical-identity-upgrade-merge.mjs (+ MOPS prod snapshot sim, no KV write).",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-13",
     version: "2.66.208",
     label: "Canonical labor leaf rebind — paint/prime exact identity",
