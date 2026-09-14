@@ -191,5 +191,29 @@ export {
   seedGypsumSkimCeiling081505V1,
 } from "./gypsum-skim-ceiling-0815-05-v1";
 
+export {
+  FIXTURE_PAINTING_KNR_4_01_1204_02_PACK_ID,
+  PAINTING_KNR_4_01_1204_02_LABOUR_HOURS_PER_M2,
+  PAINTING_KNR_4_01_1204_02_MATERIAL_KEY,
+  PAINTING_KNR_4_01_1204_02_QTY_FACTOR_L_PER_M2,
+  PAINTING_KNR_4_01_1204_02_V1_APPROVED_AT,
+  PAINTING_KNR_4_01_1204_02_V1_SOURCE_REF,
+  PAINTING_KNR_4_01_1204_02_WORK_ID,
+  paintingKnr401120402PackV1,
+  seedPaintingKnr401120402V1,
+} from "./painting-knr-4-01-1204-02-v1";
+
+export {
+  FIXTURE_PAINTING_KNR_2_02_1505_01_PACK_ID,
+  PAINTING_KNR_2_02_1505_01_LABOUR_HOURS_PER_M2,
+  PAINTING_KNR_2_02_1505_01_MATERIAL_KEY,
+  PAINTING_KNR_2_02_1505_01_QTY_FACTOR_L_PER_M2,
+  PAINTING_KNR_2_02_1505_01_V1_APPROVED_AT,
+  PAINTING_KNR_2_02_1505_01_V1_SOURCE_REF,
+  PAINTING_KNR_2_02_1505_01_WORK_ID,
+  paintingKnr202150501PackV1,
+  seedPaintingKnr202150501V1,
+} from "./painting-knr-2-02-1505-01-v1";
+
 export { runTechnologyFoundationPipeline } from "./pipeline";
 export type { TechnologyFoundationPipelineResult } from "./pipeline";

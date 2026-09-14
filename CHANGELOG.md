@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.210 — AUT-BOM canonical paint packs 1204-02 / 1505-01 (2026-09-14)
+
+- Leaf packs: `pack.painting.knr_4_01_1204_02_v1` (0.286 L/m²) · `pack.painting.knr_2_02_1505_01_v1` (0.2891 L/m²)
+- Exact `cw.knr.*` bind · public cost-estimate provenance · NOT economy 0.166667
+- 1134-01/02 blocked: CT17/Atlas Uni-Grunt ≠ `mat.grunt` (MATERIAL_IDENTITY_REQUIRED)
+- Test: `test-canonical-paint-technology-packs-aut-bom.mjs`
+
 ## 2.66.209 — Cloud merge preserve canonical identity upgrades (2026-09-14)
 
 - Score-tie: field-level `evaluateCanonicalIdentityUpgradeMerge` (legacy→`cw.knr.*` + `auto_contract`)

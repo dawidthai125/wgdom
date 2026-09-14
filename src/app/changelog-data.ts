@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.210",
+    label: "AUT-BOM — canonical paint TechnologyPacks 1204-02 / 1505-01",
+    items: [
+      {
+        type: "new",
+        text: "Leaf-scoped ACTIVE packs pack.painting.knr_4_01_1204_02_v1 (0.286 L/m² BIP/public) + pack.painting.knr_2_02_1505_01_v1 (0.2891 L/m² public) · exact cw.knr.* bind · mat.farba_lateksowa_wewnetrzna · NOT economy 0.166667 · labour[] tech ≠ OUR RATE. NNRNKB 1134-01/02 MATERIAL_IDENTITY_REQUIRED (CT17/Atlas ≠ mat.grunt). Test: test-canonical-paint-technology-packs-aut-bom.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.209",
     label: "Cloud merge — preserve canonical identity upgrades on score tie",
     items: [
