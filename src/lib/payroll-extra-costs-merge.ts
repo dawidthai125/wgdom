@@ -2,9 +2,9 @@
  * PAYROLL F1 — extraCosts union-by-id + per-item LWW.
  * Decouples cost merge from WeekEmployee.dataUpdatedAt (hours clock).
  *
- * DELETE LIMITATION (no tombstones in this stage):
- * Intentional filter-remove of a cost may resurrect from the other side until
- * a dedicated tombstone protocol exists. Add/update concurrent safety is primary.
+ * GAP-2 DELETE: soft-delete via `deletedAt` tombstone on the cost row.
+ * Same-id resurrection from a stale live copy is blocked (tombstone wins).
+ * UI creates new costs with new UUIDs — same-id re-add is not a product path.
  */
 
 import type { EmployeeExtraCost } from "@/app/app-domain";
@@ -28,11 +28,26 @@ function cloneCost(c: EmployeeExtraCost): EmployeeExtraCost {
   return { ...c };
 }
 
+export function isExtraCostDeleted(c: EmployeeExtraCost | null | undefined): boolean {
+  return typeof c?.deletedAt === "string" && c.deletedAt.length > 0;
+}
+
+/** Live (non-tombstoned) costs for UI / display. */
+export function visibleExtraCosts(raw: unknown): EmployeeExtraCost[] {
+  return asCostList(raw).filter((c) => !isExtraCostDeleted(c));
+}
+
 /** Prefer submittedAt as weak legacy clock when updatedAt is absent. */
 function costClock(c: EmployeeExtraCost): number {
   const u = parseCostTs(c.updatedAt);
   if (u > 0) return u;
   return parseCostTs(c.submittedAt);
+}
+
+function deleteClock(c: EmployeeExtraCost): number {
+  const d = parseCostTs(c.deletedAt);
+  if (d > 0) return d;
+  return costClock(c);
 }
 
 function hasExplicitClock(c: EmployeeExtraCost): boolean {
@@ -51,11 +66,24 @@ function costRichness(c: EmployeeExtraCost): number {
 
 /**
  * Pick winner for the same cost id.
- * - both updatedAt → newer wins
- * - only one updatedAt → that side wins
- * - neither → weak submittedAt, then richer payload, then prefer `a`
+ * Tombstone (`deletedAt`) blocks resurrection from a live peer copy.
+ * - both deleted → newer deletedAt / clock wins
+ * - one deleted → deleted wins (same-id re-add blocked)
+ * - both live → updatedAt LWW / legacy fallback (F1)
  */
 export function pickExtraCostByLww(a: EmployeeExtraCost, b: EmployeeExtraCost): EmployeeExtraCost {
+  const aDel = isExtraCostDeleted(a);
+  const bDel = isExtraCostDeleted(b);
+  if (aDel && bDel) {
+    const aAt = deleteClock(a);
+    const bAt = deleteClock(b);
+    if (aAt > bAt) return cloneCost(a);
+    if (bAt > aAt) return cloneCost(b);
+    return cloneCost(a);
+  }
+  if (aDel && !bDel) return cloneCost(a);
+  if (bDel && !aDel) return cloneCost(b);
+
   const aExp = hasExplicitClock(a);
   const bExp = hasExplicitClock(b);
   if (aExp && bExp) {
@@ -63,13 +91,11 @@ export function pickExtraCostByLww(a: EmployeeExtraCost, b: EmployeeExtraCost): 
     const bAt = costClock(b);
     if (aAt > bAt) return cloneCost(a);
     if (bAt > aAt) return cloneCost(b);
-    // equal clocks — stable prefer a
     return cloneCost(a);
   }
   if (aExp && !bExp) return cloneCost(a);
   if (bExp && !aExp) return cloneCost(b);
 
-  // Legacy: weak submittedAt, then richer payload (never prefer empty over filled), then `a`
   const aWeak = costClock(a);
   const bWeak = costClock(b);
   if (aWeak > bWeak) return cloneCost(a);
@@ -82,7 +108,7 @@ export function pickExtraCostByLww(a: EmployeeExtraCost, b: EmployeeExtraCost): 
 }
 
 /**
- * Union local+cloud extraCosts by id; LWW per item.
+ * Union local+cloud extraCosts by id; LWW per item (incl. delete tombstones).
  * Empty side never wipes the other side.
  */
 export function mergeExtraCostsById(local: unknown, cloud: unknown): EmployeeExtraCost[] {
@@ -93,7 +119,6 @@ export function mergeExtraCostsById(local: unknown, cloud: unknown): EmployeeExt
   if (c.length === 0) return l.map(cloneCost);
 
   const map = new Map<string, EmployeeExtraCost>();
-  // Deterministic: ingest cloud first, then local (local wins ties via pick)
   const order: string[] = [];
   const touch = (id: string) => {
     if (!order.includes(id)) order.push(id);
@@ -114,15 +139,17 @@ export function mergeExtraCostsById(local: unknown, cloud: unknown): EmployeeExt
 
 function costPayloadEqual(a: EmployeeExtraCost, b: EmployeeExtraCost): boolean {
   const strip = (x: EmployeeExtraCost) => {
-    const { updatedAt: _u, ...rest } = x;
+    const { updatedAt: _u, deletedAt: _d, ...rest } = x;
     return rest;
   };
-  return JSON.stringify(strip(a)) === JSON.stringify(strip(b));
+  return JSON.stringify(strip(a)) === JSON.stringify(strip(b))
+    && !!a.deletedAt === !!b.deletedAt;
 }
 
 /**
  * Stamp updatedAt on newly added or content-changed costs.
- * Preserves id; does not invent clocks on unchanged legacy rows.
+ * IDs present in before but absent from after → soft-delete tombstone (`deletedAt`).
+ * Preserves prior tombstones from before.
  */
 export function stampExtraCostsOnEdit(
   before: EmployeeExtraCost[] | undefined | null,
@@ -132,17 +159,38 @@ export function stampExtraCostsOnEdit(
   const beforeList = asCostList(before);
   const afterList = asCostList(after);
   const beforeById = new Map(beforeList.map((c) => [c.id, c]));
-  return afterList.map((c) => {
+  const afterIds = new Set(afterList.map((c) => c.id));
+
+  const stampedLive = afterList.map((c) => {
     const prev = beforeById.get(c.id);
     if (!prev) {
       return { ...c, updatedAt: c.updatedAt && parseCostTs(c.updatedAt) > 0 ? c.updatedAt : nowIso };
     }
+    // Re-introducing a previously tombstoned id without clearing delete — keep tombstone.
+    if (isExtraCostDeleted(prev) && !isExtraCostDeleted(c)) {
+      return cloneCost(prev);
+    }
     if (!costPayloadEqual(prev, c)) {
       return { ...c, updatedAt: nowIso };
     }
-    // unchanged — keep previous clock (may be undefined for legacy)
     if (prev.updatedAt) return { ...c, updatedAt: prev.updatedAt };
     if (c.updatedAt) return c;
     return { ...c };
   });
+
+  const tombs: EmployeeExtraCost[] = [];
+  for (const prev of beforeList) {
+    if (afterIds.has(prev.id)) continue;
+    if (isExtraCostDeleted(prev)) {
+      tombs.push(cloneCost(prev));
+    } else {
+      tombs.push({
+        ...prev,
+        deletedAt: nowIso,
+        updatedAt: nowIso,
+      });
+    }
+  }
+
+  return [...stampedLive, ...tombs];
 }

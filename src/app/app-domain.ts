@@ -97,6 +97,11 @@ export interface EmployeeExtraCost {
    * NOT WeekEmployee.dataUpdatedAt (hours clock).
    */
   updatedAt?: string;
+  /**
+   * Soft-delete tombstone (GAP-2). Same id must not resurrect from a stale live copy.
+   * New costs always get a new UUID from UI.
+   */
+  deletedAt?: string;
 }
 
 /** Jawna korekta wypłaty (np. wynagrodzenie urlopowe) — ≠ extraCosts (zwrot wydatków). */
@@ -949,6 +954,7 @@ export function extraCostStatus(c: EmployeeExtraCost): ExtraCostStatus {
 }
 
 export function approvedExtraCostAmount(c: EmployeeExtraCost): number {
+  if (c.deletedAt) return 0;
   if (extraCostStatus(c) !== "approved") return 0;
   return parseFloat(c.amount) || 0;
 }

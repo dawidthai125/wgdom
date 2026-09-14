@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.220",
+    label: "PAYROLL — final gaps: extraCost delete + failed remove tomb",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: soft-delete kosztów dodatkowych (deletedAt) blokuje wskrzeszenie ID przy sync; nieudane Usuń pracownika cofa lokalny tombstone gdy Cloud nadal ma osobę (Phase 3/I1 bez redesignu). Carry CLEAR bez UI — bez clearedAt. Testy: extracosts-delete-tombstone, failed-remove-tombstone, final-gaps-cross.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.219",
     label: "PAYROLL — P1 remove failure no optimistic drop",
     items: [

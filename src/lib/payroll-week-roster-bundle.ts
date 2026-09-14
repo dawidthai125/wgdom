@@ -20,6 +20,7 @@ import {
   saveDeletedWeekEmployeeKeys,
   deletedWeekEmployeeMergeKeySet,
   filterDeletedWeekEmployees,
+  weekEmployeeMergeKey,
   type PushWeekEmployeesOptions,
 } from "@/lib/cloud-sync";
 import {
@@ -265,16 +266,39 @@ export async function pwrRemove(params: {
       skipPayrollGuard: resolved.skipPayrollGuard,
     });
     // Phase 3 — same CAS + stale-revision rebase as pwrPush/pwrAdd (409 must not drop REMOVE).
-    const { roster: written } = await pushRosterWithRebase({
-      roster: next,
-      weekFrom: params.weekFrom,
-      weekTo: params.weekTo,
-      intentBefore: params.currentRoster,
-      intentAfter: next,
-      resolved,
-    });
-    const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, written);
-    return { roster: written, tombstones, changed: true, pushed: true };
+    // GAP-3: tomb stays before/during push (409 filter). On final failure, if Cloud still
+    // contains the person, revoke the provisional tomb so it cannot permanently suppress them.
+    try {
+      const { roster: written } = await pushRosterWithRebase({
+        roster: next,
+        weekFrom: params.weekFrom,
+        weekTo: params.weekTo,
+        intentBefore: params.currentRoster,
+        intentAfter: next,
+        resolved,
+      });
+      const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, written);
+      return { roster: written, tombstones, changed: true, pushed: true };
+    } catch (err) {
+      try {
+        const [cloudEmps] = await fetchKeysFromCloud(["kw-week-employees"]);
+        const cloudList = Array.isArray(cloudEmps) ? cloudEmps : [];
+        const removedKey = weekEmployeeMergeKey(removed);
+        const stillOnCloud = cloudList.some(
+          (item) =>
+            !!item
+            && typeof item === "object"
+            && weekEmployeeMergeKey(item as { id?: string; directoryId?: string; name?: string })
+              === removedKey,
+        );
+        if (stillOnCloud) {
+          removeDeletedWeekEmployeeKeysForWeek(params.weekFrom, params.weekTo, [removed]);
+        }
+      } catch {
+        // Cloud unread — leave tomb; I1 / reconcile may revoke later.
+      }
+      throw err;
+    }
   });
 }
 

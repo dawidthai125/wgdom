@@ -301,16 +301,16 @@ console.log("=== PAYROLL P1 REMOVE FAILURE RECOVERY ===\n");
   assert("P1-R4 Cloud has no C (peer remove)", !cloud.some((e) => e.id === C.id));
 }
 
-// P1-R5 / R6 — failed remove: local tomb may exist; Cloud still has B
+// P1-R5 / R6 — failed remove: GAP-3 revokes local tomb when Cloud still has B
 {
   resetHarness([A, B], [], 5);
   force409Count = 99;
   await appRemovePolicy([A, B], B.id);
   const tombKey = weekEmployeeTombstoneId(WF, WT, B);
   const tombs = getDeletedWeekEmployeeKeys();
-  assert("P1-R6 local tomb may exist after failed attempt", tombs.includes(tombKey));
+  assert("P1-R6 local tomb revoked when Cloud still has B", !tombs.includes(tombKey));
   assert(
-    "P1-R5/R7 Cloud still has B (I1 may later revoke tomb)",
+    "P1-R5/R7 Cloud still has B (no permanent suppress)",
     (kvStore["kw-week-employees"] || []).some((e) => e.id === B.id),
   );
 }

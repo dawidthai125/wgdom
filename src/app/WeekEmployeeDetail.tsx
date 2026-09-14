@@ -48,6 +48,7 @@ import {
   EXTRA_COST_STATUS_LABELS,
   normalizePayrollManualAdjustment,
 } from "@/app/app-domain";
+import { visibleExtraCosts } from "@/lib/payroll-extra-costs-merge";
 
 const MANUAL_ADJ_KIND_OPTIONS: { value: PayrollManualAdjustmentKind; label: string }[] = [
   { value: "vacation", label: "Urlop" },
@@ -119,7 +120,7 @@ export function WeekEmployeeDetail({
     onPatchDay(key, next);
   }, [onPatchDay]);
   const prevSatIso = previousSaturdayIso(weekFrom);
-  const extraCosts = safeEmp.extraCosts ?? [];
+  const extraCosts = visibleExtraCosts(safeEmp.extraCosts);
   const updateExtraCosts = useCallback((next: EmployeeExtraCost[]) => {
     onPatchExtraCosts(next);
   }, [onPatchExtraCosts]);

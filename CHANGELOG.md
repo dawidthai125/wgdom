@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.220 — PAYROLL final gaps hardening (2026-09-14)
+
+- GAP1 carry CLEAR: no UI undefer → no `clearedAt` (documented only)
+- GAP2 extraCosts: soft-delete via `deletedAt`; same-id resurrection blocked; new UUID for new costs
+- GAP3 failed `pwrRemove`: revoke provisional tomb when Cloud still contains person (tomb-before-push unchanged for Phase 3)
+- Tests: `test-payroll-extracosts-delete-tombstone.mjs`, `test-payroll-failed-remove-tombstone.mjs`, `test-payroll-final-gaps-cross.mjs`
+
 ## 2.66.219 — PAYROLL P1 remove failure no optimistic drop (2026-09-14)
 
 - `removeWeekEmployee` no longer drops membership before Cloud ACK
