@@ -38,7 +38,7 @@ W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.
 **NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. TPI IK E2E · Phase 5 · AUTONOMY-08 epic closeout · inny REAL SOURCE) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** reopen Środa L+T+U (**CLOSED / VERIFY PASS @ `bce0ba23`**) · **NIE** start G1/G2/G3 na TPI bez GO.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
-Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1.
+Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1 · **PAYROLL GREEN / HARDENED / CLOSED** (prod **2.66.220 / `73aededf`** — verify live `version.json` · SSOT [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md)).
 
 ---
 
@@ -71,7 +71,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 |--------|------|
 | **App** | React/Vite · monolit UI `src/app/` · Przetargi = TendersModule |
 | **Sync** | `cloud-sync.ts` · Edge `make-server-0afb8820` — **nie** ruszaj CORE bez Owner GO |
-| **Payroll** | SSOT Hours-wipe / carry — Gate G1–G9 przed IMPLEMENT |
+| **Payroll** | **CRITICAL PROTECTED** · **GREEN / HARDENED / CLOSED** @ **2.66.220 / `73aededf`** — SSOT [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) · Gate G1–G9 przed IMPLEMENT · **nie** reopen Phase 3 / F1 / P1 remove / Soft Restore bez RCA+Owner GO |
 | **AI-COST-01** | **EPIC COMPLETE · FROZEN · FIELD READY** — Bid Proposal = jedyny generator oferty |
 | **AI-COST-02** | COST-02-A · 02-B · **I3 FULLY CLOSED** · dalsze slice = backlog |
 | **Doc detection** | `src/lib/doc-detection/` · Doc.D1/D2/D3 · bez rename KV `dossier.kosztorys` |

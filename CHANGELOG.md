@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## docs — PAYROLL documentation reconciliation (2026-09-14)
+
+- Docs-only: ujednolicono Payroll CRITICAL PROTECTED + Final Hardened baseline (**runtime już 2.66.220 / `73aededf`** — bez nowego bump UI)
+- SSOT: `PAYROLL_CRITICAL_PROTECTED_MODULE.md` §11–§20 · Gate cold-start · Never Break frozen · Regression History §12
+- Tip: `09_PRODUCTION_BASELINE.md` LAST VERIFIED / APPLICATION VERSION → Payroll GREEN CLOSED
+- **ZERO** zmian `src/` / testów / KV
+
 ## 2.66.220 — PAYROLL final gaps hardening (2026-09-14)
 
 - GAP1 carry CLEAR: no UI undefer → no `clearedAt` (documented only)

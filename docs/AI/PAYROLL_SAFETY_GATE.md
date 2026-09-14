@@ -8,7 +8,11 @@
 ```text
 ŻADNEGO IMPLEMENT (FEATURE ani CORE) bez odpowiedzi poniżej.
 Jeśli choć jedno TAK → pełna ścieżka Payroll Safety (nie „szybki fix”).
+Payroll = CRITICAL PROTECTED MODULE — patrz PAYROLL_CRITICAL_PROTECTED_MODULE.md
 ```
+
+> **★★ Protected Core (GO6.1 → GO10):** [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md)  
+> **NOWY FEATURE ≠ powód do zmiany Payroll sync.** Bez Owner GO = **BLOCKED**.
 
 ---
 
@@ -46,6 +50,7 @@ Nadal obowiązuje: **#CORE-013** (nie mieszaj FEATURE+CORE w jednym commit).
 
 ```text
 OBOWIĄZKOWO (kolejność):
+0. PAYROLL_CRITICAL_PROTECTED_MODULE.md  (GO6.1/GO8.1/GO9.2/GO10 FROZEN)
 1. PAYROLL_NEVER_BREAK_RULES.md
 2. PAYROLL_BOUNDARY_MAP.md
 3. PAYROLL_GUARD_RAILS.md  (+ 08_AI_GUARDRAILS.md)
@@ -56,8 +61,10 @@ OBOWIĄZKOWO (kolejność):
 8. PAYROLL-ARCHITECTURE-SSOT.md
 9. PAYROLL_AI_PLAYBOOK.md         (AUDIT → DF → Owner GO)
 10. FEATURE_IMPLEMENTATION_CHECKLIST.md  (sekcja Payroll FULL)
-→ STOP IMPLEMENT do Owner GO jeśli write-path / merge / fence / bootstrap
+→ STOP IMPLEMENT do Owner GO jeśli write-path / merge / fence / bootstrap / CAS / settlement
 ```
+
+**Frozen (nie łamać bez osobnego Owner GO):** GO6.1 fence · GO8.1 settlement-retain · GO9.2 single-flight CAS · GO4 ACK · GO10 unsettle-meta NO-FIX.
 
 ---
 
@@ -85,6 +92,38 @@ Owner GO needed: YES|NO
 
 | | |
 |--|--|
+| **CRITICAL PROTECTED** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) |
+| Never break | [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) |
 | Manual | [`AI_PAYROLL_SAFETY_MANUAL.md`](AI_PAYROLL_SAFETY_MANUAL.md) |
 | Feature checklist | [`FEATURE_IMPLEMENTATION_CHECKLIST.md`](FEATURE_IMPLEMENTATION_CHECKLIST.md) |
 | Decision Tree | [`AI_DECISION_TREE.md`](AI_DECISION_TREE.md) |
+
+---
+
+## 5. CURRENT BASELINE (HARDENED)
+
+| | |
+|--|--|
+| **Prod** | **2.66.220** / **`73aededf`** — live: `version.json` |
+| **Status** | **PAYROLL GREEN / HARDENED / CLOSED** |
+| **SSOT ochrony + CLOSED A–I** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) §11–§20 |
+| **HISTORY tips** | 2.66.218 Phase 3 · 2.66.219 P1 remove UX — **nie** CURRENT |
+
+---
+
+## 6. PAYROLL COLD-START
+
+```text
+1. Ten Gate (G1–G9) → odpowiedź w czacie
+2. PAYROLL_CRITICAL_PROTECTED_MODULE.md  (§11 baseline · §12 CLOSED · §13 FROZEN)
+3. PAYROLL_NEVER_BREAK_RULES.md
+4. git status · HEAD == origin/main?
+5. version.json vs tip 09
+6. CRITICAL PROTECTED — bez Owner GO = STOP IMPLEMENT
+7. Nie reopen CLOSED workstreams
+8. Nie ruszaj Payroll przy IK „dla wygody”
+9. Cloud authoritative · LS = cache
+10. SEARCH BEFORE CREATE (CAS/rebase/intents/tombs już istnieją)
+```
+
+Pełna lista: CRITICAL §20.

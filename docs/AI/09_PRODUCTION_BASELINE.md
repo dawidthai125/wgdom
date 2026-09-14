@@ -5,7 +5,7 @@
 > **Aktualizacja:** przy każdym domknięciu release / docs tip na `main`.
 > **Live:** `https://www.wgdom.fun/version.json` · cross-check `git log -1` · `src/app/changelog-data.ts` (UI)
 
-**Snapshot dokumentacji:** 2026-09-05 · **STABLE PRODUCTION IDENTITY** · **APPLICATION VERSION 2.66.165** · **LIVE = FETCH `/version.json`** (runtime authority · **nie** SSOT mirror) · **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT `32a90fef`** (documentary · docs-only lag EXPECTED) · **TPI HYDRATION VERIFICATION CHECKPOINT `75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED / PRODUCTION VERIFIED** · **LINE-TOLERANT** FEATURE tip HISTORY **`a5d19047`** · **OD-OCR-47 PASS** (HISTORY tip `2f3d1847` / 2.66.147) · tip-continuity HISTORY **`14ec9bd9` / `98f4b5e`** · **A0.2 frontend PV VERIFIED (OD-OCR-37)** · **A0.2 KV LIVE rev 57** · **CURRENT CASE = ŚRODA A0.2** · **CHROBREGO CLOSED** · **TPI Full IK E2E = OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **A08-P3 IMPLEMENTED · OPEN** · Experience Phase 5 **NOT AUTHORIZED** · epic **NOT CLOSED** · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · Payroll **REGRESSION WATCH ACTIVE**
+**Snapshot dokumentacji:** 2026-09-14 · **PAYROLL GREEN / HARDENED / CLOSED** · **APPLICATION VERSION 2.66.220** · **LAST VERIFIED SOURCE `73aededf`** · **LIVE = FETCH `/version.json`** · prior IK snapshot 2026-09-05 (APP 2.66.165 / `32a90fef` HISTORY for IK continuity) · cold-start [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md) · IK SSOT [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · tryb **UTRZYMANIE** · Payroll SSOT [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md)
 
 ---
 
@@ -30,9 +30,10 @@ Po release: zaktualizuj **tylko §1** (i krótki wiersz w §2). Reszta Knowledge
 | Pole | Wartość |
 |------|---------|
 | **URL** | https://www.wgdom.fun · https://www.wgdom.online |
-| **UI version (changelog / APPLICATION VERSION)** | **2.66.165** (live tip · **bez** CHANGELOG bump na docs-only) |
-| **LIVE PRODUCTION (`/version.json`)** | **FETCH at audit** · runtime authority · `version` + `commit` · **nie** hardcoduj jako trwały „CURRENT LIVE = X” w SSOT |
-| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** (`32a90fef10f45069a857dc6c4f1191ddf23024e1`) · documentary · Owner tip-continuity PV · **może ≠** live po docs-only · lag **EXPECTED** |
+| **UI version (changelog / APPLICATION VERSION)** | **2.66.220** (Payroll Final Hardened tip · verify live `/version.json`) |
+| **LIVE PRODUCTION (`/version.json`)** | **FETCH at audit** · runtime authority · expected **2.66.220** / **`73aeded`** when PV PASS · **nie** hardcoduj stale tipów jako CURRENT |
+| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`73aededf`** (`73aededf8a12d869d9ec9c8be18177880b926b20`) · **PAYROLL FINAL HARDENED** · PV PASS · Writes ZERO · documentary tip for Payroll GREEN/CLOSED · may lag other IK docs narrative until next docs sync |
+| **Feature tip (PAYROLL FINAL HARDENED BASELINE)** | **CLOSED / PRODUCTION VERIFIED · GREEN** · UI **2.66.220** · commit **`73aededf`** · Soft Restore same-week · D4 richer-prev · ExtraCosts F1 + DELETE `deletedAt` · MA picker · CarryForward SET (no CLEAR UI) · Phase 3 `pwrRemove` FROZEN · P1 remove no optimistic drop · failed-remove tomb revoke · SSOT [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) · HISTORY: 2.66.218/`2a4e3ae` · 2.66.219/`7eadde17` · **≠** IK change · **≠** invent Carry CLEAR |
 | **Alias „DEPLOYED REPOSITORY TIP”** | = LAST VERIFIED SOURCE · **nie** current live SHA |
 | **TPI HYDRATION VERIFICATION CHECKPOINT** | **`75d0f09`** (`75d0f0907ab2937e9624cb0c338e56a6195fbb88`) · **≠** LIVE · **≠** LAST VERIFIED SOURCE |
 | **TPI FULL SNAPSHOT HYDRATION FEATURE TIP** | **CLOSED / PRODUCTION VERIFIED** · DESIGN-C · **VERIFICATION CHECKPOINT `75d0f09`** · `kw-tender-ingest-v1` → `loadTendersPipeline` hydrate → `applyIngestArtifactsToPipelineItem` → local cold `tenders-pipeline-full` · Track B lean **UNCHANGED** · Master **§10.0.2 · §24** · **≠** LIVE · **≠** TPI Full IK E2E PASS · **≠** GLOBAL IK PV · **≠** new CURRENT NODE |

@@ -15,7 +15,11 @@ Tryb = UTRZYMANIE · NEXT EPIC = NONE bez Owner GO
 ════════════════════════════════════════════════════════
 ```
 
-**Lista Płac = priorytet produkcyjny #1.** Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
+**Lista Płac = priorytet produkcyjny #1 · CRITICAL PROTECTED MODULE.**  
+Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.  
+**SSOT ochrony:** [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) (GO6.1 → GO10 · **Final Hardened GREEN @ 2.66.220 / `73aededf`**).  
+**NOWY FEATURE ≠** powód do modyfikacji Payroll sync bez Owner GO.  
+**IK ≠** upoważnienie do zmiany Payroll CAS/settlement „przy okazji”.
 
 **★★ Stan / WIP / flagi / NEXT:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
 **Quick Start (1 strona):** [`AI_QUICK_START.md`](AI_QUICK_START.md)  
@@ -52,6 +56,7 @@ Tryb = UTRZYMANIE · NEXT EPIC = NONE bez Owner GO
 4. AI_MEMORY.md                      ← pamięć ≤5 min
 5. AI_DECISION_TREE.md               ← routing decyzji
 6. PAYROLL_SAFETY_GATE.md            ← ★ GATE — odpowiedz TAK/NIE
+6b. PAYROLL_CRITICAL_PROTECTED_MODULE.md ← ★ PROTECTED CORE / GO6.1–GO10 (gdy Gate TAK lub Shared)
 7. AI_PAYROLL_SAFETY_MANUAL.md       ← pack LP (gdy Gate wymaga)
 8. ARCHITECTURE / tematyczny CLOSE   ← gdy FEATURE
 9. CURRENT-TASK.md                   ← status sesji Ownera
@@ -71,6 +76,7 @@ Tryb = UTRZYMANIE · NEXT EPIC = NONE bez Owner GO
 | CM-04 P2 / P3 | [`../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P2-CLOSEOUT.md) · [`NEXT-EPIC-CANDIDATES`](../architecture/NEXT-EPIC-CANDIDATES.md) |
 | Foundation Lib / FND-* | [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md) |
 | Never break (1 strona) | [`PAYROLL_NEVER_BREAK_RULES.md`](PAYROLL_NEVER_BREAK_RULES.md) |
+| **CRITICAL PROTECTED / GO6–GO10** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) |
 | Boundary FEATURE vs CORE | [`PAYROLL_BOUNDARY_MAP.md`](PAYROLL_BOUNDARY_MAP.md) |
 | Week / ALIGN / ROLLOVER | [`PAYROLL_WEEK_MODEL.md`](PAYROLL_WEEK_MODEL.md) |
 | Data / cloud / LS flow | [`PAYROLL_DATA_FLOW_INDEX.md`](PAYROLL_DATA_FLOW_INDEX.md) |

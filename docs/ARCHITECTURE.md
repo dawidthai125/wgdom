@@ -3,7 +3,7 @@
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
 > **Ostatnia aktualizacja tego dokumentu:** 2026-07-28 (**Foundation Lib Phase 0**) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) · Foundation Lib [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
-> **★ Nowa sesja AI:** [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · **★ Mapa aplikacji:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
+> **★ Nowa sesja AI:** [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · **★ Payroll CRITICAL PROTECTED · GREEN/HARDENED/CLOSED @ 2.66.220:** [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md) · **★ Mapa aplikacji:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · tip [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
 > **Uwaga tip:** nagłówek historyczny tego pliku może lagować względem `09` — **zawsze** czytaj tip z `09` / `version.json`, nie z daty w ARCHITECTURE.
@@ -370,7 +370,7 @@ html, body, #root          overflow: hidden (mobile + md+)
 | Pull on focus | `pullFromCloudAndMerge()` — visibility, focus, native resume |
 | Pełny push | `pushAllDataToCloudSafe` → `computeMergedDataBundle` → merge z LS przed chmurą |
 | Ochrona race | `pullInFlightRef`, `suppressAutoSyncUntilRef` (~4,5 s po pull), anulowanie timera push przy pull |
-| **Mutation guard** | `cloud-sync-mutation-guard.ts` — `begin/end` token per scope; `isBlocked()` w `runCloudSync` / `pullFromCloudAndMerge` / `scheduleAutoCloudSync`; `reset()` po bootstrap (`CloudLoader`); **Przydziały robót** — `withKwJobsWorkEntryMutation` w `PayrollJobAssignmentsPanel` (v2.63.16) |
+| **Mutation guard** | `cloud-sync-mutation-guard.ts` — `begin/end` token per scope; `isBlocked()` w `runCloudSync` / `pullFromCloudAndMerge` / `scheduleAutoCloudSync`; `reset()` po bootstrap (**nie** niszczy in-flight payroll write-chain — GO9.2); **`enqueueKwWeekEmployeesWrite`** = single-flight payroll CAS FIFO (sibling writers serializowane; bootstrap payroll CAS w tym samym chain); **Przydziały robót** — `withKwJobsWorkEntryMutation` w `PayrollJobAssignmentsPanel` (v2.63.16). SSOT ochrony: [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) |
 
 **Bundle admina:** `adminDataBundle()` = kolejność `DATA_KEYS`.
 

@@ -16,7 +16,8 @@
 > **P1 COMPLETE SSOT:** [`../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md`](../architecture/CENY-MATERIAŁÓW-04-P1-CLOSEOUT.md)  
 > **Handoff sesji:** [`../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md`](../architecture/SESSION-HANDOFF-POST-COST-BID-GAP-01.md)  
 > **Foundation Lib:** [`../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](../architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
-> **Zakaz:** implementacja bez Entry + Safety Gate · mixed FEATURE+CORE
+> **Zakaz:** implementacja bez Entry + Safety Gate · mixed FEATURE+CORE  
+> **★★ Payroll:** CRITICAL PROTECTED · **GREEN / HARDENED / CLOSED** @ **2.66.220 / `73aededf`** — [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) · Gate [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md) · **nie** ruszaj Payroll przy IK
 
 ```text
 ══════════════════════════════════════

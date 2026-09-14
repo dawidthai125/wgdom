@@ -149,3 +149,22 @@ Obrona: Dependency Map + Guard Rails + #CORE-013 + Gate B payroll
 | RC-B / PWRB | `recovery/SYNC-ARCH-01-RC-B-1-CLOSEOUT.md` |
 | **Freshness + canonical payload** | **`architecture/PAYROLL-FRESHNESS-PAYLOAD-2.66.126-INCIDENT-CLOSEOUT.md`** |
 | Sync forensics głęboko | `docs/recovery/PAYROLL-*` (HISTORICAL) |
+| **Final Hardened baseline** | [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) §11–§19 |
+
+---
+
+## 12. Final hardening series (2026-09-14) · CLOSED @ 2.66.220 / `73aededf`
+
+| # | Objaw | RC | Fix | Release | Status |
+|---|-------|----|-----|---------|--------|
+| **12a** | Nowy tydzień = stare godziny | Soft Restore overlay z rotacyjnego `-prev` bez same-week | Same-week guard; `-prev` OFF na ADD | cross-week Soft Restore fix | **CLOSED** |
+| **12b** | Banner „bogatszy prev” / false recovery | D4 unbound richer-prev | Same-week binding | D4 richer-prev | **CLOSED** |
+| **12c** | Koszty dodatkowe giną między urządzeniami | Whole-array merge | F1 union-by-id + LWW + stamp | ExtraCosts F1 | **CLOSED** |
+| **12d** | Usunięty koszt wraca ze stale peer | Brak delete tombstone | Soft-delete `deletedAt` | **2.66.220** | **CLOSED** |
+| **12e** | REMOVE przy 409 / conflict | Silent / niebezpieczny path | Phase 3 CAS/rebase | **2.66.218** | **CLOSED / FROZEN** |
+| **12f** | UI bez B, Cloud z B po fail REMOVE | Optimistic membership drop | P1 no optimistic drop | **2.66.219** | **CLOSED** |
+| **12g** | Lokalny tomb po failed REMOVE + Cloud∋B | Tomb przed push + brak revoke-on-fail | Revoke week tomb gdy Cloud ma osobę | **2.66.220** | **CLOSED** |
+
+**Świadoma granica:** CarryForward CLEAR / `clearedAt` — **nie** wdrożone (brak UI CLEAR).  
+**PV:** 2.66.220 / `73aededf` · prod writes podczas hardening: **ZERO**.  
+**Nie eksponuj** prywatnych wartości wypłat / imion w docs — tylko architektura.

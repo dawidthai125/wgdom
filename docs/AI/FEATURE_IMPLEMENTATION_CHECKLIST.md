@@ -2,7 +2,8 @@
 
 > **STATUS:** **ACTIVE**  
 > **Kiedy:** przed **każdym** IMPLEMENT (FEATURE i CORE)  
-> **Wymaga wcześniej:** [`AI_ENTRY.md`](AI_ENTRY.md) + [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)
+> **Wymaga wcześniej:** [`AI_ENTRY.md`](AI_ENTRY.md) + [`PAYROLL_SAFETY_GATE.md`](PAYROLL_SAFETY_GATE.md)  
+> **★★ Protected:** [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) — NOWY FEATURE ≠ Payroll sync
 
 ---
 
@@ -11,6 +12,7 @@
 ```text
 □ Przeszedłem AI_ENTRY → Handoff → Memory → Decision Tree
 □ Wypełniłem PAYROLL SAFETY GATE (G1–G9) w czacie
+□ Wiem, że Payroll = CRITICAL PROTECTED (GO6.1/GO8.1/GO9.2 FROZEN · GO10 NO-FIX)
 □ Tip z 09_PRODUCTION_BASELINE / version.json (nie z historii czatu)
 □ CURRENT-TASK przeczytany (status Ownera) — bez zmiany bez polecenia
 □ Zakres = One Bundle = One Goal
@@ -21,9 +23,10 @@
 ## B. Gdy Gate = ALL-NIE (czysty FEATURE)
 
 ```text
-□ Diff planowany NIE zawiera: cloud-sync, payroll-*, CloudLoader, Edge merge, kw-week-*
+□ Diff planowany NIE zawiera: cloud-sync, payroll-*, CloudLoader, Edge merge, kw-week-*, mutation-guard FIFO
 □ Boundary Check: zero Shared providers/hooks wpływających na LP
 □ Nie ruszam shell/routing jeśli brief tego nie wymaga (G8/G9 świadomie NIE)
+□ Nie „upraszczam” Payroll sync przy okazji FEATURE
 □ Plan testów FEATURE (smoke / e2e tematu) — bez obchodzenia fence
 □ Owner GO jeśli workflow wymaga (FEATURE gate)
 □ Po implement: VERIFY → commit tylko na polecenie Ownera
@@ -34,14 +37,16 @@
 ## C. Gdy Gate = ≥1 TAK (Payroll FULL)
 
 ```text
+□ PAYROLL_CRITICAL_PROTECTED_MODULE — przeczytany (anti-rollback · CAS single-flight · settlement model)
 □ AI_PAYROLL_SAFETY_MANUAL — read order wykonany
 □ PAYROLL_NEVER_BREAK_RULES — odhaczone mentalnie
 □ PAYROLL_BOUNDARY_MAP — klasyfikacja FEATURE vs CORE
 □ Podobny incident/RCA przeskanowany (INDEX)
-□ DESIGN FREEZE jeśli write-path / merge / fence / bootstrap / week cycle
+□ DESIGN FREEZE jeśli write-path / merge / fence / bootstrap / week cycle / CAS / settlement
 □ Owner GO na IMPLEMENT CORE
 □ Gate B --scope payroll gdy CORE
 □ #CORE-013 — osobny commit od FEATURE
+□ Testy: settlement-ack · metadata · freshness · GO9.2 single-flight · FIFO · invariant · resurrection · tombstone · build
 □ Po implement: dual-device / hours intact / sync observation wg Playbook
 ```
 
