@@ -1692,6 +1692,11 @@ export type PushKeysToCloudOptions = {
   workCatalogPushMode?: "union" | "intent";
   /** Internal — CAS path calls batch-set directly (avoid redirect loop). */
   skipWorkCatalogIntercept?: boolean;
+  /** PAYROLL AKORD Phase 4A — CAS for kw-payroll-piecework (≠ week-employees PWRB). */
+  pieceworkCas?: boolean;
+  expectedPieceworkRevision?: number;
+  /** Internal — CAS path calls batch-set directly (avoid redirect loop). */
+  skipPieceworkIntercept?: boolean;
   /** Internal — canonical lean+guard already prepared [body, guard]; skip 29B intercept. */
   skipPipelineLeanIntercept?: boolean;
   /** Opcjonalnie — unikaj drugiego batch-get w pushKeysToCloudSafe. */
@@ -3647,6 +3652,7 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === ELECTRICAL_SCHEMATICS_KEY) return [];
   if (key === WM_TECHNICAL_DRAWINGS_KEY) return [];
   if (key === PAYROLL_PIECEWORK_KEY || key === "kw-payroll-piecework") return emptyPayrollPieceworkState();
+  if (key === "kw-payroll-piecework-meta") return { pieceworkRevision: 0, updatedAt: Date.now() };
   if (key.startsWith("kw-")) return [];
   return {};
 }
@@ -3735,6 +3741,25 @@ export async function pushKeysToCloud(
     return pushKeysToCloud(nextKeys, nextValues, options);
   }
 
+  const pieceworkIdx = keys.indexOf(PAYROLL_PIECEWORK_KEY);
+  if (pieceworkIdx >= 0 && options?.skipPieceworkIntercept !== true) {
+    const { pushPayrollPieceworkToCloudSafe } = await import("@/lib/payroll-piecework-cloud-push");
+    await pushPayrollPieceworkToCloudSafe(
+      normalizePayrollPieceworkState(values[pieceworkIdx]),
+      { pushOptions: options },
+    );
+    const nextKeys: string[] = [];
+    const nextValues: unknown[] = [];
+    for (let i = 0; i < keys.length; i++) {
+      if (i === pieceworkIdx) continue;
+      if (keys[i] === "kw-payroll-piecework-meta") continue;
+      nextKeys.push(keys[i]);
+      nextValues.push(values[i]);
+    }
+    if (nextKeys.length === 0) return {};
+    return pushKeysToCloud(nextKeys, nextValues, options);
+  }
+
   if (shouldRoutePipelinePushToCanonicalSeam(keys, {
     skipIntercept: options?.skipPipelineLeanIntercept === true,
   })) {
@@ -3788,6 +3813,8 @@ export async function pushKeysToCloud(
     expectedRevision: pushOptions.expectedRevision,
     workCatalogCas: pushOptions.workCatalogCas === true,
     expectedCatalogRevision: pushOptions.expectedCatalogRevision,
+    pieceworkCas: pushOptions.pieceworkCas === true,
+    expectedPieceworkRevision: pushOptions.expectedPieceworkRevision,
     clientAppVersion: pushOptions.clientAppVersion ?? APP_VERSION,
     /** D-F4 — Edge skip-union when true (intentional clear / empty rollover). */
     intentionalHoursClear: pushOptions.intentionalHoursClear === true,
@@ -3939,6 +3966,39 @@ export async function pushKeysToCloud(
           typeof errJson.error === "string" ? errJson.error : errCode,
         );
       }
+      if (
+        res.status === 409 &&
+        (errCode === "piecework_stale_revision"
+          || errCode === "piecework_legacy_client_rejected"
+          || errCode === "piecework_invariant_violated")
+      ) {
+        const {
+          PieceworkStaleRevisionError,
+          PIECEWORK_INVARIANT_VIOLATED_CODE,
+        } = await import("@/lib/payroll-piecework-cloud-push");
+        const { PieceworkInvariantViolatedError } = await import(
+          "@/lib/payroll-piecework-invariant"
+        );
+        const { normalizePayrollPieceworkState } = await import("@/lib/payroll-piecework-types");
+        const serverRevision =
+          typeof errJson.serverRevision === "number" ? errJson.serverRevision : -1;
+        const serverStateRaw = errJson.piecework ?? errJson.serverPiecework;
+        const serverState =
+          serverStateRaw != null ? normalizePayrollPieceworkState(serverStateRaw) : null;
+        if (errCode === PIECEWORK_INVARIANT_VIOLATED_CODE || errCode === "piecework_invariant_violated") {
+          throw new PieceworkInvariantViolatedError(
+            typeof errJson.allocationId === "string" ? errJson.allocationId : "",
+            typeof errJson.agreedAmount === "number" ? errJson.agreedAmount : 0,
+            typeof errJson.activeAdvancesSum === "number" ? errJson.activeAdvancesSum : 0,
+          );
+        }
+        throw new PieceworkStaleRevisionError(
+          errCode,
+          serverRevision,
+          serverState,
+          typeof errJson.error === "string" ? errJson.error : errCode,
+        );
+      }
       payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "error", {
         httpStatus: res.status,
         ok: false,
@@ -3978,6 +4038,12 @@ export async function pushKeysToCloud(
         "@/lib/work-catalog/work-catalog-meta"
       );
       writeWorkCatalogMetaToLs(normalizeWorkCatalogMeta(resJson.workCatalogMeta));
+    }
+    if (pushOptions.pieceworkCas && resJson.pieceworkMeta) {
+      const { writePayrollPieceworkMetaToLs, normalizePayrollPieceworkMeta } = await import(
+        "@/lib/payroll-piecework-meta"
+      );
+      writePayrollPieceworkMetaToLs(normalizePayrollPieceworkMeta(resJson.pieceworkMeta));
     }
     payrollTraceEmit("sync.http.batch_set.result", "HTTP_OUT", "info", {
       httpStatus: res.status,
@@ -5116,6 +5182,12 @@ export async function pushKeyToCloud(
       "@/lib/work-catalog/work-catalog-cloud-push"
     );
     await pushWorkCatalogStoreToCloudSafe(normalizeWorkCatalogStore(value), { mode: "intent" });
+    return;
+  }
+  if (key === PAYROLL_PIECEWORK_KEY || key === "kw-payroll-piecework") {
+    const { pushPayrollPieceworkToCloudSafe } = await import("@/lib/payroll-piecework-cloud-push");
+    const { normalizePayrollPieceworkState } = await import("@/lib/payroll-piecework-types");
+    await pushPayrollPieceworkToCloudSafe(normalizePayrollPieceworkState(value));
     return;
   }
   if (isDataKey(key)) {

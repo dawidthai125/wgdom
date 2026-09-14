@@ -48,6 +48,18 @@ import {
   releaseKnrDiscoveryJobLease,
   validateKnrDiscoveryJobClaimRequest,
 } from "./knr-discovery-job-lease.ts";
+import {
+  emptyEdgePieceworkState,
+  findEdgePieceworkCapViolations,
+  mergeEdgePieceworkState,
+  normalizeEdgePieceworkState,
+  normalizePieceworkMetaEdge,
+  PAYROLL_PIECEWORK_KEY_EDGE,
+  PAYROLL_PIECEWORK_META_KEY_EDGE,
+  PIECEWORK_INVARIANT_VIOLATED_CODE_EDGE,
+  PIECEWORK_LEGACY_CLIENT_CODE_EDGE,
+  PIECEWORK_STALE_REVISION_CODE_EDGE,
+} from "./payroll-piecework-cas-edge.ts";
 
 const PHOTOS_BUCKET = "make-0afb8820-photos";
 
@@ -953,6 +965,12 @@ function coerceKvValue(key: string, value: unknown): unknown {
   if (key === "kw-tenders-custom-keywords") {
     return { action: [], scope: [], exclude: [], learnedFromCount: 0, updatedAt: "" };
   }
+  if (key === PAYROLL_PIECEWORK_KEY_EDGE || key === "kw-payroll-piecework") {
+    return emptyEdgePieceworkState();
+  }
+  if (key === PAYROLL_PIECEWORK_META_KEY_EDGE || key === "kw-payroll-piecework-meta") {
+    return { pieceworkRevision: 0, updatedAt: Date.now() };
+  }
   if (key.startsWith("kw-")) return [];
   return {};
 }
@@ -973,6 +991,8 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
     expectedRevision,
     workCatalogCas = false,
     expectedCatalogRevision,
+    pieceworkCas = false,
+    expectedPieceworkRevision,
     intentionalHoursClear = false,
     payrollDomainUserWrite = false,
     hoursIntents = [],
@@ -992,6 +1012,7 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
   const safeValues = values.map((v: unknown, i: number) => coerceKvValue(keys[i], v));
   let payrollMetaAfterWrite: Record<string, unknown> | null = null;
   let catalogMetaAfterWrite: Record<string, unknown> | null = null;
+  let pieceworkMetaAfterWrite: Record<string, unknown> | null = null;
   let settlementIdemPending: SettlementIdempotencyRecord | null = null;
   let settlementIdemPendingKey = "";
   const archBatchIdx = keys.indexOf("kw-archive");
@@ -1397,6 +1418,109 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
         `[batch-set] requestId=${requestId} WORK_CATALOG_OK clientAppVersion=${clientAppVersion ?? "n/a"} workCountBefore=${prevCount} workCountAfter=${nextCount} revisionBefore=${normalizeWorkCatalogMetaEdge(await kv.get(WORK_CATALOG_META_KEY)).catalogRevision} revisionAfter=${catalogMetaAfterWrite?.catalogRevision ?? "n/a"} fpBefore=${fpBefore.slice(0, 32)} fpAfter=${fpAfter.slice(0, 32)}`,
       );
       safeValues[i] = nextNorm;
+    } else if (keys[i] === PAYROLL_PIECEWORK_KEY_EDGE || keys[i] === "kw-payroll-piecework") {
+      const prev = await kv.get(PAYROLL_PIECEWORK_KEY_EDGE);
+      const incomingNorm = normalizeEdgePieceworkState(values[i]);
+      const expPwRev =
+        typeof expectedPieceworkRevision === "number" && Number.isFinite(expectedPieceworkRevision)
+          ? Math.floor(expectedPieceworkRevision)
+          : undefined;
+
+      if (!pieceworkCas) {
+        const metaRaw = await kv.get(PAYROLL_PIECEWORK_META_KEY_EDGE);
+        const serverMeta = normalizePieceworkMetaEdge(metaRaw);
+        return c.json(
+          {
+            ok: false,
+            code: PIECEWORK_LEGACY_CLIENT_CODE_EDGE,
+            serverRevision: serverMeta.pieceworkRevision,
+            piecework: prev != null ? normalizeEdgePieceworkState(prev) : emptyEdgePieceworkState(),
+            error: "non-CAS piecework write rejected — update client",
+            requestId,
+          },
+          409,
+        );
+      }
+      if (expPwRev === undefined) {
+        const metaRaw = await kv.get(PAYROLL_PIECEWORK_META_KEY_EDGE);
+        const serverMeta = normalizePieceworkMetaEdge(metaRaw);
+        return c.json(
+          {
+            ok: false,
+            code: PIECEWORK_LEGACY_CLIENT_CODE_EDGE,
+            serverRevision: serverMeta.pieceworkRevision,
+            piecework: prev != null ? normalizeEdgePieceworkState(prev) : emptyEdgePieceworkState(),
+            error: "expectedPieceworkRevision required for piecework CAS write",
+            requestId,
+          },
+          409,
+        );
+      }
+
+      const metaRaw = await kv.get(PAYROLL_PIECEWORK_META_KEY_EDGE);
+      const serverMeta = normalizePieceworkMetaEdge(metaRaw);
+      if (expPwRev !== serverMeta.pieceworkRevision) {
+        return c.json(
+          {
+            ok: false,
+            code: PIECEWORK_STALE_REVISION_CODE_EDGE,
+            serverRevision: serverMeta.pieceworkRevision,
+            piecework: prev != null ? normalizeEdgePieceworkState(prev) : emptyEdgePieceworkState(),
+            error: "stale piecework revision",
+            requestId,
+          },
+          409,
+        );
+      }
+
+      const cloudNorm = prev != null ? normalizeEdgePieceworkState(prev) : emptyEdgePieceworkState();
+      const merged = mergeEdgePieceworkState(cloudNorm, incomingNorm);
+      const violations = findEdgePieceworkCapViolations(merged);
+      if (violations.length > 0) {
+        const v = violations[0];
+        return c.json(
+          {
+            ok: false,
+            code: PIECEWORK_INVARIANT_VIOLATED_CODE_EDGE,
+            serverRevision: serverMeta.pieceworkRevision,
+            piecework: cloudNorm,
+            allocationId: v.allocationId,
+            agreedAmount: v.agreedAmount,
+            activeAdvancesSum: v.activeAdvancesSum,
+            error: `piecework invariant: advances ${v.activeAdvancesSum} > agreedAmount ${v.agreedAmount}`,
+            requestId,
+          },
+          409,
+        );
+      }
+
+      // CAS strengthen: re-read meta immediately before commit (same pattern as payroll week)
+      {
+        const metaRawRecheck = await kv.get(PAYROLL_PIECEWORK_META_KEY_EDGE);
+        const serverMetaRecheck = normalizePieceworkMetaEdge(metaRawRecheck);
+        if (expPwRev !== serverMetaRecheck.pieceworkRevision) {
+          return c.json(
+            {
+              ok: false,
+              code: PIECEWORK_STALE_REVISION_CODE_EDGE,
+              serverRevision: serverMetaRecheck.pieceworkRevision,
+              piecework: prev != null ? normalizeEdgePieceworkState(prev) : emptyEdgePieceworkState(),
+              error: "stale piecework revision (pre-commit recheck)",
+              requestId,
+            },
+            409,
+          );
+        }
+      }
+
+      pieceworkMetaAfterWrite = {
+        pieceworkRevision: serverMeta.pieceworkRevision + 1,
+        updatedAt: Date.now(),
+      };
+      safeValues[i] = merged;
+      console.log(
+        `[batch-set] requestId=${requestId} PIECEWORK_CAS_OK revisionBefore=${serverMeta.pieceworkRevision} revisionAfter=${serverMeta.pieceworkRevision + 1}`,
+      );
     } else if (keys[i] === "kw-archive") {
       const prev = await kv.get("kw-archive");
       let nextNorm = normalizeArrayKv(values[i]);
@@ -1492,6 +1616,15 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
       safeValues.push(catalogMetaAfterWrite);
     }
   }
+  if (pieceworkMetaAfterWrite) {
+    const metaIdx = keys.indexOf(PAYROLL_PIECEWORK_META_KEY_EDGE);
+    if (metaIdx >= 0) {
+      safeValues[metaIdx] = pieceworkMetaAfterWrite;
+    } else {
+      keys.push(PAYROLL_PIECEWORK_META_KEY_EDGE);
+      safeValues.push(pieceworkMetaAfterWrite);
+    }
+  }
   // EDGE write layer only — merge/tombstone/LWW already applied to safeValues above.
   // CLOUD-SYNC-BATCH-SET-TIMEOUT-RECOVERY-01 · chunked mset (fail-fast).
   const msetMeta = await kv.mset(keys, safeValues, {
@@ -1521,6 +1654,7 @@ app.post("/make-server-0afb8820/batch-set", async (c) => {
     ok: true,
     payrollWeekMeta: payrollMetaAfterWrite ?? undefined,
     workCatalogMeta: catalogMetaAfterWrite ?? undefined,
+    pieceworkMeta: pieceworkMetaAfterWrite ?? undefined,
     requestId,
   };
   if (weekEmpsIdx >= 0) {
