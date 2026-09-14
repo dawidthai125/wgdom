@@ -672,7 +672,7 @@ export function calcBiweeklyRowDisplay(
   savedWeeks: WeekArchiveRef[],
   calcBiweeklyWeekNet?: CalcBiweeklyWeekNetFn,
   options?: {
-    /** Phase 4B — inject AKORD remaining once (week nets stay extras-only for akord). */
+    /** Phase 4B+ — AKORD week advances (never remaining). Same SSOT as Lista Płac. */
     pieceworkState?: PayrollPieceworkState | null;
   },
 ): BiweeklyRowDisplay | null {
@@ -758,6 +758,10 @@ export function computePayrollCashSplit(
   savedWeeks: WeekArchiveRef[],
   calcWeeklyNet: (emp: WeekEmpPayrollInput) => number,
   calcBiweeklyWeekNet?: CalcBiweeklyWeekNetFn,
+  options?: {
+    /** Same piecework SSOT as biweeklyRowMap / Lista Płac Do wypłaty. */
+    pieceworkState?: PayrollPieceworkState | null;
+  },
 ): PayrollCashSplit {
   let weeklyNet = 0;
   let biweeklyPayoutNet = 0;
@@ -773,7 +777,15 @@ export function computePayrollCashSplit(
     if (isBiweeklyPayrollEmployee(emp, directory)) {
       hasBiweeklyEmployees = true;
       biweeklyCount += 1;
-      const row = calcBiweeklyRowDisplay(emp, directory, weekFrom, weekTo, savedWeeks, calcBiweeklyWeekNet);
+      const row = calcBiweeklyRowDisplay(
+        emp,
+        directory,
+        weekFrom,
+        weekTo,
+        savedWeeks,
+        calcBiweeklyWeekNet,
+        { pieceworkState: options?.pieceworkState },
+      );
       if (!row) continue;
       if (!nextBiweeklyPayoutDate) nextBiweeklyPayoutDate = row.nextPayoutDate;
       const earlyCashThisWeek = getEarlyPaidForPeriod(emp, directory, weekFrom, weekTo, savedWeeks, row.periodKey).txs

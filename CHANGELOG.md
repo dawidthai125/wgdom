@@ -1,5 +1,11 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.226 — PAYROLL AKORD biweekly Saturday cash (2026-09-14)
+
+- `computePayrollCashSplit` propaguje `pieceworkState` → `calcBiweeklyRowDisplay` (ten sam SSOT co wiersz listy)
+- Kasa sobotnia / PDF cash dla AKORD biweekly = zaliczki okresu wypłaty (nie 0)
+- Test: `scripts/test-payroll-akord-biweekly-cash.mjs`
+
 ## 2.66.225 — PAYROLL AKORD weekly advances ≠ remaining (2026-09-14)
 
 - Do wypłaty z akordu = suma zaliczek z bieżącego tygodnia listy płac (nie remaining / agreed)

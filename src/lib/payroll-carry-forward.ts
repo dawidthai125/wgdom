@@ -278,6 +278,9 @@ export function computePayrollCashSplitWithCarry(
   weekFrom: string,
   weekTo: string,
   savedWeeks: WeekSnapshot[],
+  options?: {
+    pieceworkState?: PayrollPieceworkState | null;
+  },
 ): PayrollCashSplit {
   return computePayrollCashSplit(
     weekEmployees,
@@ -288,10 +291,12 @@ export function computePayrollCashSplitWithCarry(
     (e) =>
       calcWeeklyNetWithCarry(e, weekFrom, weekTo, {
         savedWeeks,
+        pieceworkState: options?.pieceworkState,
       }),
     (e, from, to) =>
       calcBiweeklyWeekNetWithLeave(e, from, to, {
         savedWeeks,
       }),
+    { pieceworkState: options?.pieceworkState },
   );
 }

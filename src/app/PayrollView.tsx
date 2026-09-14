@@ -792,6 +792,7 @@ export function PayrollView({
             savedWeeks,
             hasRolloverBlockers,
           }),
+        { pieceworkState: payrollPiecework },
       ),
     [displayEmployees, directory, weekFrom, weekTo, savedWeeks, employeeLeaves, isClosedWeek, archivedForWeek, hasRolloverBlockers, payrollPiecework],
   );
@@ -959,6 +960,7 @@ export function PayrollView({
           savedWeeks,
           hasRolloverBlockers,
         }),
+      { pieceworkState: payrollPiecework },
     );
   }, [
     simulation,

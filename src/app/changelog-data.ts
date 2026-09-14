@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.226",
+    label: "PAYROLL AKORD — kasa sobotnia biweekly",
+    items: [
+      {
+        type: "fix",
+        text: "Wypłata co 2 tyg.: cash split / kasa sobotnia / PDF cash dostają ten sam pieceworkState co wiersz listy — zaliczki AKORD nie giną przy sobotniej wypłacie. Hourly bez zmian.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.225",
     label: "PAYROLL AKORD — zaliczki tygodniowe ≠ saldo",
     items: [
