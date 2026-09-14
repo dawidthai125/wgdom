@@ -13,6 +13,7 @@
 > **TPI FULL SNAPSHOT HYDRATION:** **DESIGN-C / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · **≠** LIVE · **≠** LAST VERIFIED SOURCE · **TPI Full IK E2E: OPEN / NOT VERIFIED**
 > **Track B:** **CLOSED / VERIFIED / UNCHANGED**
 > **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
+> **★★ IK sesja AUT-MAT 2026-09-14:** [`../architecture/IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](../architecture/IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) — PriceMemory Accept paint+Atlas · **`e43acb19`** · OPEN NODE still `OWNER_FINANCE_NOT_OK` · **≠** Global IK PV · **Payroll OUT OF SCOPE for IK**  
 > **★★ IK sesja 2026-08-24:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — F5 MARGIN **CLOSED GREEN** · A08-P0/P1/P2 **CLOSED** · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED**  
 > **Prior Autonomy 2026-08-18:** [`../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](../architecture/IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — historyczny  
 > **Tender pricing (F0–F6 + C-MODE-1a):** [`10_TENDER_PRICING_CONTINUITY.md`](10_TENDER_PRICING_CONTINUITY.md) — tip **zawsze z 09** (nie hardcoduj tutaj)  

@@ -22,6 +22,7 @@ Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 **IK ≠** upoważnienie do zmiany Payroll CAS/settlement „przy okazji”.
 
 **★★ Stan / WIP / flagi / NEXT:** [`MASTER-AI-HANDOFF.md`](MASTER-AI-HANDOFF.md)  
+**★★ IK Master / cold-start:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · Reuse [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md) · AUT-MAT session [`../architecture/IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](../architecture/IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md)  
 **Quick Start (1 strona):** [`AI_QUICK_START.md`](AI_QUICK_START.md)  
 **Thin pointer:** [`MASTER_HANDOFF.md`](MASTER_HANDOFF.md)  
 **Tip:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)  

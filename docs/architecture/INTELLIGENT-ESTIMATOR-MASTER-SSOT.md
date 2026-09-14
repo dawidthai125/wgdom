@@ -1,14 +1,14 @@
 # INTELLIGENT ESTIMATOR — MASTER SSOT
 
-<!-- MASTER RECONCILED 2026-09-12 · GO-MASTER-SSOT-FINAL-COLD-START-RECONCILIATION · prior GO-SSOT-AUTONOMY 2026-09-10 · tip/live 2.66.193 @ a4d3dc8 -->
+<!-- MASTER RECONCILED 2026-09-14 · IK FINAL SESSION CLOSEOUT AUT-MAT · prior 2026-09-12 GO-MASTER-SSOT-FINAL-COLD-START · prior GO-SSOT-AUTONOMY · tip/live FETCH version.json -->
 
 > **ID:** `INTELLIGENT-ESTIMATOR-MASTER-SSOT`
 > **STATUS:** **ACTIVE** · **★★ JEDYNY MASTER SSOT Inteligentnego Kosztorysanta (IK)** · **★★ JEDYNY cold-start IK**
-> **Data:** **2026-09-12** · **GO-MASTER-SSOT-FINAL-COLD-START-RECONCILIATION** (**docs only** · **NO feature epic**) · prior **GO-SSOT-AUTONOMY** / **GO80** / **GO86–GO90**
-> **Rola:** jedyny Master SSOT / cold-start dla IK · **Decision Tree = PRIMARY CONTINUITY CONTRACT** · **★★ FULL IK AUTONOMY = Product North Star**
-> **Zakaz:** drugi Orchestra / Chief / Research / Catalog / Decision Tree / Master SSOT · TPI-specific parallel runtime
+> **Data:** **2026-09-14** · **IK FINAL SESSION CLOSEOUT (AUT-MAT)** (**docs reconcile** · **NO feature epic**) · prior **2026-09-12** cold-start lock · **GO-SSOT-AUTONOMY** / **GO80** / **GO86–GO90**
+> **Rola:** jedyny Master SSOT / cold-start dla IK · **Decision Tree = PRIMARY CONTINUITY CONTRACT** · **★★ FULL IK AUTONOMY = Product North Star** · **★★ IK IS ITS FUNCTION TREE** (Tree → Orchestra → Experts → Catalogs/Evidence → Persist → Reuse)
+> **Zakaz:** drugi Orchestra / Chief / Research / Catalog / Decision Tree / Master SSOT · TPI-specific parallel runtime · chat-dependent architecture
 > **Zasada:** **SEARCH → REUSE → CONNECT → RESEARCH → EVIDENCE → VALIDATE → AUTONOMOUS RESOLUTION → PERSIST → REUSE** · SEARCH BEFORE CREATE · **NO REBUILD**
-> **HARD:** Live tip **`2.66.193`** (fetch `/version.json`) · CODE MAIN **`36401b6b`** cold-start lock · F5/B1/B2 **PV on TPI/729** · AUT-R1+AUT-MAT+ACLC+LABOR_ONLY+CCR+CLLR **IMPLEMENTED on tip** · GO86 provisional≠finance **PV** · **≠** Global IK PV · **CURRENT OPEN NODE (bid path) = `OWNER_FINANCE_NOT_OK`** · **TPI FULL89 residual = capability evidence (≠ architecture)** · **ownerRuntimeDependency target = 0** (routine)
+> **HARD:** Live tip = **FETCH** `/version.json` · F5/B1/B2 **PV on TPI/729** · AUT-R1+AUT-MAT+ACLC+LABOR_ONLY+CCR+CLLR **IMPLEMENTED** · AUT-MAT Accept **2 materials** capability **`e43acb19`** / **2.66.212** · GO86 provisional≠finance **PV** · **≠** Global IK PV · **≠** Full Autonomy · **CURRENT OPEN NODE (bid path) = `OWNER_FINANCE_NOT_OK`** · session closeout [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md)
 
 ---
 
@@ -142,7 +142,7 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | ID | Gap | Class |
 |----|-----|-------|
 | **AUT-R1** | Research/Evidence → Candidate → `evaluateAutR1LaborAcceptContract` → `acceptWorkRateResearchCandidate` → Work Catalog OUR RATE | **IMPLEMENTED / MAIN VERIFIED** · Evidence→AUT-R1 Orchestra wire · **≠** invent · **≠** unit auto-convert |
-| **AUT-MAT** | Material Evidence → `aut-mat-accept-contract` → PM Accept | **IMPLEMENTED / MAIN VERIFIED** · MEK durable `kw-wgdom-material-source-evidence` · **≠** labor routing · **≠** multi-source invent |
+| **AUT-MAT** | Material Evidence → `aut-mat-accept-contract` → PM Accept | **IMPLEMENTED / MAIN VERIFIED** · **capability PV** Accept 2 materials (`e43acb19` · paint+Atlas · MOPS target 12/12 `BRAK_CENY_MATERIALU`→0) · `priceNet`=**observed retail GROSS** · MEK durable `kw-wgdom-material-source-evidence` · **≠** labor routing · **≠** Material Price Engine 2 · **≠** Global IK PV · closeout [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) |
 | **AUT-BOM** | Provisional / missing BOM → autonomous close tylko gdy contract (AUTO_BOM / `LABOR_ONLY_AUTO_BOM_V1`) | **PARTIAL** · TPI BOM first blockers still heavy · **DATA + POLICY** residual |
 | **AUT-FIN** | Finance / BidCutover residual → READY_TO_BID path | **CURRENT OPEN** may remain on TPI · `isIkReadyToBid` derive exists · **≠** permission to invent rates |
 | **AUT-G3-CALC** | Autonomous **calculation** of final bid price as routine output | **PRODUCT TARGET** · partial via P7 prepare |
@@ -171,7 +171,7 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | **CURRENT CAPABILITY RESIDUAL (TPI FULL89 · ops evidence)** | COMPLETE **46** / C-COV **28** / OUR_RATE first **11** / LABOR_LEAF **16** / UNIT **1** / MATERIAL_* **0** · ownerRuntime **0** — see **§34** · **≠** Decision Tree CASE rewrite |
 | **CURRENT NEXT LEGAL** | **Owner GO** — residual classes A–E (§34) via REUSE/CONNECT/RESEARCH · finance AUDIT · **≠** „ręcznie Accept 87 stawek” · **≠** G3 persist this session · **≠** rebuild engines |
 | **AUT-R1** | **IMPLEMENTED** · `aut-r1-accept*` + Evidence wire `aut-r1-from-durable-evidence.ts` · tip `36401b6b` |
-| **AUT-MAT** | **IMPLEMENTED** · `src/lib/price-intelligence/aut-mat-accept-contract.ts` + `aut-mat-accept.ts` · tip `a4d3dc8` |
+| **AUT-MAT** | **IMPLEMENTED** · contract+accept · tip engine `a4d3dc8` · **Accept capability** paint+Atlas **`e43acb19`** / **2.66.212** · host `cw.product.atlas_uni_grunt` ≠ `mat.grunt` · margin floor **20%** · SELL 12.00 / 5.09 PLN/l · **≠** Global IK PV |
 | **F5 CLOUD-LEAN MASTER BOQ** | **PRODUCTION VERIFIED** @ **`4e9f7593`** (GO76–GO79) · **≠** Position Cost F5 (`computePositionCost`) |
 | **AUTO G1 (B1)** | **PRODUCTION VERIFIED** (TPI/729) · code @ **`42a82b08`** |
 | **AUTO G2 (B2)** | **PRODUCTION VERIFIED** (TPI/729 · evaluator+policy) · code @ **`923ea4b3`** |
@@ -655,7 +655,7 @@ Live flag observability ≠ claim Global IK PV.
 | **Środa status** | 8 CatalogWork · KV rev 57 LIVE · frontend PV **VERIFIED (OD-OCR-37)** · L+T+U admission follow-up **CLOSED / IMPLEMENTED @ `bce0ba23`** |
 | **CHROBREGO** | **CLOSED** · `08df0363-7b22-e462-ab56-940001283cba` · **56/0** · G3 **159000 net / 36570 VAT / 195570 gross** |
 | **CURRENT ACTIVE CAPABILITY TRACK** | **TPI/729 Document→C2→OfferBoq→NG11** (+ F5 cloud-lean · AUTO G1/G2) |
-| **CURRENT OPEN NODE** | **`OWNER_FINANCE_NOT_OK`** |
+| **CURRENT OPEN NODE** | **`OWNER_FINANCE_NOT_OK`** · **downstream gate symptom** — upstream residuals often DATA/RESEARCH/IDENTITY/BOM · **≠** build Finance Engine 2 |
 | **CURRENT NEXT LEGAL** | **Owner GO** — autonomy gaps (AUT-R1/MAT) + finance AUDIT · **≠** „ręcznie Accept 87 stawek” · **≠** G3 persist this session |
 | **F5 CLOUD-LEAN** | **PRODUCTION VERIFIED** @ **`4e9f7593`** (TPI/729 · GO79) |
 | **AUTO G1/G2** | **PRODUCTION VERIFIED** (TPI/729 · GO79) · code B1 `42a82b08` / B2 `923ea4b3` |
@@ -1305,35 +1305,57 @@ LABOR plane
 ## 15. MATERIAL + Catalog + PM + Accept path
 
 ```text
+★★ ONE TREE TRACE (Material) ★★
+Document/Line → Classification → Material Expert (P6)
+  → Research (DIY) → Evidence/Candidate → AUT-MAT (§0.2)
+  → Price Memory (marketQuotes) → Material SELL (commercial margin)
+  → Position Cost → BidCutover
+
 MATERIAL plane
   → material identity → Price Memory / TechnologyPack / BOM (REUSE FIRST)
   → CURRENT HIT? YES → REUSE
                 NO  → Knowledge/Evidence sufficient + §0.2?
                      YES → AUTONOMOUS RESOLUTION → PM / qty / SELL (TARGET)
                      NO  → DIY selective research (LM/Casto/OBI) — normal autonomous workflow
-                          → quote/purchase → commercial margin (istniejące reguły) → SELL candidate
-                          → §0.2 PASS → AUT-MAT → PM CURRENT (**IMPLEMENTED** @ tip `a4d3dc8`)
+                          → quote (observed retail GROSS → priceNet) → commercial margin → SELL candidate
+                          → §0.2 PASS → AUT-MAT → PM CURRENT (**IMPLEMENTED** · Accept capability `e43acb19`)
                           → §0.2 FAIL → OWNER EXCEPTION
 ```
 
 | Element | Notes |
 |---------|-------|
-| PM / commercial | `price-memory` · `our-price-catalog` · `computeSellPricePln` |
-| AUT-MAT | `src/lib/price-intelligence/aut-mat-accept-contract.ts` · `aut-mat-accept.ts` |
-| DIY LIVE | Leroy Merlin · Castorama · OBI |
+| PM / commercial | `price-memory` · `our-price-catalog` · `material-sell-adapter` · `computeSellPricePln` |
+| AUT-MAT | `aut-mat-accept-contract.ts` · `aut-mat-accept.ts` · `acceptMaterialResearchCandidate` · `decisionKind=AUT_MAT` · `sourceType=market_reference` |
+| **`priceNet` semantics** | In DIY/Accept path = **observed retail GROSS PLN** (`mmr-selective-diy-provider.ts`: `priceNet = priceGrossPln`) · **NO VAT strip** · do **not** reinterpret as VAT-net |
+| DIY LIVE | Leroy Merlin (**primary Accept**) · Castorama / OBI (**corroboration only** — **do not average**) |
 | DIY NOT IMPLEMENTED | **Onninen** · **TIM.pl** |
 | Edge | `mmr-diy-selective-lookup` · `createEdgeDiySelectiveLookup` · `parseDiyShopHtml` |
 | Provider | `createSelectiveDiyTrioResearchProvider` |
 | 403→502 | Edge shop **403** mapped **502** = **PROVIDER BLOCK** · **no anti-bot bypass** · → fallback / OWNER EXCEPTION |
-| G2 Material Accept | AUT-MAT under §0.2 when contract PASS · Chief may still gate some UI paths · **≠** invent · commercial margin floor **20%** (existing authority) |
+| G2 Material Accept | AUT-MAT under §0.2 when contract PASS · Chief may still gate some UI paths · **≠** invent · commercial margin floor **20%** (`OWNER_AUTHORIZED_MATERIAL_GLOBAL_MARGIN_FLOOR_PCT` · `applyGlobalCommercialMarginFloorToStore`) · **≠** Finance Bid stack / Kp / minMargin |
+| Atlas host | `cw.product.atlas_uni_grunt` / `mat.atlas_uni_grunt` · unit `l` · **DISTINCT** from `mat.grunt` · ensure via `applyEconomyProductHostsToWorkCatalog` |
+| Session capability | paint **10→SELL 12** · Atlas **4.24→SELL 5.09** · MOPS target **12/12** · `BRAK_CENY_MATERIALU` **0** · closeout [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) |
+| Persistence | After Accept: bump product-host **`updatedAt`** · push Work Catalog with **`intent`** — plain `union` alone can lose quotes (LWW keeps cloud on equal timestamps) |
 | `mat.inv.*` | HARD-FORBID DIY invent |
 | AUTO_BOM | TechnologyPack singleton **or** explicit LABOR_ONLY allowlist · DF §5 · **PV TPI/729** B2 @ `923ea4b3` · GO79 ACCEPT=0 / EXCEPTION=89 (policy OK · **≠** invent BOM) |
 | Margin | istniejące `commercialPricing` / floor — IK stosuje automatycznie · **nie** pyta Ownera per pozycja gdy reguła CURRENT · brak reguły → EXCEPTION |
 
-**Accept path:** Candidate → (§0.2 Autonomous Accept **TARGET** / Owner Exception) → PM write → Orchestra refresh epochs.  
-**ZAKAZ:** anti-bot bypass · obchodzenie 403 · wymuszanie wyniku · inventowanie ceny / ilości / BOM.  
+**Accept path:** `evaluateAutMatMaterialAcceptContract` → `tryAutMatAcceptMaterialCandidate` → `acceptMaterialResearchCandidate` → `marketQuotes`.  
+**ZAKAZ:** second Material Accept path · anti-bot bypass · invent PLN · alias `mat.grunt`↔Atlas · PLN inside TechnologyPack.  
 **Routine BOM:** `AUTO_BOM_ACCEPT` when pack/LABOR_ONLY contract PASS (GO23 policy).  
-**Research quote ≠ Accept.** · **MISSING_BOM ≠ invent LABOR_ONLY** (Master / DF §6). · Research+§0.2 → Autonomous Accept = TARGET.
+**Research quote ≠ Accept.** · **Evidence ≠ OUR RATE.** · **MARKET OBSERVATION → Price Memory → Commercial SELL** (not research→direct sell).
+
+### 15.1 HISTORY — AUT-MAT Accept session (2026-09-14)
+
+| | |
+|--|--|
+| **ID** | `AUT_MAT_ACCEPT_2_MATERIALS_COMPLETE` |
+| **Commit** | **`e43acb19`** · `feat(ik): accept canonical material sell quotes` · changelog **2.66.212** · **pushed** |
+| **Scope** | AUT-MAT / PriceMemory / hosts / commercial margin / Quotes |
+| **NOT touched** | packs · rates · identity · BOQ · BidCutover · Payroll |
+| **Global after** | billable **97** · complete **12** · gapLineCount **85** · BidCutover **FAIL** · BOM **69** · rate **67** · id **9** · amb **6** · Global PV **NO** |
+| **OPEN NODE** | still **`OWNER_FINANCE_NOT_OK`** (downstream symptom — classify DATA/RESEARCH/IDENTITY/BOM before ENGINE) |
+| **SSOT** | [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) |
 
 ---
 
@@ -2253,7 +2275,7 @@ Przy pracy IK: **nie** ruszaj `cloud-sync` merge payroll „przy okazji”.
 | 1e | O1 overwrite guard (prod observability) | GO23 policy CLOSED | **NOT_OBSERVABLE** (GO79) | Owner GO only if probe desired |
 | 1f | KL Evidence HTTP suppress (prod browser) | GO53 code IMPLEMENTED | **NOT_OBSERVABLE** (GO79) | Owner GO only if browser HTTP PV desired |
 | **1g** | **AUT-R1** Research/Evidence → OUR RATE under §0.2 | §0 · GO23 R1 HISTORY | **IMPLEMENTED** (tip) · residual = **DATA/UNIT/IDENTITY** not missing engine | **≠** rebuild · **≠** invent · **≠** aparat↔szt auto |
-| **1h** | **AUT-MAT** Material Evidence + autonomous PM | §0 · §16A | **IMPLEMENTED** (tip `a4d3dc8`) · TPI MATERIAL_* still 0 = **DATA** residual | **≠** rebuild Material Price Engine 2 |
+| **1h** | **AUT-MAT** Material Evidence + autonomous PM | §0 · §16A | **IMPLEMENTED** (engine tip `a4d3dc8`) · **Accept capability CLOSED** paint+Atlas **`e43acb19`** · MOPS target material-price gap **12→0** · residual elsewhere = **DATA** · `mat.grunt` MISSING is **correct** | **≠** rebuild Material Price Engine 2 · see §15.1 |
 | **1j** | **TPI FULL89 residual** (capability · §34) | AUT-R1/MAT exist | **OPEN / DATA** — OUR_RATE×11 · LABOR_LEAF×16 · UNIT×1 · C-COV×28 · BOM×0 · MATERIAL×0 | class A–E · REUSE/CONNECT · Owner only true exceptions |
 | **1i** | **AUT-G3-CALC / PERSIST** | §5.7 | CALC TARGET · PERSIST **ARCHITECTURE GAP** | design GO for persist · **no code this session** |
 | 2 | Chief start / Cost Expert / Expert Workspace on TPI | #1 finance ok → pricingReady* | BLOCKED by #1 | after #1 |
@@ -2371,34 +2393,66 @@ Szczegóły session closeoutów = **HISTORY** w osobnych plikach — **nie** pow
 
 ## 27. COLD START + function discovery rule
 
+### 27.0 ★★ IK IS ITS FUNCTION TREE
+
+```text
+DECISION TREE
+  → ORCHESTRA (runtime sequencer — NOT another Expert/Chief/Finance engine)
+    → EXPERTS (domain executors — NOT permission to duplicate engines)
+      → CATALOGS / KNOWLEDGE / EVIDENCE / RESEARCH (durable authority)
+        → PERSISTENCE
+          → REUSE
+
+Correct question: Where does this capability belong in the existing tree?
+Wrong question: What feature should we build?
+```
+
 ### 27.1 Cold-start order
 
 ```text
-1. TEN PLIK (Master SSOT) — **§0 Product North Star FIRST** · §1–§5 · §9 · §24 · **§31–§36 cold-start lock**
+1. TEN PLIK (Master SSOT) — **§0 Product North Star FIRST** · §1–§5 · §9 · §15 · §24 · **§31–§36 cold-start lock**
 2. §9 CURRENT DECISION TREE — Case · Capability · Open Node
-3. §16A Knowledge Base / Learning Loop (Catalog First · Evidence · Autonomous Resolution · Margin floor · IdentityCandidate)
-4. §10 LIVE version.json + checkpoints (+ **§10.3c FULL89**)
-5. §24 CURRENT OPEN WORK (FIRST blocker · autonomy residuals)
-6. docs/AI/09_PRODUCTION_BASELINE.md (documentary tip)
-7. INTELLIGENT-ESTIMATOR-REUSE-MAP.md (zanim cokolwiek CREATE)
-8. IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md (formal DF)
-9. Architecture / Data Flow siblings (gdy potrzeba głębokości)
-10. STOP — czekaj Owner GO zanim IMPLEMENT (Owner = exception/business · ≠ Accept marathon)
+3. Latest session closeout if CURRENT capability track (e.g. AUT-MAT [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md))
+4. §16A Knowledge Base / Learning Loop (Catalog First · Evidence · Autonomous Resolution · Margin floor · IdentityCandidate)
+5. §10 LIVE version.json + checkpoints (+ **§10.3c FULL89**)
+6. §24 CURRENT OPEN WORK (FIRST blocker · autonomy residuals)
+7. docs/AI/09_PRODUCTION_BASELINE.md (documentary tip)
+8. INTELLIGENT-ESTIMATOR-REUSE-MAP.md (zanim cokolwiek CREATE)
+9. IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md (formal DF)
+10. Architecture / Data Flow siblings (gdy potrzeba głębokości)
+11. STOP — czekaj Owner GO zanim IMPLEMENT (Owner = exception/business · ≠ Accept marathon)
 ```
 
-### 27.2 Function discovery rule
+### 27.2 Function discovery rule (SEARCH BEFORE CREATE)
 
 ```text
-ZANIM napiszesz nowy moduł / provider / parser / gate:
+ZANIM utworzysz Expert / Provider / Parser / Catalog / Gate / Accept /
+Research / Price / BOM / Identity / Knowledge / persistence:
+
   1. Grep / Glob symbolu w src/lib + src/app
-  2. Sprawdź REUSE MAP (§29 + plik sibling)
-  3. Sprawdź Orchestra matrix (§8)
-  4. Sprawdź Decision Tree node (§9 / §24)
-  5. Klasyfikuj: REUSE | CONNECT | VERIFY | NEW
-  6. NEW ⇒ udokumentuj GAP + seam + Owner GO — STOP
+  2. Czytaj REUSE MAP (ten § + plik sibling)
+  3. Locate Decision Tree node (§9 / §0 chain)
+  4. Locate Orchestra node (§7 / §8)
+  5. Locate responsible Expert (§8)
+  6. Locate Catalog / Knowledge / Evidence layer
+  7. Klasyfikuj residual: ENGINE | DATA | RESEARCH | IDENTITY | UNIT |
+     PERSISTENCE | SAFETY | OWNER EXCEPTION | ARCHITECTURE
+  8. Klasyfikuj action: REUSE | CONNECT | VERIFY | NEW
+  9. NEW ⇒ udokumentuj GAP + seam + Owner GO — STOP
+
+Default: NO REBUILD.
 ```
 
-**Pierwsze pytanie cold-startu:** jaki jest **CURRENT OPEN NODE** (§9 / §24) — nie „co budować od zera?”.
+**Pierwsze pytanie cold-startu:** jaki jest **CURRENT OPEN NODE** (§9 / §24) i który **istniejący** Expert/Catalog go obsługuje — nie „co budować od zera?”.
+
+### 27.3 GPT ↔ Cursor + escalation
+
+| Role | Duty |
+|------|------|
+| **ChatGPT** | Architect / research / evidence · map problem → Tree → Orchestra → Expert → Catalog · ready-to-paste Cursor prompt |
+| **Cursor** | Inspect repo · implement approved plan · tests · build · commit/push · report exact evidence |
+
+When Cursor hits missing source / ambiguous spec / unknown price / unclear architecture: **STOP → report exact question → escalate to ChatGPT/Owner**. **Never invent.** Persist durable discoveries into Master / Reuse Map / session closeout — **chat is supplementary only**.
 
 ---
 
@@ -2425,6 +2479,7 @@ Pointer policy: [`IK-AI-OWNER-AUTHORITY-POLICY.md`](./IK-AI-OWNER-AUTHORITY-POLI
 |----------|------|
 | **TEN PLIK** | ★★ Master SSOT / cold-start IK |
 | [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md) | REUSE map — DO NOT DUPLICATE |
+| [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) | ★ AUT-MAT Accept session closeout (paint+Atlas · PriceMemory · LWW lesson) |
 | [`INTELLIGENT-ESTIMATOR-ARCHITECTURE.md`](./INTELLIGENT-ESTIMATOR-ARCHITECTURE.md) | Architecture depth |
 | [`INTELLIGENT-ESTIMATOR-DATA-FLOW.md`](./INTELLIGENT-ESTIMATOR-DATA-FLOW.md) | Data flow |
 | [`INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](./INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) | AI continuity helper (≠ drugi Master) |

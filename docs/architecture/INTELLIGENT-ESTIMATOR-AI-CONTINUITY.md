@@ -2,20 +2,24 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-AI-CONTINUITY`
 > **STATUS:** ACTIVE · DOCUMENTATION ONLY
-> **Data:** 2026-09-05 (Master SSOT continuity · TPI HYDRATION DESIGN-C) · prior 2026-09-05 (LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-24 (Observability Phases 1–4)
-> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · **§10.0 · §2A.9 · §10.0.2 · §10.0.3 · §22 · §24** — **JEDYNY Master SSOT IK**
-> **CURRENT NODE:** **ŚRODA A0.2** — 8 CatalogWork · KV rev **57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
-> **CURRENT PRODUCTION:** APP **2.66.165** · LIVE = **FETCH** `/version.json` · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **no** SSOT≡live equality
-> **Track B:** **CLOSED / VERIFIED / UNCHANGED**
-> **CLOSED CASE:** **CHROBREGO** 56/0 · Final Bid 159000/195570 — **NIE reopen**
-> **Sesja hist.:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) · prior Autonomy [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md)
+> **Data:** 2026-09-14 (AUT-MAT session pointer · cold-start strengthen) · prior 2026-09-05
+> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) — **JEDYNY Master SSOT IK** · §0 · §9 · §15 · §24 · §27
+> **Reuse:** [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
+> **Latest IK session:** [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) — AUT-MAT Accept paint+Atlas · **≠** Global IK PV
+> **CURRENT NODE:** **ŚRODA A0.2** · OPEN NODE (bid) **`OWNER_FINANCE_NOT_OK`** · GLOBAL IK PV **NO**
+> **CURRENT PRODUCTION:** LIVE = **FETCH** `/version.json` · tip documentary [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · AUT-MAT capability **`e43acb19`** / **2.66.212**
+> **CLOSED CASE:** **CHROBREGO** 56/0 — **NIE reopen**
+> **Sesja hist.:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md)
 > **Tip:** [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + live `version.json` (rozdziel REPO vs LIVE)
 
 ```text
+★★ IK IS ITS FUNCTION TREE ★★
+DECISION TREE → ORCHESTRA → EXPERTS → CATALOGS/EVIDENCE → PERSIST → REUSE
 Nie czytaj historii czatu jako architektury.
 Nie buduj Przetargów / IK / Catalog / Pricing od zera.
 Decision Tree > report > artifact > chat memory
 SEARCH → REUSE → CONNECT → VERIFY → NEW only if proven GAP
+Classify residual: ENGINE vs DATA/RESEARCH before “build engine”
 Orchestra = single sequencer · IkEntryHost = adapter
 DOCUMENT TRUTH ≠ EXPERT ADMISSION (§2A.9)
 AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-authorized
@@ -26,16 +30,12 @@ AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-
 | | |
 |--|--|
 | **LIVE PRODUCTION** | **FETCH** `/version.json` · runtime authority |
-| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** / **2.66.165** · documentary · lag EXPECTED |
-| **TPI FULL SNAPSHOT HYDRATION** | **DESIGN-C CLOSED / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · **≠** LIVE · **≠** LAST VERIFIED SOURCE · Master §10.0.2 · §24 |
-| **TPI Full IK E2E** | **OPEN / NOT VERIFIED** · no usable FULL in `kw-tender-ingest-v1` |
-| **LINE-TOLERANT** | **CLOSED / PRODUCTION VERIFIED** · HISTORY tip **`a5d19047`** · Master §2A.9 · §10.0.3 |
-| **A0.2 KV** | **rev 57 LIVE** · 8/8 × 2 regions · frontend PV **VERIFIED (OD-OCR-37)** |
-| **S6/P4 FEATURE TIP** | **`2fce3caf`** |
-| **Phase 2E** | targeted discovery **LANDED** **`1a9c5484`** · **FULL PHASE 2E OPEN** · **OUT OF SCOPE A08** |
-| **Status** | A0.2 CURRENT CASE · TPI hydration PV · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED** |
-| **Reference** | [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · Master §10.0 · §10.0.2 · §22 · §24 |
-| **NOT CLAIMED** | **GLOBAL IK PRODUCTION VERIFIED** · TPI Full IK E2E PASS · AUTONOMY-08 CLOSED · Phase 2E CLOSED · S10 · entire IK FINAL |
+| **AUT-MAT Accept capability** | **`e43acb19`** / **2.66.212** · paint+Atlas PriceMemory · closeout linked above · **≠** Global IK PV |
+| **OPEN NODE (bid path)** | **`OWNER_FINANCE_NOT_OK`** (downstream symptom) |
+| **TPI Full IK E2E** | **OPEN / NOT VERIFIED** |
+| **Status** | UTRZYMANIE · AUTONOMY-08 epic **NOT CLOSED** · Phase 5 **NOT AUTHORIZED** |
+| **Reference** | Master §15 · §24 · §27 · Reuse Map · Data Flow · [`09`](../AI/09_PRODUCTION_BASELINE.md) |
+| **NOT CLAIMED** | **GLOBAL IK PRODUCTION VERIFIED** · Full Autonomy · BidCutover PASS · entire IK FINAL |
 
 ---
 
@@ -43,20 +43,46 @@ AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-
 
 ### First words
 
-**„Nie buduj od nowa.”** Domenа Przetargów i kosztorysowania już istnieje.
+**„Nie buduj od nowa.”** Domenа Przetargów i kosztorysowania już istnieje.  
+**„Która funkcja w drzewie IK to już ma?”** — nie „jaki feature napisać?”.
 
 ### First reads (order)
 
 1. [`../AI/WGDOM-COLD-START-HANDOFF.md`](../AI/WGDOM-COLD-START-HANDOFF.md)
-2. **TEN PLIK** + [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) (**§22** continuity block)
-3. [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md) — **latest** · Observability Phases **1–4 CLOSED** @ **`c1b3ad7d`**
-4. [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-18.md) — Autonomy 05–08 (historyczny)
-5. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
-5. [`INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md`](./INTELLIGENT-ESTIMATOR-PRODUCTION-BASELINE.md)
-6. [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + `version.json`
-7. [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll
-8. [`../WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) (gdy UI Przetargu)
-9. [`IK-MIGRATION-01-DESIGN-FREEZE.md`](./IK-MIGRATION-01-DESIGN-FREEZE.md) — historyczny NG-10 freeze · P0–P9 **LOCKED** · **nie** next IMPLEMENT P2
+2. [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) (**§0 · §9 · §15 · §24 · §27**)
+3. [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
+4. [`IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md`](./IK-MASTER-DECISION-TREE-DESIGN-FREEZE.md) (formal ONE Decision Tree)
+5. Latest session — [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) when material/PM/AUT-MAT
+6. [`INTELLIGENT-ESTIMATOR-DATA-FLOW.md`](./INTELLIGENT-ESTIMATOR-DATA-FLOW.md)
+7. [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) + `version.json`
+8. [`../AI/AI_ENTRY.md`](../AI/AI_ENTRY.md) · Gate payroll (**Payroll OUT OF SCOPE for IK work**)
+9. History only if needed — [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md)
+
+### Cold-start checklist (mandatory)
+
+```text
+1. Read Master SSOT
+2. Read Reuse Map
+3. Read formal Decision Tree DF
+4. Identify CURRENT CASE
+5. Identify CURRENT CAPABILITY TRACK
+6. Identify CURRENT OPEN NODE
+7. Identify exact Orchestra node
+8. Identify responsible Expert
+9. Identify existing Catalog / Knowledge / Evidence
+10. Grep actual source
+11. Classify REUSE / CONNECT / VERIFY / NEW
+12. Classify residual ENGINE vs DATA/RESEARCH/…
+13. Only then propose implementation (Owner GO if NEW)
+```
+
+### GPT ↔ Cursor
+
+| ChatGPT | Cursor |
+|---------|--------|
+| Architecture · RCA · external research · map Tree→Orchestra→Expert→Catalog · ready-to-paste Cursor prompt | Inspect code · implement approved plan · tests · build · commit/push · evidence report |
+
+**Escalation:** Cursor MUST NOT invent missing prices/sources/architecture. STOP → report exact question → return to ChatGPT/Owner.
 
 ### First action
 
@@ -66,13 +92,13 @@ Repository reconnaissance — nie IMPLEMENT.
 git status -sb
 git log -10 --oneline
 curl / Invoke-RestMethod version.json
-Grep: TendersModule · classifyEstimatorPricingPlane · acceptWorkRateResearchCandidate
+Grep: TendersModule · classifyEstimatorPricingPlane · evaluateAutMatMaterialAcceptContract · acceptWorkRateResearchCandidate
 ```
 
 ### Search before create
 
-Jeśli nie wiesz gdzie jest funkcja → **Grep / Glob / Trace**.
-Jeśli istnieje → **opisz i reuse**.
+Jeśli nie wiesz gdzie jest funkcja → **Grep / Glob / Trace**.  
+Jeśli istnieje → **opisz i reuse**.  
 **CREATE** tylko po Owner GO.
 
 ---
@@ -88,6 +114,7 @@ Jeśli istnieje → **opisz i reuse**.
 | Evidence≠OUR RATE | `IE-LABOR-EVIDENCE-TO-OUR-RATE-CONTRACT-AUDIT.md` |
 | TM-01 | `TENDER-MODERNIZATION-01-MASTER.md` |
 | Pricing continuity | `../AI/10_TENDER_PRICING_CONTINUITY.md` |
+| AUT-MAT session | `IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md` |
 
 ---
 
