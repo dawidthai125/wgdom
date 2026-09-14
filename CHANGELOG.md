@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.218 — PAYROLL pwrRemove 409 rebase (2026-09-14)
+
+- `pwrRemove` uses `pushRosterWithRebase` (same CAS/409 path as pwrPush/pwrAdd)
+- intentional REMOVE + existing tombstone; retry bounded; fail-loud (no silent `pushed:false`)
+- App ACK `result.roster` after success (concurrent ADD visible)
+- Test: `test-payroll-pwr-remove-cas.mjs`
+
 ## 2.66.217 — PAYROLL carryForward field-intent / 409 (2026-09-14)
 
 - `payrollCoreFieldsEqual` includes `payrollCarryForward` — defer is not extraCosts-only

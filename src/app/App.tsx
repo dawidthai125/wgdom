@@ -2387,6 +2387,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           weekTo,
           employeeId: id,
           currentRoster: prev,
+        }).then((result) => {
+          if (result.pushed) {
+            withPayrollWeekEmployeesWriteSource("pwrRemove.ack", () => {
+              setWeekEmployees(result.roster as WeekEmployee[]);
+            });
+            refreshSavedActiveWeekSnapshot(result.roster as WeekEmployee[]);
+          }
         }).catch((e) => {
           const msg = e instanceof Error ? e.message : "Błąd połączenia z chmurą";
           toast.error("Nie udało się zapisać składu do chmury", {

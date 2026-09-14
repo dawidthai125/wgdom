@@ -87,7 +87,7 @@ export type PwrPushParams = {
 const PAYROLL_REBASE_MAX_ATTEMPTS = 3;
 
 /**
- * CAS push + stale-revision rebase, shared by `pwrPush` and `pwrAdd`.
+ * CAS push + stale-revision rebase, shared by `pwrPush`, `pwrAdd`, and `pwrRemove`.
  *
  * Caller must already hold the kw-week-employees write slot — this helper does
  * not enqueue (nesting `enqueueKwWeekEmployeesWrite` would deadlock the FIFO).
@@ -253,7 +253,7 @@ export async function pwrRemove(params: {
     const next = params.currentRoster.filter((e) => e.id !== params.employeeId);
     revokePayrollPendingAdd(removed);
     addDeletedWeekEmployeeKey(params.weekFrom, params.weekTo, removed);
-    const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
+    reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, next);
     const resolved = resolvePayrollDomainPushOptions(params.options);
     emitPayrollWritePathTelemetry({
       source: "pwrRemove",
@@ -264,15 +264,17 @@ export async function pwrRemove(params: {
       intentionalHoursClear: resolved.intentionalHoursClear,
       skipPayrollGuard: resolved.skipPayrollGuard,
     });
-    try {
-      await pushWeekEmployeesToCloud(next, {
-        ...resolved,
-        rosterBefore: params.currentRoster,
-      });
-      return { roster: next, tombstones, changed: true, pushed: true };
-    } catch {
-      return { roster: next, tombstones, changed: true, pushed: false };
-    }
+    // Phase 3 — same CAS + stale-revision rebase as pwrPush/pwrAdd (409 must not drop REMOVE).
+    const { roster: written } = await pushRosterWithRebase({
+      roster: next,
+      weekFrom: params.weekFrom,
+      weekTo: params.weekTo,
+      intentBefore: params.currentRoster,
+      intentAfter: next,
+      resolved,
+    });
+    const tombstones = reconcileTombstonesWithRoster(params.weekFrom, params.weekTo, written);
+    return { roster: written, tombstones, changed: true, pushed: true };
   });
 }
 

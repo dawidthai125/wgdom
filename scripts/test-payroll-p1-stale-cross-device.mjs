@@ -80,7 +80,6 @@ const {
 } = await import("../src/lib/payroll-stale-roster-membership.ts");
 const {
   cloudSyncMutationGuard,
-  withKwWeekEmployeesAsyncMutation,
 } = await import("../src/lib/cloud-sync-mutation-guard.ts");
 const {
   weekEmployeeTombstoneId,
@@ -257,19 +256,17 @@ const x = makeEmp("x", "Xawery");
 }
 
 // --- Integration: pwrPush stale after DELETE (R1/R2) ---
+// GO9.2 — pwrPush owns FIFO enqueue; do not wrap in withKwWeekEmployeesAsyncMutation.
 {
   const tombX = weekEmployeeTombstoneId(WF, WT, x);
   resetEnv([z], [tombX]);
   saveDeletedWeekEmployeeKeys([tombX]);
   const staleRoster = [z, x];
-  let pushResult = null;
-  await withKwWeekEmployeesAsyncMutation(async () => {
-    pushResult = await pwrPush({
-      roster: staleRoster,
-      weekFrom: WF,
-      weekTo: WT,
-      rosterBefore: staleRoster,
-    });
+  const pushResult = await pwrPush({
+    roster: staleRoster,
+    weekFrom: WF,
+    weekTo: WT,
+    rosterBefore: staleRoster,
   });
   const cloud = kvStore["kw-week-employees"] || [];
   assert("R1/R2 cloud X absent after stale domain push", !cloud.some((e) => e.id === "x"));
@@ -282,13 +279,11 @@ const x = makeEmp("x", "Xawery");
 {
   resetEnv([z, x], []);
   saveDeletedWeekEmployeeKeys([]);
-  await withKwWeekEmployeesAsyncMutation(async () => {
-    await pwrRemove({
-      weekFrom: WF,
-      weekTo: WT,
-      employeeId: "x",
-      currentRoster: [z, x],
-    });
+  await pwrRemove({
+    weekFrom: WF,
+    weekTo: WT,
+    employeeId: "x",
+    currentRoster: [z, x],
   });
   const cloud = kvStore["kw-week-employees"] || [];
   assert("R5 DELETE X absent", !cloud.some((e) => e.id === "x"));
@@ -310,14 +305,12 @@ const x = makeEmp("x", "Xawery");
       active: true,
     },
   ];
-  await withKwWeekEmployeesAsyncMutation(async () => {
-    await pwrAdd({
-      weekFrom: WF,
-      weekTo: WT,
-      directoryIds: ["dir-x"],
-      directory: dir,
-      currentRoster: [z],
-    });
+  await pwrAdd({
+    weekFrom: WF,
+    weekTo: WT,
+    directoryIds: ["dir-x"],
+    directory: dir,
+    currentRoster: [z],
   });
   const cloud = kvStore["kw-week-employees"] || [];
   assert("R4 legal ADD X present", cloud.some((e) => e.directoryId === "dir-x" || e.id === "x" || e.name === "Xawery"));
@@ -327,23 +320,19 @@ const x = makeEmp("x", "Xawery");
 {
   resetEnv([z], []);
   saveDeletedWeekEmployeeKeys([]);
-  await withKwWeekEmployeesAsyncMutation(async () => {
-    await pwrRemove({
-      weekFrom: WF,
-      weekTo: WT,
-      employeeId: "x",
-      currentRoster: [z, x],
-    });
+  await pwrRemove({
+    weekFrom: WF,
+    weekTo: WT,
+    employeeId: "x",
+    currentRoster: [z, x],
   });
   removeDeletedWeekEmployeeKeysForWeek(WF, WT, [x]);
-  await withKwWeekEmployeesAsyncMutation(async () => {
-    await pwrPush({
-      roster: [z, x],
-      weekFrom: WF,
-      weekTo: WT,
-      rosterBefore: [z],
-      revokeIdentities: [x],
-    });
+  await pwrPush({
+    roster: [z, x],
+    weekFrom: WF,
+    weekTo: WT,
+    rosterBefore: [z],
+    revokeIdentities: [x],
   });
   const cloud = kvStore["kw-week-employees"] || [];
   assert("R6 RE-ADD X present", cloud.some((e) => e.id === "x"));

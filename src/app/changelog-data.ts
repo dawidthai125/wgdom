@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.218",
+    label: "PAYROLL — pwrRemove 409 rebase",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: Usuń pracownika (pwrRemove) przy konflikcie CAS robi rebase jak pwrPush/pwrAdd — intentional REMOVE + tombstone, retry, fail-loud; UI ACK świeżego rosteru (np. równoległe ADD). Test: test-payroll-pwr-remove-cas.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.217",
     label: "PAYROLL — carryForward field-intent / 409",
     items: [
