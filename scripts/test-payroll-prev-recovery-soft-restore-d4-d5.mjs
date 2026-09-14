@@ -151,15 +151,27 @@ assert("preferEmpty skips overlay", emptyAdd.restoredDirectoryIds.length === 0);
 assert("preferEmpty stays defaultDay", emptyAdd.roster[0].days.Pn.active === false);
 clearPayrollSoftRestoreSnapshot("dir-sr");
 
-// Soft restore from -prev when no session
+// Soft restore from -prev when no session — same-week binding required
 const created3 = weekEmployeeFromDir({ ...dir, id: "dir-prev-only" });
 const fromPrev = applyPayrollSoftRestoreOverlay([created3], {
   weekFrom,
   weekTo,
   prevRoster: [emp("px", "dir-prev-only", daysActive, "Jan")],
+  prevRosterWeekFrom: weekFrom,
+  prevRosterWeekTo: weekTo,
 });
 assert("soft from -prev", fromPrev.restoredDirectoryIds.includes("dir-prev-only"));
 assert("soft from -prev hours", fromPrev.roster[0].days.Pn.active === true);
+
+// Unbound rotational -prev must NOT restore (cross-week guard)
+const created3b = weekEmployeeFromDir({ ...dir, id: "dir-prev-unbound" });
+const fromPrevUnbound = applyPayrollSoftRestoreOverlay([created3b], {
+  weekFrom,
+  weekTo,
+  prevRoster: [emp("px2", "dir-prev-unbound", daysActive, "Jan")],
+});
+assert("unbound -prev skips hours", fromPrevUnbound.restoredDirectoryIds.length === 0);
+assert("unbound -prev stays empty", fromPrevUnbound.roster[0].days.Pn.active === false);
 
 // weekEmployeeFromDir source PURE (no soft restore in factory)
 const factorySrc = readFileSync(new URL("../src/app/app-domain.ts", import.meta.url), "utf8");

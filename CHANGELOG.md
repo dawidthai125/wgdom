@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.213 — PAYROLL D5 Soft Restore cross-week guard (2026-09-14)
+
+- Soft Restore: `-prev` hours only with same-week binding (`prevRosterWeekFrom/To`); rotational `kw-week-employees-prev` alone cannot leak prior calendar week into ADD
+- Same-week session remove→re-add preserved; „Kopiuj z poprzedniego tygodnia” / „Wszyscy aktywni” → `preferEmptyHours`
+- Tests: `test-payroll-soft-restore-cross-week-guard.mjs` · D4/D5 suite still green
+- Refs: regression `ea1b0a6e` · rollover protection `e38610a5` unchanged · no prod KV cleanup in this release
+
 ## 2.66.212 — AUT-MAT paint + Atlas Uni-Grunt SELL (2026-09-14)
 
 - AUT_MAT Accept via existing PriceMemory path (no second writer)

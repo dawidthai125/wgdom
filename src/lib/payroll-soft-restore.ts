@@ -2,11 +2,17 @@
  * PAYROLL-IMPLEMENT-03 D5 — Soft Restore overlay (factory stays PURE).
  *
  * weekEmployeeFromDir unchanged. Overlay applied in add/PWRB before Domain Push.
- * Sources (priority): session snapshot (remove→re-add) → kw-week-employees-prev.
+ * Sources (priority):
+ *   1) session snapshot (remove→re-add) — same weekFrom/weekTo only
+ *   2) kw-week-employees-prev — ONLY when caller proves same-week identity
+ *      via prevRosterWeekFrom/prevRosterWeekTo (rotational -prev alone is NOT enough)
+ *
+ * Cross-week -prev hour leak guard: 2026-09-14 (post ea1b0a6e / e38610a5).
  */
 import type { DayData, DayKey, WeekEmployee } from "@/app/app-domain";
 import { DAYS } from "@/app/app-domain";
 import { empTotalHours } from "@/lib/payroll-hours-collapse-gate";
+import { isSamePayrollWeekRange } from "@/lib/payroll-cycle";
 
 const SESSION_KEY = "wg-payroll-soft-restore-session";
 const SOFT_RESTORE_KILL = "wg-payroll-soft-restore";
@@ -30,8 +36,15 @@ export type SoftRestoreSessionStore = {
 export type SoftRestoreOverlayOptions = {
   weekFrom: string;
   weekTo: string;
-  /** Cloud/local -prev roster (optional). */
+  /** Cloud/local -prev roster (optional). Hours only if same-week bound (below). */
   prevRoster?: WeekEmployee[] | null;
+  /**
+   * Week identity of `prevRoster` when known.
+   * Required for -prev hour overlay — rotational KV -prev alone is NOT same-week proof
+   * (after rollover it holds the previous calendar week's live roster).
+   */
+  prevRosterWeekFrom?: string;
+  prevRosterWeekTo?: string;
   /** Conscious empty add — skip overlay (AC-D5-2). */
   preferEmptyHours?: boolean;
 };
@@ -44,6 +57,22 @@ export function isPayrollSoftRestoreEnabled(): boolean {
   } catch {
     return true;
   }
+}
+
+/**
+ * True when -prev roster may overlay hours onto a fresh add.
+ * Missing week binding → false (cross-week / rotational backup must not leak).
+ */
+export function canSoftRestoreHoursFromPrevRoster(options: {
+  weekFrom: string;
+  weekTo: string;
+  prevRosterWeekFrom?: string;
+  prevRosterWeekTo?: string;
+}): boolean {
+  const pf = String(options.prevRosterWeekFrom ?? "").trim();
+  const pt = String(options.prevRosterWeekTo ?? "").trim();
+  if (!pf || !pt) return false;
+  return isSamePayrollWeekRange(pf, pt, options.weekFrom, options.weekTo);
 }
 
 function readSession(): SoftRestoreSessionStore {
@@ -111,7 +140,7 @@ export function peekPayrollSoftRestoreSession(
   if (!id) return null;
   const entry = readSession().byDirectoryId[id];
   if (!entry) return null;
-  if (entry.weekFrom !== weekFrom || entry.weekTo !== weekTo) return null;
+  if (!isSamePayrollWeekRange(entry.weekFrom, entry.weekTo, weekFrom, weekTo)) return null;
   return entry;
 }
 
@@ -162,6 +191,7 @@ export function applyPayrollSoftRestoreOverlay(
   if (!isPayrollSoftRestoreEnabled() || options.preferEmptyHours === true) {
     return { roster: created, restoredDirectoryIds: [] };
   }
+  const allowPrevHours = canSoftRestoreHoursFromPrevRoster(options);
   const restoredDirectoryIds: string[] = [];
   const roster = created.map((emp) => {
     const directoryId = dirIdOf(emp);
@@ -173,6 +203,9 @@ export function applyPayrollSoftRestoreOverlay(
       clearPayrollSoftRestoreSnapshot(directoryId);
       return overlayFromEntry(emp, session.days, session.prevSaturday, session.extraCosts, session.rate);
     }
+
+    // Cross-week guard: rotational kw-week-employees-prev without same-week binding → skip
+    if (!allowPrevHours) return emp;
 
     const fromPrev = findPrevByDirectory(options.prevRoster ?? null, directoryId);
     if (fromPrev && hasUsableHours(fromPrev.days, fromPrev.prevSaturday)) {

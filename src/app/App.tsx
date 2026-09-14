@@ -2304,10 +2304,13 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       return;
     }
     const created = toAdd.map(weekEmployeeFromDir);
+    // Soft Restore: session same-week only on ADD path.
+    // Do NOT pass rotational kw-week-employees-prev here — after rollover it holds
+    // the previous calendar week's hours (cross-week leak / ea1b0a6e regression).
+    // D4 banner still uses payrollPrevRoster for explicit Owner CTA restore.
     const { roster: newEmps, restoredDirectoryIds } = applyPayrollSoftRestoreOverlay(created, {
       weekFrom,
       weekTo,
-      prevRoster: payrollPrevRoster,
       preferEmptyHours: options?.preferEmptyHours === true,
     });
     const first = newEmps[0];

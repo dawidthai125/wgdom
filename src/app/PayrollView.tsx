@@ -641,7 +641,8 @@ export function PayrollView({
     const lastNames = new Set(lastSavedWeek.employees.map(e => e.name));
     const alreadyAssigned = new Set(weekEmployees.map(e => e.directoryId).filter(Boolean));
     const toAdd = directory.filter((d) => d.active && isProductionDirectoryEmployee(d) && lastNames.has(d.name) && !alreadyAssigned.has(d.id));
-    if (toAdd.length > 0) onAddFromDirectory(toAdd.map(d => d.id));
+    // Roster-only (Help: „tych samych pracowników”) — never copy previous-week hours
+    if (toAdd.length > 0) onAddFromDirectory(toAdd.map(d => d.id), { preferEmptyHours: true });
   };
 
   const archivedForWeek = findPayrollWeekSnapshot(savedWeeks, weekFrom, weekTo);
@@ -1284,9 +1285,9 @@ export function PayrollView({
                 {availableFromDir.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => onAddFromDirectory(availableFromDir.map((d) => d.id))}
+                    onClick={() => onAddFromDirectory(availableFromDir.map((d) => d.id), { preferEmptyHours: true })}
                     className="flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/70 border border-border rounded-lg text-sm font-medium transition-colors"
-                    title="Dodaj wszystkich aktywnych z kartoteki Pracownicy, którzy nie są jeszcze w tym tygodniu"
+                    title="Dodaj wszystkich aktywnych z kartoteki Pracownicy, którzy nie są jeszcze w tym tygodniu (bez godzin)"
                   >
                     <Users size={14}/>Wszyscy aktywni ({availableFromDir.length})
                   </button>

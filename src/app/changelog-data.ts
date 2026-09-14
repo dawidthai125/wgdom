@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.213",
+    label: "PAYROLL — block D5 Soft Restore cross-week hour leak",
+    items: [
+      {
+        type: "fix",
+        text: "Lista Płac: Soft Restore nie kopiuje godzin z kw-week-employees-prev do nowego tygodnia po rolloverze (regresja 2.65.43 / ea1b0a6e). Sesja remove→re-add w tym samym tygodniu bez zmian. „Kopiuj z poprzedniego tygodnia” / „Wszyscy aktywni” = skład bez godzin. Test: test-payroll-soft-restore-cross-week-guard.mjs · rollover e38610a5 nienaruszony.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.212",
     label: "AUT-MAT — canonical paint + Atlas Uni-Grunt SELL quotes",
     items: [
