@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.222 — PAYROLL AKORD Phase 3 attendance (2026-09-14)
+
+- Lista Płac: Akord w tej samej liście — Był/Nie był bez Od/Do; obecność ≠ kwota akordu
+- `calcWeekEmployee` / `payrollDayHours` / UI editor: branch akord (hourly bez zmian)
+- Snapshot modelu tygodnia historyczny (Phase 1); brak advances/settlement/PDF/rollover
+- Test: `scripts/test-payroll-akord-attendance-p3.mjs`
+
 ## 2.66.221 — PAYROLL AKORD Phase 1 (2026-09-14)
 
 - Kadry: `compensationModel` hourly | akord (missing/invalid → hourly, bez masowej migracji)

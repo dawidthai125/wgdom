@@ -25,6 +25,12 @@ export function weekEmployeeCompensationModel(
   return normalizePayrollCompensationModel(emp?.compensationModel);
 }
 
+export function isAkordWeekEmployee(
+  emp: { compensationModel?: unknown } | null | undefined,
+): boolean {
+  return weekEmployeeCompensationModel(emp) === "akord";
+}
+
 function parseIsoTs(v: unknown): number {
   if (typeof v !== "string" || !v) return 0;
   const t = Date.parse(v);

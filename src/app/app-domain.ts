@@ -20,7 +20,11 @@ import { resolveJobListStatus, JOB_LIST_STATUS_CONFIG, type JobListStatusJob } f
 import { syncJobDocuments } from "@/lib/job-documents";
 import { filterAvailablePhotos } from "@/lib/media-filter";
 import { removeWorkEntriesMatchingFromJobs } from "@/lib/payroll-job-assignments";
-import { directoryCompensationModel } from "@/lib/payroll-compensation-model";
+import {
+  directoryCompensationModel,
+  isAkordWeekEmployee,
+  weekEmployeeCompensationModel,
+} from "@/lib/payroll-compensation-model";
 
 export type DayKey = "Pn" | "Wt" | "Sr" | "Cz" | "Pt" | "So";
 export const DAY_LABELS: Record<DayKey, string> = { Pn: "Poniedziałek", Wt: "Wtorek", Sr: "Środa", Cz: "Czwartek", Pt: "Piątek", So: "Sobota" };
@@ -519,6 +523,21 @@ export function dayBaseHoursOnly(day: DayData): number {
 export function dayExtraHoursOnly(day: DayData): number {
   return +(day.extraHours ?? []).reduce((s, e) => s + hoursWorked(e.from, e.to), 0).toFixed(2);
 }
+
+/**
+ * Payroll hours for a day — AKORD attendance never contributes hours × rate.
+ * DayData.from/to may still exist technically; they are ignored for akord.
+ */
+export function payrollDayHours(emp: WeekEmployee, day: DayData): number {
+  if (isAkordWeekEmployee(emp)) return 0;
+  return dayTotalHours(day);
+}
+
+export function payrollDayBaseHours(emp: WeekEmployee, day: DayData): number {
+  if (isAkordWeekEmployee(emp)) return 0;
+  return dayBaseHoursOnly(day);
+}
+
 export function prevSatBaseHours(day: DayData): number {
   return dayBaseHoursOnly(day);
 }
@@ -536,6 +555,7 @@ export function payrollWeekExtraHourLines(employees: WeekEmployee[]) {
     reason: string;
   }[] = [];
   for (const emp of employees) {
+    if (isAkordWeekEmployee(emp)) continue;
     const rate = parseFloat(emp.rate) || 0;
     for (const key of DAYS) {
       const day = emp.days[key];
@@ -868,7 +888,13 @@ export function payrollPrevSatDetailLines(employees: WeekEmployee[], weekFrom: s
   return lines;
 }
 
-export function formatPayrollDayCell(day: DayData): string {
+export function formatPayrollDayCell(
+  day: DayData,
+  opts?: { compensationModel?: import("@/lib/payroll-compensation-model").PayrollCompensationModel },
+): string {
+  if (weekEmployeeCompensationModel(opts) === "akord") {
+    return day.active ? "Był" : "—";
+  }
   const parts: string[] = [];
   let total = 0;
   if (day.active) {
@@ -900,8 +926,8 @@ export function payrollWeeklyGrid(employees: WeekEmployee[], weekFrom: string): 
     .map((emp) => ({
       name: emp.name || "—",
       position: emp.position || "—",
-      dayCells: cols.map((c) => formatPayrollDayCell(emp.days[c.key])),
-      weekHours: +DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0).toFixed(2),
+      dayCells: cols.map((c) => formatPayrollDayCell(emp.days[c.key], emp)),
+      weekHours: +DAYS.reduce((s, d) => s + payrollDayHours(emp, emp.days[d]), 0).toFixed(2),
     }))
     .filter((row) => row.weekHours > 0 || row.dayCells.some((c) => c !== "—"));
   return { dayHeaders, rows };
@@ -940,6 +966,29 @@ export function normalizePayrollManualAdjustment(
 }
 
 export function calcWeekEmployee(emp: WeekEmployee) {
+  if (isAkordWeekEmployee(emp)) {
+    const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + approvedExtraCostAmount(c), 0);
+    const totalManualAdjustment = manualAdjustmentAmount(emp);
+    const netPay = +(totalExtraCosts + totalManualAdjustment).toFixed(2);
+    return {
+      weekHours: 0,
+      prevSatHours: 0,
+      totalHours: 0,
+      totalExtraHours: 0,
+      weekZaliczka: 0,
+      prevSatZaliczka: 0,
+      totalZaliczka: 0,
+      totalExtraCosts,
+      totalManualAdjustment,
+      weekGross: 0,
+      prevSatGross: 0,
+      grossPay: 0,
+      weekNet: 0,
+      prevSatNet: 0,
+      netPay,
+      rateNum: 0,
+    };
+  }
   const weekHours = +(DAYS.reduce((s, d) => s + dayTotalHours(emp.days[d]), 0)).toFixed(2);
   const prevSatHours = +prevSatBaseHours(getPrevSaturday(emp)).toFixed(2);
   const totalHours = +(weekHours + prevSatHours).toFixed(2);

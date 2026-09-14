@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.222",
+    label: "PAYROLL AKORD Phase 3 — obecność Był/Nie był",
+    items: [
+      {
+        type: "new",
+        text: "Lista Płac: pracownik Akord w tej samej liście — obecność Był/Nie był bez Od/Do i bez godzin×stawka. Model tygodnia historyczny (zmiana w Kadrach od następnego tygodnia). Kwota akordu nie z obecności. Test: test-payroll-akord-attendance-p3.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.221",
     label: "PAYROLL AKORD Phase 1 — model wynagrodzenia w Kadrach",
     items: [

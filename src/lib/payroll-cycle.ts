@@ -278,6 +278,8 @@ export interface WeekEmpPayrollInput {
   directoryId?: string;
   name: string;
   rate: string;
+  /** Phase 1/3 snapshot — missing = hourly. */
+  compensationModel?: "hourly" | "akord";
   days: Record<string, {
     active: boolean;
     from: string;
@@ -417,6 +419,20 @@ export function normalizeEmpName(name: string): string {
 
 /** Netto za tydzień Pn–So bez Sob. poprz. (dla wypłat co 2 tygodnie). */
 export function calcWeekNetNoPrevSat(emp: WeekEmpPayrollInput): WeekNetCalc {
+  if (emp.compensationModel === "akord") {
+    const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + approvedExtraCostAmount(c), 0);
+    const totalManualAdjustment = manualAdjustmentAmountFromEmp(emp);
+    const netPay = +(totalExtraCosts + totalManualAdjustment).toFixed(2);
+    return {
+      weekHours: 0,
+      totalZaliczka: 0,
+      totalExtraCosts,
+      totalManualAdjustment,
+      grossPay: 0,
+      netPay,
+      rateNum: 0,
+    };
+  }
   const weekHours = +(DAY_KEYS.reduce((s, d) => s + dayTotalHours(emp.days[d] ?? { active: false, from: "07:00", to: "16:00", zaliczka: "" }), 0)).toFixed(2);
   const totalZaliczka = DAY_KEYS.reduce((s, d) => s + (parseFloat(emp.days[d]?.zaliczka ?? "") || 0), 0);
   const totalExtraCosts = (emp.extraCosts ?? []).reduce((s, c) => s + approvedExtraCostAmount(c), 0);

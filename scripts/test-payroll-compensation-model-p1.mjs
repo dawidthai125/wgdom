@@ -152,8 +152,8 @@ const calcHourly = calcWeekEmployee(hourlyCalcEmp);
 const calcTaggedAkordSameHours = calcWeekEmployee({ ...hourlyCalcEmp, compensationModel: "akord" });
 assert("Phase 1 calc unchanged for hourly hours", calcHourly.weekHours > 0 && calcHourly.grossPay > 0);
 assert(
-  "Phase 1 does not branch calc on snapshot (hourly math still runs)",
-  calcTaggedAkordSameHours.grossPay === calcHourly.grossPay,
+  "Phase 3: akord snapshot zeros hourly calc (attendance ≠ amount)",
+  calcTaggedAkordSameHours.weekHours === 0 && calcTaggedAkordSameHours.grossPay === 0,
 );
 
 console.log(`\n${pass} passed, ${fail} failed`);

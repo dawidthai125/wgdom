@@ -48,6 +48,7 @@ import {
   EXTRA_COST_STATUS_LABELS,
   normalizePayrollManualAdjustment,
 } from "@/app/app-domain";
+import { isAkordWeekEmployee, weekEmployeeCompensationModel } from "@/lib/payroll-compensation-model";
 import { visibleExtraCosts } from "@/lib/payroll-extra-costs-merge";
 
 const MANUAL_ADJ_KIND_OPTIONS: { value: PayrollManualAdjustmentKind; label: string }[] = [
@@ -116,6 +117,8 @@ export function WeekEmployeeDetail({
   const { canViewRates } = useAdminAccess();
   const biweekly = isBiweeklyPayrollEmployee(safeEmp, directory);
   const biweeklyRow = biweekly ? calcBiweeklyRowDisplay(safeEmp, directory, weekFrom, weekTo, savedWeeks) : null;
+  const akord = isAkordWeekEmployee(safeEmp);
+  const compensationModel = weekEmployeeCompensationModel(safeEmp);
   const updateDayData = useCallback((key: DayKey, next: DayData) => {
     onPatchDay(key, next);
   }, [onPatchDay]);
@@ -183,13 +186,16 @@ export function WeekEmployeeDetail({
     <div className="flex flex-col h-full min-h-0">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
         <div>
-          <p className="text-sm font-semibold">{safeEmp.name||"Pracownik"}</p>
+          <p className="text-sm font-semibold flex items-center gap-2">
+            {safeEmp.name||"Pracownik"}
+            {akord && <span className="text-[10px] font-medium bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full">akord</span>}
+          </p>
           <p className="text-xs text-muted-foreground">{safeEmp.position||"—"}</p>
         </div>
         <button onClick={onClose} className="touch-target p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X size={16}/></button>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5 space-y-5">
-        {canViewRates && (
+        {canViewRates && !akord && (
         <div className="flex items-center gap-3 bg-secondary rounded-xl px-4 py-3">
           <Banknote size={14} className="text-muted-foreground shrink-0"/>
           <span className="text-sm text-muted-foreground flex-1">Stawka w tym tygodniu</span>
@@ -234,9 +240,15 @@ export function WeekEmployeeDetail({
 
         {/* Days */}
         <div className={`bg-card rounded-xl border border-border overflow-hidden${locked ? " pointer-events-none opacity-70" : ""}`}>
+          {akord ? (
+            <div className="hidden sm:grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] px-4 py-2 text-xs text-muted-foreground border-b border-border gap-2" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+              <span>Dzień</span><span className="text-right">Obecność</span>
+            </div>
+          ) : (
           <div className="hidden sm:grid grid-cols-[minmax(0,1.4fr)_minmax(0,0.95fr)_minmax(0,0.95fr)_minmax(0,0.75fr)_minmax(0,0.95fr)] px-4 py-2 text-xs text-muted-foreground border-b border-border gap-2" style={{fontFamily:"'JetBrains Mono', monospace"}}>
             <span>Dzień</span><span className="text-center">Od</span><span className="text-center">Do</span><span className="text-center">Godziny</span><span className="text-center">Zaliczka</span>
           </div>
+          )}
           <div className="divide-y divide-border">
             {!biweekly && (
             <div className="bg-amber-500/5 border-b border-amber-500/15">
@@ -246,6 +258,7 @@ export function WeekEmployeeDetail({
                 hint={`${fmtDate(prevSatIso)} · wypłata w tym tygodniu`}
                 titleClass="text-amber-500"
                 variant="prevSaturday"
+                compensationModel={compensationModel}
                 onUpdate={(next) => onPatchPrevSaturday({ ...next, extraHours: undefined })}
               />
             </div>
@@ -257,11 +270,16 @@ export function WeekEmployeeDetail({
                 title={DAY_LABELS[key]}
                 titleClass={key === "So" ? "text-primary" : ""}
                 hint={key === "So" ? "Bieżąca sobota — czasem wypłata w sobotę" : undefined}
+                compensationModel={compensationModel}
                 onUpdate={(next) => updateDayData(key, next)}
               />
             ))}
           </div>
-          <p className="hidden sm:block px-4 py-2 text-[10px] text-muted-foreground/60 border-t border-border/50">Sob. poprz. = sobota z poprzedniego tygodnia (płatna teraz). Bieżąca sobota = ostatni dzień tygodnia Pn–So.</p>
+          <p className="hidden sm:block px-4 py-2 text-[10px] text-muted-foreground/60 border-t border-border/50">
+            {akord
+              ? "Akord — obecność Był/Nie był (informacyjna). Kwota uzgodniona nie wynika z godzin."
+              : "Sob. poprz. = sobota z poprzedniego tygodnia (płatna teraz). Bieżąca sobota = ostatni dzień tygodnia Pn–So."}
+          </p>
         </div>
 
         {/* Korekta wypłaty (manualPayrollAdjustment) — ≠ koszty do zwrotu */}
@@ -466,12 +484,32 @@ export function WeekEmployeeDetail({
 
         {/* Mini summary */}
         <div className="space-y-2">
+          {akord ? (
+            <>
+              <div className="flex justify-between py-1.5 border-b border-border/50 text-sm">
+                <span className="text-muted-foreground">Model</span>
+                <span className="font-semibold text-amber-400">Akord</span>
+              </div>
+              <div className="flex justify-between py-1.5 border-b border-border/50 text-sm">
+                <span className="text-muted-foreground">Dni obecności</span>
+                <span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>
+                  {DAYS.filter((d) => safeEmp.days[d]?.active).length}/6
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Obecność jest informacyjna — nie wylicza kwoty akordu. Uzgodniona kwota i zaliczki AKORD: w kolejnych fazach.
+              </p>
+            </>
+          ) : (
+            <>
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Tydzień Pn–So</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(weekOnly?.weekHours ?? weekHours)}</span></div>
           {prevSatHours>0&&!biweekly&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">{PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(prevSatHours)}</span></div>}
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Razem godzin</span><span className="font-semibold" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(weekOnly?.weekHours ?? totalHours)}</span></div>
           {totalExtraHours>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">w tym dodatkowe</span><span className="font-semibold text-primary/80" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmtH(totalExtraHours)}</span></div>}
           <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto tydzień</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekOnly?.grossPay ?? weekGross)} PLN</span></div>
           {prevSatGross>0&&!biweekly&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto {PREV_SAT_SHORT}</span><span className="font-semibold text-amber-500/90" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(prevSatGross)} PLN</span></div>}
+            </>
+          )}
           {biweekly && biweeklyRow && !biweeklyRow.isPayoutWeek && (
             <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Na wypłatę {fmtDate(biweeklyRow.nextPayoutDate)}</span><span className="font-semibold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRow.displayNetBeforeEarly)} PLN</span></div>
           )}
@@ -481,8 +519,8 @@ export function WeekEmployeeDetail({
           {biweekly && biweeklyRow && biweeklyRow.isPayoutWeek && biweeklyRow.prevWeekNet > 0 && (
             <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Poprzedni tydzień ({fmtDate(biweeklyRow.prevWeekFrom).slice(0,5)}–{fmtDate(biweeklyRow.prevWeekTo).slice(0,5)})</span><span className="font-semibold text-sky-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(biweeklyRow.prevWeekNet)} PLN</span></div>
           )}
-          <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto razem</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekOnly?.grossPay ?? grossPay)} PLN</span></div>
-          {(weekOnly?.totalZaliczka ?? totalZaliczka)>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(weekOnly?.totalZaliczka ?? totalZaliczka)} PLN</span></div>}
+          {!akord && <div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Brutto razem</span><span className="font-semibold text-muted-foreground" style={{fontFamily:"'JetBrains Mono', monospace"}}>{fmt(weekOnly?.grossPay ?? grossPay)} PLN</span></div>}
+          {!akord && (weekOnly?.totalZaliczka ?? totalZaliczka)>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Zaliczki</span><span className="font-semibold text-destructive" style={{fontFamily:"'JetBrains Mono', monospace"}}>−{fmt(weekOnly?.totalZaliczka ?? totalZaliczka)} PLN</span></div>}
           {totalExtraCosts>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Koszty do zwrotu</span><span className="font-semibold text-green-500" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalExtraCosts)} PLN</span></div>}
           {totalManualAdjustment>0&&<div className="flex justify-between py-1.5 border-b border-border/50 text-sm"><span className="text-muted-foreground">Korekta wypłaty</span><span className="font-semibold text-violet-400" style={{fontFamily:"'JetBrains Mono', monospace"}}>+{fmt(totalManualAdjustment)} PLN</span></div>}
           {payrollRow?.leaveStatus && (

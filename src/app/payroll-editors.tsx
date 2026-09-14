@@ -16,6 +16,7 @@ export function PayrollDayEditor({
   hint,
   titleClass = "",
   variant = "day",
+  compensationModel = "hourly",
   onUpdate,
 }: {
   day: DayData;
@@ -23,8 +24,11 @@ export function PayrollDayEditor({
   hint?: string;
   titleClass?: string;
   variant?: "day" | "prevSaturday";
+  /** Week snapshot model — akord = attendance only (no OD/DO). */
+  compensationModel?: "hourly" | "akord";
   onUpdate: (next: DayData) => void;
 }) {
+  const akord = compensationModel === "akord";
   const updateField = (field: keyof DayData, value: string | boolean) => {
     onUpdate({ ...day, [field]: value });
   };
@@ -32,10 +36,56 @@ export function PayrollDayEditor({
   const notesList = day.notes ?? [];
   const updateExtra = (next: DayExtraHour[]) => onUpdate({ ...day, extraHours: next });
   const updateNotes = (next: DayNote[]) => onUpdate({ ...day, notes: next, extraHours: variant === "prevSaturday" ? undefined : day.extraHours });
-  const baseH = day.active ? hoursWorked(day.from, day.to) : 0;
-  const extraH = variant === "prevSaturday" ? 0 : dayExtraHoursOnly(day);
-  const totalDayH = variant === "prevSaturday" ? baseH : dayTotalHours(day);
-  const hasContent = variant === "prevSaturday" ? day.active || notesList.length > 0 : day.active || extraList.length > 0;
+  const baseH = akord ? 0 : (day.active ? hoursWorked(day.from, day.to) : 0);
+  const extraH = akord || variant === "prevSaturday" ? 0 : dayExtraHoursOnly(day);
+  const totalDayH = akord ? 0 : (variant === "prevSaturday" ? baseH : dayTotalHours(day));
+  const hasContent = variant === "prevSaturday"
+    ? day.active || notesList.length > 0
+    : day.active || (!akord && extraList.length > 0);
+
+  if (akord) {
+    return (
+      <div className={`transition-opacity ${hasContent ? "" : "opacity-50"}`}>
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Checkbox checked={day.active} onChange={(v) => updateField("active", v)}/>
+              <div className="min-w-0">
+                <span className={`text-sm font-medium block truncate ${titleClass}`}>{title}</span>
+                {hint && <span className="text-[10px] text-muted-foreground block truncate">{hint}</span>}
+              </div>
+            </div>
+            <span
+              className={`text-xs font-semibold shrink-0 ${day.active ? "text-primary" : "text-muted-foreground/50"}`}
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {day.active ? "Był" : "Nie był"}
+            </span>
+          </div>
+        </div>
+        {variant === "prevSaturday" && (
+          <div className="px-4 pb-3 sm:pl-10 space-y-2">
+            {notesList.map((note) => (
+              <div key={note.id} className="rounded-lg border border-amber-500/25 bg-amber-500/5 p-2.5 flex items-start gap-2">
+                <FileText size={12} className="text-amber-500 shrink-0 mt-1"/>
+                <textarea
+                  rows={2}
+                  placeholder="Opis (np. co robiono, ilu pracowników wypożyczono, kwota do rozliczenia)"
+                  value={note.text}
+                  onChange={(e) => updateNotes(notesList.map((item) => item.id === note.id ? { ...item, text: e.target.value } : item))}
+                  className="flex-1 min-w-0 bg-background rounded-lg px-2.5 py-1.5 text-xs border border-transparent focus:border-amber-500/40 focus:outline-none resize-y min-h-[2.5rem]"
+                />
+                <button type="button" onClick={() => updateNotes(notesList.filter((item) => item.id !== note.id))} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0"><Trash2 size={13}/></button>
+              </div>
+            ))}
+            <button type="button" onClick={() => updateNotes([...notesList, { id: crypto.randomUUID(), text: "" }])} className="flex items-center gap-1 text-xs font-medium text-amber-600 hover:text-amber-500 transition-colors">
+              <Plus size={12}/> Opis
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`transition-opacity ${hasContent ? "" : "opacity-50"}`}>
@@ -129,4 +179,3 @@ export function PayrollDayEditor({
     </div>
   );
 }
-

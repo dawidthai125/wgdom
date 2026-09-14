@@ -2,8 +2,16 @@ import { useState, useEffect, useRef, type RefObject, type ElementType, type Rea
 import { HelpCircle, Mic, MicOff } from "lucide-react";
 import { fmtH, formatPayrollDayCell, type DayData } from "@/app/app-domain";
 
-export function PayrollDayCellDisplay({ day, accent = "default" }: { day: DayData; accent?: "amber" | "default" }) {
-  const text = formatPayrollDayCell(day);
+export function PayrollDayCellDisplay({
+  day,
+  accent = "default",
+  compensationModel,
+}: {
+  day: DayData;
+  accent?: "amber" | "default";
+  compensationModel?: import("@/lib/payroll-compensation-model").PayrollCompensationModel;
+}) {
+  const text = formatPayrollDayCell(day, compensationModel ? { compensationModel } : undefined);
   if (text === "—") return <span className="text-muted-foreground/40">—</span>;
   const parts = text.split("\n");
   const tone = accent === "amber" ? "text-amber-600 dark:text-amber-400" : "text-foreground";

@@ -66,6 +66,7 @@ import {
 import { useAdminAccess } from "@/app/admin-access";
 import { Checkbox, PayrollDayCellDisplay } from "@/app/app-ui";
 import { WeekEmployeeDetail } from "@/app/WeekEmployeeDetail";
+import { isAkordWeekEmployee, weekEmployeeCompensationModel } from "@/lib/payroll-compensation-model";
 import {
   type WeekEmployee,
   type WeekSnapshot,
@@ -92,7 +93,7 @@ import {
   filterProductionActiveDirectory,
   isProductionDirectoryEmployee,
   isTestWeekEmployee,
-  dayTotalHours,
+  payrollDayHours,
   formatPayrollDayCell,
   weekDayColumns,
   PREV_SAT_SHORT,
@@ -838,11 +839,11 @@ export function PayrollView({
 
   const payrollDayColumns = useMemo(() => weekDayColumns(weekFrom), [weekFrom]);
   const showPrevSatDetailCol = useMemo(
-    () => rows.some((r) => !biweeklyRowMap.has(r.emp.id) && formatPayrollDayCell(getPrevSaturday(r.emp)) !== "—"),
+    () => rows.some((r) => !biweeklyRowMap.has(r.emp.id) && formatPayrollDayCell(getPrevSaturday(r.emp), r.emp) !== "—"),
     [rows, biweeklyRowMap],
   );
   const dayColumnTotals = useMemo(
-    () => payrollDayColumns.map((c) => +rows.reduce((s, r) => s + dayTotalHours(r.emp.days[c.key]), 0).toFixed(2)),
+    () => payrollDayColumns.map((c) => +rows.reduce((s, r) => s + payrollDayHours(r.emp, r.emp.days[c.key]), 0).toFixed(2)),
     [rows, payrollDayColumns],
   );
   const prevSatDetailIso = previousSaturdayIso(weekFrom);
@@ -1462,7 +1463,8 @@ export function PayrollView({
                                       <PayrollAssignmentBadge status={assignmentBadgeFor(r.emp)} />
                                     )}
                                   </p>
-                                  <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}{canViewRates && <> · {fmt(r.rateNum)} PLN/h</>}
+                                  <p className="text-xs text-muted-foreground truncate">{r.emp.position||"—"}{canViewRates && !isAkordWeekEmployee(r.emp) && <> · {fmt(r.rateNum)} PLN/h</>}
+                                    {isAkordWeekEmployee(r.emp) && <span className="ml-1 text-[10px] bg-amber-500/15 text-amber-400 px-1 py-0.5 rounded-full">akord</span>}
                                     {biweeklyRowMap.has(r.emp.id) && <span className="ml-1 text-[10px] bg-sky-500/15 text-sky-400 px-1 py-0.5 rounded-full">co 2 tyg.</span>}
                                   </p>
                                 </div>
@@ -1696,7 +1698,10 @@ export function PayrollView({
                           >
                             <td className="px-3 py-3 text-muted-foreground text-xs" style={{fontFamily:"'JetBrains Mono', monospace"}}>{i + 1}</td>
                             <td className="px-3 py-3 min-w-[120px]">
-                              <p className="font-medium leading-tight truncate">{r.emp.name || <span className="italic text-muted-foreground">Bez nazwy</span>}</p>
+                              <p className="font-medium leading-tight truncate flex items-center gap-1.5">
+                                {r.emp.name || <span className="italic text-muted-foreground">Bez nazwy</span>}
+                                {isAkordWeekEmployee(r.emp) && <span className="text-[10px] font-medium bg-amber-500/15 text-amber-400 px-1 py-0.5 rounded-full shrink-0">akord</span>}
+                              </p>
                               <p className="text-[10px] text-muted-foreground truncate">
                                 {r.emp.position || "—"}
                                 {biweeklyRowMap.has(r.emp.id) && <span className="ml-1 text-sky-400">· co 2 tyg.</span>}
@@ -1704,13 +1709,13 @@ export function PayrollView({
                             </td>
                             {payrollDayColumns.map((col) => (
                               <td key={col.key} className="px-2 py-3 align-top">
-                                <PayrollDayCellDisplay day={r.emp.days[col.key]}/>
+                                <PayrollDayCellDisplay day={r.emp.days[col.key]} compensationModel={weekEmployeeCompensationModel(r.emp)}/>
                               </td>
                             ))}
                             {showPrevSatDetailCol && (
                               <td className="px-2 py-3 align-top">
                                 {!biweeklyRowMap.has(r.emp.id)
-                                  ? <PayrollDayCellDisplay day={getPrevSaturday(r.emp)} accent="amber"/>
+                                  ? <PayrollDayCellDisplay day={getPrevSaturday(r.emp)} accent="amber" compensationModel={weekEmployeeCompensationModel(r.emp)}/>
                                   : <span className="text-muted-foreground/40">—</span>}
                               </td>
                             )}
@@ -1775,14 +1780,14 @@ export function PayrollView({
                           {payrollDayColumns.map((col) => (
                             <div key={col.key} className="bg-secondary/50 rounded-lg px-2.5 py-2">
                               <p className="text-[10px] text-muted-foreground mb-1">{col.shortLabel} · {col.dateLabel}</p>
-                              <PayrollDayCellDisplay day={r.emp.days[col.key]}/>
+                              <PayrollDayCellDisplay day={r.emp.days[col.key]} compensationModel={weekEmployeeCompensationModel(r.emp)}/>
                             </div>
                           ))}
                         </div>
-                        {showPrevSatDetailCol && !biweeklyRowMap.has(r.emp.id) && formatPayrollDayCell(getPrevSaturday(r.emp)) !== "—" && (
+                        {showPrevSatDetailCol && !biweeklyRowMap.has(r.emp.id) && formatPayrollDayCell(getPrevSaturday(r.emp), r.emp) !== "—" && (
                           <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg px-2.5 py-2">
                             <p className="text-[10px] text-amber-600 dark:text-amber-400 mb-1">{PREV_SAT_SHORT} · {fmtDate(prevSatDetailIso)}</p>
-                            <PayrollDayCellDisplay day={getPrevSaturday(r.emp)} accent="amber"/>
+                            <PayrollDayCellDisplay day={getPrevSaturday(r.emp)} accent="amber" compensationModel={weekEmployeeCompensationModel(r.emp)}/>
                           </div>
                         )}
                       </div>
