@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.212 — AUT-MAT paint + Atlas Uni-Grunt SELL (2026-09-14)
+
+- AUT_MAT Accept via existing PriceMemory path (no second writer)
+- `mat.farba_lateksowa_wewnetrzna` · LM Luxens 10 l · 10 PLN/l gross → SELL 12 (margin 20%)
+- `mat.atlas_uni_grunt` · LM ATLAS UNI-GRUNT 12 l · 4.24 PLN/l gross → SELL 5.09 · host ensured ≠ `mat.grunt`
+- MOPS 08def932: 12× `BRAK_CENY_MATERIALU` → 0 · 12/12 paint-prime positionComplete · BidCutover still FAIL (85 residual gaps)
+
 ## 2.66.211 — AUT-BOM ATLAS UNI-GRUNT priming 1134-01 / 1134-02 (2026-09-14)
 
 - New material identity: `mat.atlas_uni_grunt` (≠ `mat.grunt`)

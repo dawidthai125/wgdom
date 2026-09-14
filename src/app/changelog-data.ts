@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-14",
+    version: "2.66.212",
+    label: "AUT-MAT — canonical paint + Atlas Uni-Grunt SELL quotes",
+    items: [
+      {
+        type: "new",
+        text: "PriceMemory AUT_MAT Accept: mat.farba_lateksowa_wewnetrzna 10 PLN/l (LM Luxens 10 l) + mat.atlas_uni_grunt 4.24 PLN/l (LM ATLAS UNI-GRUNT 12 l) · host cw.product.atlas_uni_grunt ensured · margin 20% · SELL 12 / 5.09 · MOPS 08def932: 12× BRAK_CENY_MATERIALU → 0 · packs/rates untouched · REUSE acceptMaterialResearchCandidate.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-14",
     version: "2.66.211",
     label: "AUT-BOM — ATLAS UNI-GRUNT priming packs 1134-01 / 1134-02",
     items: [
