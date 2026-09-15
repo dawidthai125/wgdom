@@ -111,6 +111,13 @@ export const ESTIMATOR_OWNER_CLASSIFICATION_MAP: Readonly<
   "p2b-scianka-gk-na-stelazu-m2": "LABOR",
   "p2b-sufit-podwieszany-gk-m2": "LABOR",
   "p2b-tablica-rozdzielcza-mieszkaniowa-szt": "LABOR",
+  /** MOPS Electrical RC-1 Owner GO 2026-09-15 — CREATE candidates (ZERO OUR RATE until AUT-R1) */
+  "knr-wc-knr-5-08-0504-07-szt": "LABOR",
+  "knr-wc-knr-5-08-0501-03-kpl": "LABOR",
+  "knr-wc-knr-13-21-0402-03-szt": "LABOR",
+  "knr-wc-knr-4-03-1202-01-pomiar": "LABOR",
+  /** MOPS RC-1 RECLASS_STOLARKA — klamki (≠ electrical) */
+  "p2b-wymiana-klamek-z-rozetami-szt": "LABOR",
 });
 
 export function getOwnerClassificationPlane(

@@ -8,6 +8,7 @@
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import { normalizeWorkRateUnitToken } from "@/lib/work-catalog/work-rate-qualify";
 import type { WorkRateEvidenceScopeTag } from "@/lib/work-catalog/work-rate-evidence-scope";
+import { MOPS_ELEC_RC1_OWNER_IDENTITY_MAPPINGS } from "@/lib/work-catalog/ik-owner-identity-mapping-mops-electrical-rc1";
 
 export const LABOR_IDENTITY_MAPPING_TABLE_VERSION = 1 as const;
 export const LABOR_IDENTITY_MAPPING_MAX_ALIASES = 12 as const;
@@ -306,6 +307,8 @@ export const WORK_RATE_IDENTITY_MAPPINGS: readonly LaborIdentityMappingRow[] =
           "Zmywanie HOLD · gruntowanie ≠ biobójcza.",
       },
     },
+    // MOPS Electrical RC-1 Owner GO 2026-09-15 — CONNECT + CREATE candidates
+    ...MOPS_ELEC_RC1_OWNER_IDENTITY_MAPPINGS,
   ]);
 
 let mappingsForTests: readonly LaborIdentityMappingRow[] | null = null;

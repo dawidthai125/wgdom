@@ -10,12 +10,18 @@
  * Owner GO 2026-08-15:
  *   G1 otw. ↔ szt  for cc-w2-przebijanie-otworow
  *   G2 aparat ↔ szt for cc-w2-przygotowanie-osprzet
+ * Owner GO 2026-09-15 MOPS Electrical RC-1:
+ *   0501-03 preserves catalogUnit=kpl for knr-wc-knr-5-08-0501-03-kpl
+ *   (raw kpl/kompl only — NOT szt; no silent kpl→szt attach)
  */
 
 import type { WgdomCostUnit } from "@/lib/wgdom-cost-catalog";
 import { CATALOG_WAVE2_PRODUCT_IDS } from "@/lib/catalog-coverage/alias-pack-wave2";
 
-export type OwnerUnitCompatibilityGroupId = "G1_otw_szt" | "G2_aparat_szt";
+export type OwnerUnitCompatibilityGroupId =
+  | "G1_otw_szt"
+  | "G2_aparat_szt"
+  | "MOPS_RC1_0501_03_KPL";
 
 export type OwnerUnitCompatibilityDecision =
   "ACCEPT_EXISTING_WORK_AND_UNIT_COMPATIBILITY";
@@ -54,6 +60,12 @@ export const OWNER_UNIT_COMPATIBILITY_RULES: readonly OwnerUnitCompatibilityRule
     workId: CATALOG_WAVE2_PRODUCT_IDS.przygotowanie_pod_osprzet,
     sourceUnitTokens: ["aparat"],
     catalogUnit: "szt",
+  },
+  {
+    groupId: "MOPS_RC1_0501_03_KPL",
+    workId: "knr-wc-knr-5-08-0501-03-kpl",
+    sourceUnitTokens: ["kpl", "kompl", "komplet"],
+    catalogUnit: "kpl",
   },
 ] as const;
 
