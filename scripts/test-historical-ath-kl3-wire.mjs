@@ -228,20 +228,43 @@ ok(resolveKnrHostMissDisplayCode(basis) === CODE, `host miss display code = ${CO
     targetDisplayCodes: collectKl3TargetDisplayCodes(knr.lines),
   });
   let captured = null;
-  const result = await executeKl3KnowledgeLookup({
-    tenderId: "t-hist-j",
-    knr,
-    athFiles,
-    isCancelled: () => false,
-    setKnrKnowledge: () => {},
-    setKnowledgeBusy: () => {},
-    onHostComplete: (r) => {
-      captured = r;
-    },
-  });
+  const persistCalls = [];
+  // Guard: KL-3 persist CONNECT must never reach real Supabase from this test.
+  const fetchCalls = [];
+  const origFetch = globalThis.fetch;
+  globalThis.fetch = async (...args) => {
+    fetchCalls.push(String(args[0]));
+    throw new Error("test-historical-ath-kl3-wire: network I/O forbidden in test J");
+  };
+  let result = null;
+  try {
+    result = await executeKl3KnowledgeLookup({
+      tenderId: "t-hist-j",
+      knr,
+      athFiles,
+      isCancelled: () => false,
+      setKnrKnowledge: () => {},
+      setKnowledgeBusy: () => {},
+      onHostComplete: (r) => {
+        captured = r;
+      },
+      // Test seam — no network / no localStorage writes (2.66.230 persist CONNECT).
+      discoveryPersistIo: {
+        loadLocal: () => emptyKnrDiscoveryEvidenceStore(TS),
+        save: async (store) => {
+          persistCalls.push(store);
+        },
+      },
+    });
+    await new Promise((r) => setTimeout(r, 0));
+  } finally {
+    globalThis.fetch = origFetch;
+  }
   ok(result?.athRmsWire?.adaptedCount === 1, "J KL-3 received athFiles (adaptedCount=1)");
   ok(result?.athRmsWire?.outcomes?.[0]?.status === "ADAPTED", "K existing RMS adapter invoked (ADAPTED)");
   ok(captured?.athRmsWire?.adaptedCount === 1, "J onHostComplete sees wire");
+  ok(persistCalls.length === 1 && Boolean(persistCalls[0]?.entries[EVIDENCE_KEY]), "J persist CONNECT routed to discoveryPersistIo mock (ATH evidence)");
+  ok(fetchCalls.length === 0, `J zero network I/O during KL-3 (fetch calls: ${fetchCalls.length})`);
 
   const orchSrc = readFileSync(join(root, "src/lib/intelligent-estimator/orchestra/use-ik-orchestra.ts"), "utf8");
   ok(/buildKnrKl3bAthFilesFromHistoricalIndex\(/.test(orchSrc), "J call site uses mapper");
