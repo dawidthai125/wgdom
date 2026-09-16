@@ -12,6 +12,30 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-15",
+    version: "2.66.228",
+    label: "IK — Host KL-3 ATH RMS production wire",
+    items: [
+      {
+        type: "new",
+        text: "Owner GO: Catalog MISS w resolveHostKnrKnowledgeLookupOnly → adaptAthRmsToDiscoveryV1Hard → discovery evidence (V1-HARD). Orchestra executeKl3KnowledgeLookup przekazuje athFiles. ATH = AUX only · bez labor PLN · PUBLIC bez zmian. Test: test-host-kl3-ath-rms-wire.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-15",
+    version: "2.66.227",
+    label: "IK — RMS → discovery V1-HARD adapter",
+    items: [
+      {
+        type: "new",
+        text: "Owner GO: thin NORMATIVE RMS adapter → kw-knr-discovery-evidence → LABOR_ONLY_AUTO_BOM_V1. ATH AUX parseAthKnrNormExport CONNECT (bez zmiany parsera). NO_MATERIAL_NORM evidence-derived tylko przy R>0∧M=0∧trusted. Public = pre-extracted RMS (PARTIAL). Test: test-normative-rms-to-discovery-v1-adapter.mjs.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-14",
     version: "2.66.226",
     label: "PAYROLL AKORD — kasa sobotnia biweekly",

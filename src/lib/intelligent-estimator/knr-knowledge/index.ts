@@ -85,6 +85,9 @@ export * from "./knr-discovery-document-cache";
 export * from "./knr-discovery-pdf-text";
 export * from "./knr-discovery-pdf-executor";
 
+/** Owner GO — RMS → discovery V1-HARD thin adapter (ATH AUX · public PARTIAL). */
+export * from "./normative-rms-to-discovery-v1-adapter";
+
 export * from "./knr-legal-gate-types";
 export * from "./knr-legal-gate-runtime";
 export * from "./knr-evidence-store";

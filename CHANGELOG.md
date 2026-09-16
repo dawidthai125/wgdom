@@ -1,5 +1,20 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.228 — IK Host KL-3 ATH RMS production wire (2026-09-15)
+
+- Catalog MISS w `resolveHostKnrKnowledgeLookupOnly` → `adaptAthRmsToDiscoveryV1Hard` → discovery evidence
+- Orchestra `executeKl3KnowledgeLookup` przekazuje `athFiles` (API CONNECT)
+- ATH = AUX only · bez `runIkLaborGapResearch` · PUBLIC `norms=[]` bez zmian
+- Test: `scripts/test-host-kl3-ath-rms-wire.mjs` (A–N)
+
+## 2.66.227 — IK RMS → discovery V1-HARD adapter (2026-09-15)
+
+- Thin `normative-rms-to-discovery-v1-adapter` → `upsertKnrDiscoveryEvidenceOffline` → `evaluateLaborOnlyAutoBomV1Contract`
+- ATH AUX: `parseAthKnrNormExport` CONNECT (parser unchanged)
+- `NO_MATERIAL_NORM` evidence-derived only when R>0 ∧ M=0 ∧ trusted origin (Owner GO); OMIT otherwise
+- Public path: pre-extracted RMS only (PDF R extract = PARTIAL / out of this GO)
+- Test: `scripts/test-normative-rms-to-discovery-v1-adapter.mjs`
+
 ## 2.66.226 — PAYROLL AKORD biweekly Saturday cash (2026-09-14)
 
 - `computePayrollCashSplit` propaguje `pieceworkState` → `calcBiweeklyRowDisplay` (ten sam SSOT co wiersz listy)

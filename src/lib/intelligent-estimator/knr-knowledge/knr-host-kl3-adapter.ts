@@ -24,7 +24,11 @@ import {
   buildKnrHostDiscoverySideChannel,
   type KnrHostDiscoverySideChannel,
 } from "./knr-host-discovery-sidechannel";
-import type { KnrDiscoveryEvidenceStore } from "./knr-discovery-evidence-types";
+import { fnv1aHex } from "@/lib/global-knowledge/canonical-id";
+import type {
+  KnrDiscoveryEvidenceStore,
+  KnrDiscoverySourceRef,
+} from "./knr-discovery-evidence-types";
 import type { KnrDiscoveryAllowlistEntry } from "./knr-discovery-allowlist";
 import {
   KNR_DISCOVERY_HTTP_FEATURE_DEFAULT,
@@ -42,6 +46,8 @@ import type { KnrDiscoveryOrchHttpMode } from "./knr-discovery-orch";
 import type { KnrDiscoveryHttpExecuteResult } from "./knr-discovery-http-types";
 import { foldIdentityKeyV2, parseIdentityPartialFromCatalogBasis } from "./knr-identity-v2";
 import { isKnrLocalHitStatus } from "./types";
+import { adaptAthRmsToDiscoveryV1Hard } from "./normative-rms-to-discovery-v1-adapter";
+import { emptyKnrDiscoveryEvidenceStore } from "./knr-discovery-evidence-store";
 
 /**
  * Historical name: host is no longer hard lookup-only after OD-KNR-FLAG-1 YES.
@@ -64,6 +70,35 @@ export const KNR_HOST_DISCOVERY_ON_DEMAND_WIRED = true as const;
 /** Registry fallback active in host MISS path (BY_KEY preferred). */
 export const KNR_HOST_PUBLIC_REGISTRY_FALLBACK_WIRED = true as const;
 
+/**
+ * Catalog MISS + L1 ATH bytes → adaptAthRmsToDiscoveryV1Hard → discovery evidence.
+ * AUX normative only · never tender price · never labor PLN path.
+ */
+export const KNR_HOST_ATH_RMS_ADAPTER_WIRED = true as const;
+
+export type KnrHostAthRmsWireStatus =
+  | "ADAPTED"
+  | "SKIPPED_LOCAL_HIT"
+  | "SKIPPED_NO_MISS_KEY"
+  | "SKIPPED_NO_ATH"
+  | "SKIPPED_ATH_AMBIGUOUS"
+  | "ADAPTER_DENY";
+
+export type KnrHostAthRmsWireOutcome = {
+  lineId: string;
+  evidenceKeyV1: string | null;
+  status: KnrHostAthRmsWireStatus;
+  reason?: string;
+  noMaterialNormEmitted?: boolean;
+};
+
+export type KnrHostAthRmsWireResult = {
+  adaptedCount: number;
+  denyCount: number;
+  outcomes: readonly KnrHostAthRmsWireOutcome[];
+  discoveryStore: KnrDiscoveryEvidenceStore | null;
+};
+
 export type KnrHostKnowledgeLineInput = {
   lineId: string;
   /** Multi-dwelling reanalysis target — per line, not flattened. */
@@ -71,6 +106,13 @@ export type KnrHostKnowledgeLineInput = {
   catalogBasis: CatalogBasis | null;
   /** Optional BOQ description — improves public registry query scoring. */
   description?: string | null;
+  /**
+   * Optional Work Catalog workId — forwarded to ATH RMS adapter for V1 queryHash only.
+   * Never invents identity · never PLN.
+   */
+  workId?: string | null;
+  /** Optional BOQ unit — forwarded to adapter (overrides ATH jm when set). */
+  positionUnit?: string | null;
 };
 
 export type KnrHostReanalysisTarget = {
@@ -140,6 +182,8 @@ export type KnrHostKnowledgeResolveResult = {
   /** Orchestra seam — downstream must invalidate Identity/Labor/F5. */
   reanalysisRequired: boolean;
   reanalysisTargets: readonly KnrHostReanalysisTarget[];
+  /** Catalog MISS → ATH AUX RMS → discovery V1 adapter (observability). */
+  athRmsWire: KnrHostAthRmsWireResult;
 };
 
 /** Deterministic BOQ fingerprint for host memo keys (no authority mutation). */
@@ -182,10 +226,167 @@ function missKeyFromLine(
   };
 }
 
+function foldAthDisplayCode(s: string): string {
+  return String(s || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+}
+
+function findAthFileForMiss(
+  files: readonly KnrKl3bAthFile[],
+  mk: KnrOnDemandMissKey,
+): KnrKl3bAthFile | null | "AMBIGUOUS" {
+  const want = foldAthDisplayCode(mk.displayCode);
+  if (!want) return null;
+  const hits = files.filter(
+    (f) => foldAthDisplayCode(f.targetDisplayCode) === want,
+  );
+  if (hits.length === 0) return null;
+  if (hits.length > 1) return "AMBIGUOUS";
+  return hits[0]!;
+}
+
+function buildAthAuxSourceRef(
+  file: KnrKl3bAthFile,
+  nowIso: string,
+): KnrDiscoverySourceRef {
+  const name = String(file.sourceFilename || "licensed.ath").trim() || "licensed.ath";
+  const code = foldAthDisplayCode(file.targetDisplayCode);
+  const bodyHash = fnv1aHex(
+    typeof TextDecoder !== "undefined"
+      ? new TextDecoder().decode(file.bytes.slice(0, 64_000))
+      : String(file.bytes.length),
+  );
+  return {
+    sourceId: `ath_l1_aux_${name}`,
+    urlHash: fnv1aHex(`ath://licensed/${name}`),
+    title: name,
+    fragment: `ATH AUX normative RMS · ${code}`,
+    contentHash: bodyHash,
+    fetchedAt: nowIso,
+    priority: "OFFICIAL_PUBLIC_DOCUMENT",
+  };
+}
+
+/**
+ * Catalog MISS (non LOCAL_HIT) + matching athFiles → adaptAthRmsToDiscoveryV1Hard.
+ * Fail-closed when no ATH / ambiguous / adapter DENY. Never fabricates RMS.
+ * Never calls labor PLN research.
+ */
+function connectAthRmsAdapterOnCatalogMiss(input: {
+  lines: readonly KnrHostKnowledgeLineInput[];
+  lineResults: readonly { lineId: string; lookupStatus?: string | null }[];
+  athFiles: readonly KnrKl3bAthFile[];
+  discoveryStore: KnrDiscoveryEvidenceStore | undefined;
+  nowIso: string;
+}): KnrHostAthRmsWireResult {
+  const outcomes: KnrHostAthRmsWireOutcome[] = [];
+  let store = input.discoveryStore ?? null;
+  let adaptedCount = 0;
+  let denyCount = 0;
+
+  for (const line of input.lines) {
+    const result = input.lineResults.find((r) => r.lineId === line.lineId);
+    const lookupStatus = result?.lookupStatus ?? null;
+    if (lookupStatus && isKnrLocalHitStatus(lookupStatus)) {
+      outcomes.push({
+        lineId: line.lineId,
+        evidenceKeyV1: null,
+        status: "SKIPPED_LOCAL_HIT",
+      });
+      continue;
+    }
+
+    const mk = missKeyFromLine(line);
+    if (!mk) {
+      outcomes.push({
+        lineId: line.lineId,
+        evidenceKeyV1: null,
+        status: "SKIPPED_NO_MISS_KEY",
+      });
+      continue;
+    }
+
+    if (!input.athFiles.length) {
+      outcomes.push({
+        lineId: line.lineId,
+        evidenceKeyV1: mk.evidenceKeyV1,
+        status: "SKIPPED_NO_ATH",
+        reason: "NO_ATH_FILES",
+      });
+      continue;
+    }
+
+    const ath = findAthFileForMiss(input.athFiles, mk);
+    if (ath === "AMBIGUOUS") {
+      outcomes.push({
+        lineId: line.lineId,
+        evidenceKeyV1: mk.evidenceKeyV1,
+        status: "SKIPPED_ATH_AMBIGUOUS",
+        reason: "MULTI_ATH_TARGET",
+      });
+      continue;
+    }
+    if (!ath) {
+      outcomes.push({
+        lineId: line.lineId,
+        evidenceKeyV1: mk.evidenceKeyV1,
+        status: "SKIPPED_NO_ATH",
+        reason: "NO_MATCHING_ATH_TARGET",
+      });
+      continue;
+    }
+
+    const adapted = adaptAthRmsToDiscoveryV1Hard({
+      athBytes: ath.bytes,
+      targetDisplayCode: ath.targetDisplayCode,
+      evidenceKeyV1: mk.evidenceKeyV1,
+      workId: line.workId ?? null,
+      positionUnit: line.positionUnit ?? null,
+      source: buildAthAuxSourceRef(ath, input.nowIso),
+      nowIso: input.nowIso,
+      noMaterialNormPolicy: "EVIDENCE_DERIVED_IF_GO",
+      includeIncompleteRms: true,
+      existingFamily: mk.family,
+      store: store ?? emptyKnrDiscoveryEvidenceStore(input.nowIso),
+      persist: true,
+    });
+
+    if (!adapted.ok) {
+      denyCount += 1;
+      outcomes.push({
+        lineId: line.lineId,
+        evidenceKeyV1: mk.evidenceKeyV1,
+        status: "ADAPTER_DENY",
+        reason: adapted.reason,
+      });
+      continue;
+    }
+
+    store = adapted.store;
+    adaptedCount += 1;
+    outcomes.push({
+      lineId: line.lineId,
+      evidenceKeyV1: mk.evidenceKeyV1,
+      status: "ADAPTED",
+      noMaterialNormEmitted: adapted.adapted.noMaterialNormEmitted,
+    });
+  }
+
+  return {
+    adaptedCount,
+    denyCount,
+    outcomes,
+    discoveryStore: store,
+  };
+}
+
 /**
  * Host orchestrator. Not a second resolver — loops existing KL-3B.
  * OD-KNR-FLAG-1 YES: default explicitResearch=true; gates remain inside KL3B.
  * Phase 2: on-demand Discovery for remaining MISSes (fail-closed defaults).
+ * ATH RMS wire: Catalog MISS + athFiles → discovery V1 adapter (AUX only).
  */
 export async function resolveHostKnrKnowledgeLookupOnly(
   input: KnrHostKnowledgeResolveInput,
@@ -222,6 +423,18 @@ export async function resolveHostKnrKnowledgeLookupOnly(
     lineResults.push(...row.envelope.lineResults);
     if (row.researchExecuted) researchExecuted = true;
     httpRequestCount += row.httpRequestCount;
+  }
+
+  // Catalog MISS → ATH AUX RMS → discovery V1 (before public on-demand).
+  const athRmsWire = connectAthRmsAdapterOnCatalogMiss({
+    lines: input.lines,
+    lineResults,
+    athFiles: input.athFiles ?? [],
+    discoveryStore,
+    nowIso: input.nowIso,
+  });
+  if (athRmsWire.discoveryStore) {
+    discoveryStore = athRmsWire.discoveryStore;
   }
 
   // Phase 2 — collect MISSes (not local HIT / PENDING_VERIFY from L1)
@@ -352,5 +565,9 @@ export async function resolveHostKnrKnowledgeLookupOnly(
     reanalysisLineIds,
     reanalysisRequired,
     reanalysisTargets,
+    athRmsWire: {
+      ...athRmsWire,
+      discoveryStore: discoveryStore ?? athRmsWire.discoveryStore,
+    },
   };
 }

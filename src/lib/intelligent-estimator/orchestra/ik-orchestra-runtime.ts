@@ -25,6 +25,7 @@ import {
   type KnrKnowledgeEnvelope,
   type KnrHostKnowledgeResolveResult,
 } from "@/lib/intelligent-estimator/knr-knowledge";
+import type { KnrKl3bAthFile } from "@/lib/intelligent-estimator/knr-knowledge/knr-research-kl3b";
 import {
   resolveKnrVerifyActorFromAdminSession,
 } from "@/lib/intelligent-estimator/orchestra/ik-knr-reanalysis-seam";
@@ -114,6 +115,11 @@ export async function executeKl3KnowledgeLookup(opts: {
   knr: IkKnrExpertReport;
   /** Optional Master BOQ — improves public registry query on catalog MISS. */
   documentExpert?: IkDocumentExpertReport | null;
+  /**
+   * L1 licensed ATH files — passed through to host Catalog MISS → ATH RMS adapter.
+   * Omit/empty → fail-closed (no fabricated RMS). Never tender price source.
+   */
+  athFiles?: readonly KnrKl3bAthFile[];
   isCancelled: () => boolean;
   setKnrKnowledge: (value: KnrKnowledgeEnvelope | null) => void;
   setKnowledgeBusy: (value: boolean) => void;
@@ -137,6 +143,7 @@ export async function executeKl3KnowledgeLookup(opts: {
         description: descByLineId.get(l.lineId) ?? null,
       })),
       actor,
+      athFiles: opts.athFiles,
       nowIso: new Date().toISOString(),
     });
     if (!opts.isCancelled()) {
