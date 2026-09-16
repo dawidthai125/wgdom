@@ -391,6 +391,7 @@ ok(KNR_HOST_ATH_RMS_ADAPTER_WIRED === true, "marker KNR_HOST_ATH_RMS_ADAPTER_WIR
     reasons: [],
   };
   let captured = null;
+  const persistCalls = [];
   const result = await executeKl3KnowledgeLookup({
     tenderId: "t-orch",
     knr,
@@ -401,9 +402,17 @@ ok(KNR_HOST_ATH_RMS_ADAPTER_WIRED === true, "marker KNR_HOST_ATH_RMS_ADAPTER_WIR
     onHostComplete: (r) => {
       captured = r;
     },
+    // Test seam — no network / no localStorage writes (2.66.230 persist CONNECT).
+    discoveryPersistIo: {
+      loadLocal: () => emptyKnrDiscoveryEvidenceStore(TS),
+      save: async (store) => {
+        persistCalls.push(store);
+      },
+    },
   });
   ok(result?.athRmsWire?.adaptedCount === 1, "Orchestra athFiles → adapter CONNECT");
   ok(captured?.athRmsWire?.adaptedCount === 1, "Orchestra onHostComplete sees wire");
+  ok(persistCalls.length === 1 && Boolean(persistCalls[0]?.entries[EVIDENCE_KEY]), "Orchestra persist CONNECT called with ATH evidence");
 }
 
 if (failed > 0) {

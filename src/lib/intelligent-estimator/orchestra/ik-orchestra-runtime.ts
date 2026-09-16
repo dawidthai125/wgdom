@@ -26,6 +26,14 @@ import {
   type KnrHostKnowledgeResolveResult,
 } from "@/lib/intelligent-estimator/knr-knowledge";
 import type { KnrKl3bAthFile } from "@/lib/intelligent-estimator/knr-knowledge/knr-research-kl3b";
+import type { KnrHostAthRmsWireResult } from "@/lib/intelligent-estimator/knr-knowledge/knr-host-kl3-adapter";
+import {
+  isEmptyKnrDiscoveryEvidenceStore,
+  loadKnrDiscoveryEvidenceStoreLocal,
+} from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-store";
+import { mergeKnrDiscoveryEvidenceStore } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-merge";
+import { saveKnrDiscoveryEvidenceStore } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-sync";
+import type { KnrDiscoveryEvidenceStore } from "@/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-types";
 import {
   resolveKnrVerifyActorFromAdminSession,
 } from "@/lib/intelligent-estimator/orchestra/ik-knr-reanalysis-seam";
@@ -110,6 +118,57 @@ export function resolveKl3InFlightCancelCleanup(input: {
   return { nextAttemptedKey, clearBusy: true };
 }
 
+/** Test seam only — production uses the canonical local reader + cloud writer. */
+export type Kl3DiscoveryEvidencePersistIo = {
+  loadLocal: () => KnrDiscoveryEvidenceStore;
+  save: (store: KnrDiscoveryEvidenceStore, options: { updatedAtIso: string }) => Promise<void>;
+};
+
+const KL3_DISCOVERY_PERSIST_IO: Kl3DiscoveryEvidencePersistIo = {
+  loadLocal: loadKnrDiscoveryEvidenceStoreLocal,
+  save: (store, options) => saveKnrDiscoveryEvidenceStore(store, options),
+};
+
+export type Kl3DiscoveryEvidencePersistOutcome =
+  | { status: "SKIPPED_NO_ADAPTED" }
+  | { status: "SKIPPED_EMPTY_STORE" }
+  | { status: "NOOP_ETAG"; localCount: number }
+  | { status: "SAVED"; localCount: number; mergedCount: number }
+  | { status: "FAILED"; localCount: number; mergedCount: number; error: string };
+
+/**
+ * Host KL-3 ATH RMS wire → canonical Discovery Evidence persist (CONNECT).
+ * Pre-merge `merge(local, athRmsWire.discoveryStore)` so the canonical writer
+ * (which merges only with cloud) never overwrites local Owner HARD entries;
+ * existing/local wins on contentHash conflict; equal etag → NO-OP.
+ * MIXED scope by design: store may also carry public on-demand evidence from the same run.
+ */
+export async function persistKl3DiscoveryEvidence(
+  input: { athRmsWire: KnrHostAthRmsWireResult; nowIso: string },
+  io: Kl3DiscoveryEvidencePersistIo = KL3_DISCOVERY_PERSIST_IO,
+): Promise<Kl3DiscoveryEvidencePersistOutcome> {
+  const wire = input.athRmsWire;
+  if (wire.adaptedCount <= 0) return { status: "SKIPPED_NO_ADAPTED" };
+  if (!wire.discoveryStore || isEmptyKnrDiscoveryEvidenceStore(wire.discoveryStore)) {
+    return { status: "SKIPPED_EMPTY_STORE" };
+  }
+  let localCount = 0;
+  let mergedCount = 0;
+  try {
+    const local = io.loadLocal();
+    localCount = Object.keys(local.entries).length;
+    const merged = mergeKnrDiscoveryEvidenceStore(local, wire.discoveryStore);
+    mergedCount = Object.keys(merged.entries).length;
+    if (merged.etag === local.etag) return { status: "NOOP_ETAG", localCount };
+    await io.save(merged, { updatedAtIso: input.nowIso });
+    return { status: "SAVED", localCount, mergedCount };
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.warn("[kl3-discovery-persist] persist failed — KL-3 result unaffected", { error });
+    return { status: "FAILED", localCount, mergedCount, error };
+  }
+}
+
 export async function executeKl3KnowledgeLookup(opts: {
   tenderId: string;
   knr: IkKnrExpertReport;
@@ -124,6 +183,8 @@ export async function executeKl3KnowledgeLookup(opts: {
   setKnrKnowledge: (value: KnrKnowledgeEnvelope | null) => void;
   setKnowledgeBusy: (value: boolean) => void;
   onHostComplete?: (result: KnrHostKnowledgeResolveResult) => void;
+  /** Test seam — omit in production (canonical local reader + cloud writer). */
+  discoveryPersistIo?: Kl3DiscoveryEvidencePersistIo;
 }): Promise<KnrHostKnowledgeResolveResult | null> {
   try {
     const descByLineId = new Map<string, string>();
@@ -133,6 +194,7 @@ export async function executeKl3KnowledgeLookup(opts: {
     }
 
     const actor = resolveKnrVerifyActorFromAdminSession();
+    const nowIso = new Date().toISOString();
 
     const result = await resolveHostKnrKnowledgeLookupOnly({
       tenderId: opts.tenderId,
@@ -144,11 +206,16 @@ export async function executeKl3KnowledgeLookup(opts: {
       })),
       actor,
       athFiles: opts.athFiles,
-      nowIso: new Date().toISOString(),
+      nowIso,
     });
     if (!opts.isCancelled()) {
       opts.setKnrKnowledge(result.envelope);
       opts.onHostComplete?.(result);
+      // Fire-and-forget; persist failure never breaks the KL-3 result path.
+      void persistKl3DiscoveryEvidence(
+        { athRmsWire: result.athRmsWire, nowIso },
+        opts.discoveryPersistIo,
+      );
     }
     return opts.isCancelled() ? null : result;
   } catch {

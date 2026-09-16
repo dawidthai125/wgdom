@@ -13,6 +13,18 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-16",
+    version: "2.66.230",
+    label: "IK — ATH RMS → Discovery Evidence persist",
+    items: [
+      {
+        type: "new",
+        text: "Owner GO: wynik host KL-3 ATH RMS (athRmsWire.discoveryStore) zapisywany do kanonicznego kw-knr-discovery-evidence przez istniejący writer (local + chmura). Pre-merge z lokalnym store: istniejące wpisy Owner HARD wygrywają przy konflikcie, identyczny przebieg = NO-OP (etag). Błąd zapisu nie przerywa KL-3. V1 (LABOR_ONLY_AUTO_BOM_V1) bez zmian — widzi evidence przy kolejnym przeliczeniu. Test: test-kl3-discovery-evidence-persist.mjs.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-16",
     version: "2.66.229",
     label: "IK — Historical ATH → KL-3 (AUX normative source)",
     items: [

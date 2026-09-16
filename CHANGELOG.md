@@ -1,5 +1,15 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.230 — IK ATH RMS → canonical Discovery Evidence persist (2026-09-16)
+
+- `ik-orchestra-runtime.ts`: `persistKl3DiscoveryEvidence` — jeden CONNECT w `executeKl3KnowledgeLookup` po `result` (`!isCancelled`)
+- REUSE: `loadKnrDiscoveryEvidenceStoreLocal` → `mergeKnrDiscoveryEvidenceStore(local, athRmsWire.discoveryStore)` → gate `etag` → `saveKnrDiscoveryEvidenceStore` (local + cloud, guardy destructive)
+- Pre-merge = `merged ⊇ local`; konflikt `contentHash` (oba ACTIVE) → local/Owner HARD wygrywa; drugi identyczny przebieg → NO-OP
+- Fire-and-forget + `try/catch` (`[kl3-discovery-persist]`) — błąd persist nie przerywa KL-3
+- `ATH_ONLY_SCOPE = MIXED` (świadomie): store może zawierać public on-demand evidence z tego samego przebiegu — bez filtra ATH-only
+- Bez zmian: host, adapter, on-demand, V1, Auto-G2, Orchestra engine, `workId/positionUnit` (Finding 2 — osobny backlog)
+- Test: `scripts/test-kl3-discovery-evidence-persist.mjs` (A–K) · rozszerzony N w `test-host-kl3-ath-rms-wire.mjs`
+
 ## 2.66.229 — IK Historical ATH → KL-3 AUX normative source (2026-09-16)
 
 - `historical-ath-kl3-files.ts`: `historicalIndex` + cache hydrate (`getHistoricalExecutedAthBytesCached`) → `KnrKl3bAthFile[]` (bytes · sourceFilename · targetDisplayCode)
