@@ -12,6 +12,18 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-16",
+    version: "2.66.229",
+    label: "IK — Historical ATH → KL-3 (AUX normative source)",
+    items: [
+      {
+        type: "new",
+        text: "Owner GO: historicalIndex (ATH z zakończonych robót, cache hydrate) → thin mapper KnrKl3bAthFile[] → executeKl3KnowledgeLookup({ athFiles }) w use-ik-orchestra. 1 target → 1 plik ATH; >1 kandydat / konflikt / brak bytes → fail-closed (brak pliku). Host wybiera ATH per linia (kontrakt KL3B 1 target). Tender input nadal PDF → BOQ. Test: test-historical-ath-kl3-wire.mjs.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-15",
     version: "2.66.228",
     label: "IK — Host KL-3 ATH RMS production wire",

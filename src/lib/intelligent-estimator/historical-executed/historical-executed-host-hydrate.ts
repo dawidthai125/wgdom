@@ -71,6 +71,37 @@ export function resetHistoricalExecutedHostHydrateCachesForTests(): void {
   indexByFingerprint.clear();
 }
 
+/**
+ * READ-ONLY accessor over the existing session bytes cache (no fetch, no new loader).
+ * Returns null when the source was never hydrated in this tab → caller must fail-closed.
+ */
+export function getHistoricalExecutedAthBytesCached(input: {
+  storagePath: string;
+  contentSha256?: string | null;
+}): Uint8Array | null {
+  const byPath = bytesByPath.get(String(input.storagePath || "").trim());
+  if (byPath?.bytes?.byteLength) return byPath.bytes;
+  const sha = String(input.contentSha256 || "").trim();
+  if (!sha) return null;
+  const bySha = bytesBySha.get(sha);
+  return bySha?.bytes?.byteLength ? bySha.bytes : null;
+}
+
+/** Test-only seam: seed the session cache exactly as hydrate would (no storage, no fetch). */
+export function seedHistoricalExecutedAthBytesCacheForTests(input: {
+  storagePath: string;
+  contentSha256: string;
+  bytes: Uint8Array;
+}): void {
+  const entry: BytesCacheEntry = {
+    contentSha256: input.contentSha256,
+    bytes: input.bytes,
+    storagePath: input.storagePath,
+  };
+  bytesByPath.set(input.storagePath, entry);
+  bytesBySha.set(input.contentSha256, entry);
+}
+
 async function defaultLoadBytes(input: {
   storagePath: string;
   filename: string;

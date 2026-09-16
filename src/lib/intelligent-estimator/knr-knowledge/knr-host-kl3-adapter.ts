@@ -226,6 +226,18 @@ function missKeyFromLine(
   };
 }
 
+/**
+ * Host-consistent MISS display code for a CatalogBasis (same fold as `findAthFileForMiss`).
+ * Used by ATH providers (Historical Executed mapper) so `targetDisplayCode` matches the host key.
+ */
+export function resolveKnrHostMissDisplayCode(
+  catalogBasis: CatalogBasis | null | undefined,
+): string | null {
+  const mk = missKeyFromLine({ lineId: "_", catalogBasis: catalogBasis ?? null });
+  const dc = mk?.displayCode ? String(mk.displayCode).trim() : "";
+  return dc || null;
+}
+
 function foldAthDisplayCode(s: string): string {
   return String(s || "")
     .replace(/\s+/g, " ")
@@ -233,11 +245,27 @@ function foldAthDisplayCode(s: string): string {
     .toUpperCase();
 }
 
+/**
+ * KL3B contract: ≤ KNR_KL3B_MAX_L1_FILES and a single target per line, otherwise CONFLICT.
+ * Select only files whose target folds to this line's MISS display code (1 target → 1 file).
+ */
+function selectAthFilesForLine(
+  files: readonly KnrKl3bAthFile[] | undefined,
+  line: KnrHostKnowledgeLineInput,
+): readonly KnrKl3bAthFile[] | undefined {
+  if (!files || files.length === 0) return files;
+  const mk = missKeyFromLine(line);
+  if (!mk) return [];
+  const want = foldAthDisplayCode(mk.displayCode ?? "");
+  if (!want) return [];
+  return files.filter((f) => foldAthDisplayCode(f.targetDisplayCode) === want);
+}
+
 function findAthFileForMiss(
   files: readonly KnrKl3bAthFile[],
   mk: KnrOnDemandMissKey,
 ): KnrKl3bAthFile | null | "AMBIGUOUS" {
-  const want = foldAthDisplayCode(mk.displayCode);
+  const want = foldAthDisplayCode(mk.displayCode ?? "");
   if (!want) return null;
   const hits = files.filter(
     (f) => foldAthDisplayCode(f.targetDisplayCode) === want,
@@ -414,7 +442,7 @@ export async function resolveHostKnrKnowledgeLookupOnly(
       catalogStore,
       evidenceStore,
       actor: input.actor,
-      athFiles: input.athFiles,
+      athFiles: selectAthFilesForLine(input.athFiles, line),
       explicitResearch,
       nowIso: input.nowIso,
     });
@@ -502,7 +530,7 @@ export async function resolveHostKnrKnowledgeLookupOnly(
           catalogStore,
           evidenceStore,
           actor: input.actor,
-          athFiles: input.athFiles,
+          athFiles: selectAthFilesForLine(input.athFiles, line),
           explicitResearch,
           nowIso: input.nowIso,
         });

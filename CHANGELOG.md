@@ -1,5 +1,14 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.229 — IK Historical ATH → KL-3 AUX normative source (2026-09-16)
+
+- `historical-ath-kl3-files.ts`: `historicalIndex` + cache hydrate (`getHistoricalExecutedAthBytesCached`) → `KnrKl3bAthFile[]` (bytes · sourceFilename · targetDisplayCode)
+- `use-ik-orchestra.ts`: jedyny call site KL-3 przekazuje `athFiles`; klucz KL-3 zawiera sygnaturę indeksu (re-run po hydrate)
+- Fail-closed: `MULTI_CANDIDATE` · `CONFLICT_TARGET` · `NO_BYTES` · `NO_INDEX` · `INVALID_FILE` → brak pliku dla targetu
+- Host: `selectAthFilesForLine` (1 target → 1 plik per linia; kontrakt KL3B `MAX_L1_FILES=1`) · `resolveKnrHostMissDisplayCode`
+- Bez tender-package `.ath` · bez `KnrVerifyAdminView` · bez labor PLN · `discoveryStore` secondary bez zmian
+- Test: `scripts/test-historical-ath-kl3-wire.mjs` (A–R)
+
 ## 2.66.228 — IK Host KL-3 ATH RMS production wire (2026-09-15)
 
 - Catalog MISS w `resolveHostKnrKnowledgeLookupOnly` → `adaptAthRmsToDiscoveryV1Hard` → discovery evidence

@@ -12,6 +12,7 @@ export * from "./historical-executed-lookup";
 export * from "./historical-executed-discover";
 export * from "./historical-executed-host-hydrate";
 export * from "./use-historical-executed-host-index";
+export * from "./historical-ath-kl3-files";
 
 export const HISTORICAL_EXECUTED_IMPLEMENTED = true as const;
 export const HISTORICAL_EXECUTED_AUTHORITY = false as const;

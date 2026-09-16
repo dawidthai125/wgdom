@@ -60,6 +60,11 @@ import { buildIkOwnerActionQueue } from "./ik-owner-action-queue";
 import { buildIkPackageBlockerReport } from "./ik-package-blocker-report";
 import { buildIkOwnerActionFreshnessKey } from "./ik-owner-action-freshness";
 import type { KnrKnowledgeEnvelope } from "@/lib/intelligent-estimator/knr-knowledge";
+import {
+  buildKnrKl3bAthFilesFromHistoricalIndex,
+  collectKl3TargetDisplayCodes,
+  historicalIndexKl3Signature,
+} from "@/lib/intelligent-estimator/historical-executed/historical-ath-kl3-files";
 import { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 import {
   runGatedIdentityPersist,
@@ -711,14 +716,19 @@ export function useIkOrchestra({
   // → snapshot rebuild cannot self-cancel the in-flight attempt (RCA: permanent busy latch).
   const tenderIdForKl3 = effectiveItem.id || effectiveItem.tenderId || "";
   const mayProceedForKl3 = expertChainMayProceedFromReport(report);
+  // Historical Executed ATH (AUX normative source) — key includes index signature so KL-3
+  // re-runs once history hydrates; null index ⇒ athFiles=[] ⇒ host fail-closed (SKIPPED_NO_ATH).
+  const historicalKl3Signature = historicalIndexKl3Signature(historicalIndex);
   const kl3KnowledgeKey = useMemo(() => {
     if (!tenderIdForKl3 || knr.lines.length === 0) return "";
-    return `${buildKl3KnowledgeKey(tenderIdForKl3, knr)}|ir${identityResearchEpoch}`;
-  }, [tenderIdForKl3, knr, identityResearchEpoch]);
+    return `${buildKl3KnowledgeKey(tenderIdForKl3, knr)}|ir${identityResearchEpoch}|${historicalKl3Signature}`;
+  }, [tenderIdForKl3, knr, identityResearchEpoch, historicalKl3Signature]);
   const knrForKl3Ref = useRef(knr);
   const reportForKl3Ref = useRef(report);
+  const historicalForKl3Ref = useRef(historicalIndex);
   knrForKl3Ref.current = knr;
   reportForKl3Ref.current = report;
+  historicalForKl3Ref.current = historicalIndex;
 
   useEffect(() => {
     if (!mayProceedForKl3) {
@@ -741,10 +751,16 @@ export function useIkOrchestra({
     setKnowledgeBusy(true);
     const knrSnap = knrForKl3Ref.current;
     const reportSnap = reportForKl3Ref.current;
+    // Historical Executed ATH → KnrKl3bAthFile[] (1 target → 1 file; conflicts/multi → omitted).
+    const { athFiles } = buildKnrKl3bAthFilesFromHistoricalIndex({
+      historicalIndex: historicalForKl3Ref.current,
+      targetDisplayCodes: collectKl3TargetDisplayCodes(knrSnap.lines),
+    });
     void executeKl3KnowledgeLookup({
       tenderId: tenderIdForKl3,
       knr: knrSnap,
       documentExpert: reportSnap,
+      athFiles,
       isCancelled: () => cancelled,
       setKnrKnowledge,
       setKnowledgeBusy,
