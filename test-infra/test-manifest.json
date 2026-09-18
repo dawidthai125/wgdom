@@ -10,6 +10,15 @@
     "gate-b-relevant": {
       "description": "Tier B — lib/smoke/audit warunkowe per scope release",
       "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+        "LIB-STORAGE-TIER1-PIPELINE-READER",
+        "LIB-STORAGE-TIER1-PIPELINE-CUTOVER",
+        "LIB-STORAGE-TIER1-PIPELINE-ONE-WRITER",
+        "LIB-STORAGE-TIER1-PIPELINE-QUOTA-BUDGET",
+        "LIB-STORAGE-TIER1-PIPELINE-VERSION-GATE-CLOUD",
         "LIB-PAYROLL-P0-UNION",
         "LIB-PAYROLL-GUARD",
         "LIB-PAYROLL-GUARD-FAIL-LOUD",
@@ -188,6 +197,94 @@
     "lib-ng10-autonomous-run": {
       "description": "NG-10 Autonomous Run — RETIRED (IK-MIGRATION-01 P10 decommission)",
       "testIds": []
+    },
+    "lib-storage-tier1-pipeline-phase1": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 1 — IDB envelope (NEW-01) + T-INDEX-NEVER-FULL (NEW-08 scope)",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-phase2": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 2 — FULL → INDEX builder (NEW-02) + Phase 1 regression",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-phase3": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 3 — dual write (NEW-04 canonical writer, IDB-first ACK → LS INDEX) + Phase 1/2 regression",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-phase4": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 4 — reader migration (IDB-first FULL, LS INDEX hot-only) + Phase 1/2/3 regression",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-READER",
+        "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-phase5": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 5 — LS INDEX cutover (NEW-03 rollout, legacy subset guard) + Phase 1/2/3/4 regression",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-CUTOVER",
+        "LIB-STORAGE-TIER1-PIPELINE-READER",
+        "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-phase6": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 6 — ONE WRITER convergence (PIPELINE-WRITER-01: B/C/D/F/restore → saveTendersPipelineLocal) + Phase 1/2/3/4/5 regression",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-ONE-WRITER",
+        "LIB-STORAGE-TIER1-PIPELINE-CUTOVER",
+        "LIB-STORAGE-TIER1-PIPELINE-READER",
+        "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-phase7": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 7 — QUOTA/BUDGET/WRITE-BLOCK (PIPELINE-QUOTA-01: browser quota vs per-key INDEX budget NEW-06 vs global telemetry) + Phase 1–6 regression",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-QUOTA-BUDGET",
+        "LIB-STORAGE-TIER1-PIPELINE-ONE-WRITER",
+        "LIB-STORAGE-TIER1-PIPELINE-CUTOVER",
+        "LIB-STORAGE-TIER1-PIPELINE-READER",
+        "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-phase11": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 11 — version gate (fail-closed) + INDEX→Cloud sanitization + write safety · Phase 1–7 regression",
+      "testIds": [
+        "LIB-STORAGE-TIER1-PIPELINE-VERSION-GATE-CLOUD",
+        "LIB-STORAGE-TIER1-PIPELINE-QUOTA-BUDGET",
+        "LIB-STORAGE-TIER1-PIPELINE-ONE-WRITER",
+        "LIB-STORAGE-TIER1-PIPELINE-CUTOVER",
+        "LIB-STORAGE-TIER1-PIPELINE-READER",
+        "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+        "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+        "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL"
+      ]
+    },
+    "lib-storage-tier1-pipeline-old-client": {
+      "description": "STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 10 — T-OLD-CLIENT-READS-INDEX (P9-P1-01 preflight). Wymaga zewnętrznego checkoutu starego release: --main <ścieżka @3bfecc7f>. Poza automatycznymi bramkami (condition manual:*).",
+      "testIds": ["LIB-STORAGE-TIER1-PIPELINE-OLD-CLIENT"]
     },
     "smoke-teux": {
       "description": "NG-06-TEUX-7z — Epic closeout smoke agregat TEUX-1…7f (12 child)",
@@ -677,6 +774,126 @@
       "status": "active"
     },
     {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-IDB-ENVELOPE",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-idb-envelope.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-INDEX-NEVER-FULL",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-index-never-full.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-INDEX-BUILDER",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-index-builder.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-DUAL-WRITE",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-dual-write.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-READER",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-reader.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-CUTOVER",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-cutover.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-ONE-WRITER",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-one-writer.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-QUOTA-BUDGET",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-quota-budget.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-VERSION-GATE-CLOUD",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-version-gate-cloud.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "B",
+      "mandatory": "conditional",
+      "condition": "scope:tenders",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
+      "id": "LIB-STORAGE-TIER1-PIPELINE-OLD-CLIENT",
+      "class": "lib",
+      "path": "scripts/test-storage-tier1-pipeline-old-client.mjs",
+      "runner": "vite-node",
+      "environment": "node",
+      "releaseTier": "none",
+      "mandatory": "optional",
+      "condition": "manual:old-client-checkout",
+      "owner": "Tenders",
+      "status": "active"
+    },
+    {
       "id": "LIB-DEFERRED-BOOTSTRAP-6E",
       "class": "lib",
       "path": "scripts/test-deferred-bootstrap-state-6e.mjs",
@@ -1095,19 +1312,6 @@
       "condition": "scope:tenders",
       "owner": "Przetargi",
       "status": "active"
-    },
-    {
-      "id": "LIB-NG10-01",
-      "class": "lib",
-      "path": "scripts/test-tender-autonomous-run-phase.mjs",
-      "runner": "vite-node",
-      "environment": "node",
-      "releaseTier": "B",
-      "mandatory": "conditional",
-      "condition": "scope:tenders",
-      "owner": "Przetargi",
-      "status": "retired",
-      "retiredReason": "IK-MIGRATION-01 P10 — NG-10 decommission; suite deleted"
     },
     {
       "id": "SMOKE-TEUX-NG06",

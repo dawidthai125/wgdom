@@ -6,6 +6,11 @@ import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import { mergeTenderDossierByQuality } from "@/lib/tender-dossier-merge";
 import { isCloudLeanFieldOmitted } from "@/lib/tender-pipeline/tender-pipeline-cloud-lean";
 import {
+  classifyPipelineRepresentation,
+  hasLsIndexMarker,
+} from "@/lib/tender-pipeline/tender-pipeline-representation";
+import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
+import {
   mergeWgdomCostCatalogStore,
   WGDOM_COST_CATALOG_KEY,
 } from "@/lib/wgdom-cost-catalog-store";
@@ -139,14 +144,48 @@ export function clearDeletedTenderIds(): void {
   } catch { /* ignore */ }
 }
 
+/**
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 §A.6.3 — strona INDEX nie jest uczestnikiem merge body.
+ * Backstop (nie throw — pętle `mergeAllDataKeys`/bootstrap muszą przeżyć): kolekcja INDEX po stronie
+ * local ⇒ `[]`; pojedyncze items z markerem po stronie cloud ⇒ odfiltrowane (CORRUPT).
+ * `mergePipelineItem` pozostaje bez zmian — nigdy nie widzi INDEX, więc projekcje nie mogą wygrać
+ * przy równym `updatedAt` (F-P0-01 / PIPELINE-CLOUD-SAFETY-01).
+ */
+function excludeIndexSide(value: unknown, side: "local" | "cloud"): TenderPipelineItem[] {
+  if (!Array.isArray(value)) return [];
+  const representation = classifyPipelineRepresentation(value);
+  if (representation === "INDEX" || representation === "INDEX_INVALID") {
+    const kept = (value as TenderPipelineItem[]).filter((item) => !hasLsIndexMarker([item]));
+    recordPipelineMergeIndexExcluded(side, value.length - kept.length);
+    return kept;
+  }
+  return value as TenderPipelineItem[];
+}
+
+function recordPipelineMergeIndexExcluded(side: "local" | "cloud", count: number): void {
+  if (count <= 0) return;
+  try {
+    recordStorageWrite({
+      key: TENDERS_PIPELINE_KEY,
+      bytes: 0,
+      writer: "tenders-sync.merge",
+      ok: false,
+      tier: 3,
+      note: `merge_index_side_excluded:${side}:${count}`,
+    });
+  } catch {
+    /* telemetry best-effort */
+  }
+}
+
 export function mergeTenderPipelineForCloud(
   local: unknown,
   cloud: unknown,
   deletedIds: string[] = getDeletedTenderIds(),
 ): TenderPipelineItem[] {
   const deleted = new Set(deletedIds);
-  const localArr = (Array.isArray(local) ? local : []) as TenderPipelineItem[];
-  const cloudArr = (Array.isArray(cloud) ? cloud : []) as TenderPipelineItem[];
+  const localArr = excludeIndexSide(local, "local");
+  const cloudArr = excludeIndexSide(cloud, "cloud");
   const map = new Map<string, TenderPipelineItem>();
   for (const item of localArr) {
     if (!item?.id || deleted.has(item.id)) continue;

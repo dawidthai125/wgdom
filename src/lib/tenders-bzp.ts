@@ -32,14 +32,34 @@ import {
 } from "@/lib/tender-document-bytes-cache";
 import { recordTenderDocumentFetch } from "@/lib/tender-pipeline-metrics";
 import {
+  buildTenderPipelineLsIndex,
+  detectPipelineLsKind,
+  evaluatePipelineIndexBudget,
   getPipelineColdMemory,
+  hydratePipelineColdEnvelopeFromIdb,
   hydratePipelineColdFromIdb,
   resolvePipelineLocalWithCold,
   setPipelineColdMemory,
   stripTenderPipelineForLocalStorage,
+  validatePipelineFullForWrite,
+  type PipelineIdbReadStatus,
+  type PipelineIdbWriteResult,
+  type PipelineLsKind,
+  type TenderPipelineIndexItemV1,
 } from "@/lib/storage/tenders-pipeline-cold";
-import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
+import { recordStorageWrite, scheduleLocalStorageTotalTelemetry } from "@/lib/storage/storage-telemetry";
+import {
+  getLastPipelineLocalIndexGateDecision,
+  isPipelineLocalIndexEnabled,
+} from "@/lib/app-settings";
 import { hydratePipelineItemsFromIngestRegistry } from "@/lib/tender-ingest/artifact-bridge";
+import {
+  classifyPipelineRepresentation,
+  getPipelineFullAvailability,
+  hasLsIndexMarker,
+  setPipelineFullAvailability,
+  type PipelineFullAvailability,
+} from "@/lib/tender-pipeline/tender-pipeline-representation";
 
 export const TENDERS_PIPELINE_KEY = "kw-tenders-pipeline";
 
@@ -610,19 +630,73 @@ export async function fetchBzpTendersFromServer(opts?: {
   return (data.items || []) as BzpNoticeRaw[];
 }
 
-export function loadTendersPipelineLocal(): TenderPipelineItem[] {
-  try {
-    const raw = localStorage.getItem(TENDERS_PIPELINE_KEY);
-    if (!raw) {
-      const cold = getPipelineColdMemory();
-      return cold && cold.length > 0 ? cold : [];
-    }
-    const parsed = JSON.parse(raw);
-    const lean = Array.isArray(parsed) ? (parsed as TenderPipelineItem[]) : [];
-    return resolvePipelineLocalWithCold(lean);
-  } catch {
-    return getPipelineColdMemory() ?? [];
+// ---------------------------------------------------------------------------
+// STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 4 — READER MIGRATION (DF §4, §A.5–§A.8).
+// Granica: FULL-required czyta wyłącznie RAM FULL → valid IDB FULL → zwalidowane źródło
+// zewnętrzne (§A.5.3). LS INDEX = reprezentacja hot/read-only; INDEX → FULL nie istnieje.
+// ---------------------------------------------------------------------------
+
+const PIPELINE_READER_TELEMETRY_WRITER = "tenders-bzp.reader";
+
+function recordPipelineReadTelemetry(note: string): void {
+  recordStorageWrite({
+    key: TENDERS_PIPELINE_KEY,
+    bytes: 0,
+    writer: PIPELINE_READER_TELEMETRY_WRITER,
+    ok: false,
+    tier: 1,
+    note,
+  });
+}
+
+/** §A.5.1/§A.6.1 — stan dostępności FULL + telemetria `full_availability:<state>:<reason>`. */
+function markPipelineFullAvailability(next: PipelineFullAvailability, reason: string): void {
+  if (getPipelineFullAvailability() !== next) {
+    recordStorageWrite({
+      key: TENDERS_PIPELINE_KEY,
+      bytes: 0,
+      writer: "tenders-bzp.loadTendersPipeline",
+      ok: next === "FULL" || next === "EMPTY",
+      tier: 1,
+      note: `full_availability:${next}:${reason}`,
+    });
   }
+  setPipelineFullAvailability(next, reason);
+}
+
+/**
+ * R1 (DF §4.1/§4.2) — sync reader dla UI. **NIE jest źródłem FULL** (PIPELINE-FULL-SOURCE-01):
+ * operacje FULL-required używają `resolvePipelineFullSource()` (§A.5.2).
+ *
+ * Kolejność źródeł (D8): RAM/IDB FULL (`coldMem`) → LS. LS INDEX zwracany wyłącznie jako
+ * reprezentacja **hot/read-only** z markerem `_lsIndex` (nigdy zdejmowanym) + availability
+ * `DEGRADED_INDEX` — każdy downstream guard (writer §3.1, merge §A.6.3, seam §A.6 E) go odrzuci.
+ */
+export function loadTendersPipelineLocal(): TenderPipelineItem[] {
+  const cold = getPipelineColdMemory();
+  const ls = detectPipelineLsKind(readPipelineLsRaw());
+
+  if (ls.kind === "INDEX") {
+    // §4.2: INDEX VALID/STALE + FULL w RAM/IDB ⇒ FULL wygrywa (rebuild LS należy do writera, nie do readera).
+    if (cold && cold.length > 0) return cold;
+    // §4.3 / §A.7 CASE 2–5: brak FULL ⇒ degraded read-only; ZERO konwersji INDEX → FULL.
+    markPipelineFullAvailability("DEGRADED_INDEX", "ls_index_without_full");
+    recordPipelineReadTelemetry("index_without_full");
+    return (ls.items ?? []) as unknown as TenderPipelineItem[];
+  }
+
+  if (ls.kind === "LEGACY_FULL" || ls.kind === "LEGACY_LEAN") {
+    // FULL-compatible (§A.4) — cold (RAM/IDB) nadal ma pierwszeństwo (F-P2-01).
+    if (ls.kind === "LEGACY_LEAN" && !(cold && cold.length > 0)) {
+      // §4.2: LEAN bez FULL w RAM/IDB ⇒ LEAN items + telemetria; FULL recovery = §8.2 (Phase 8).
+      recordPipelineReadTelemetry("legacy_lean_without_full");
+    }
+    return resolvePipelineLocalWithCold((ls.items ?? []) as TenderPipelineItem[]);
+  }
+
+  // EMPTY / MISSING / CORRUPT — §4.2: coldMem FULL gdy jest, inaczej [] (LS nie jest kasowany).
+  if (ls.kind === "CORRUPT") recordPipelineReadTelemetry(`ls_corrupt:${ls.reason ?? "unknown"}`);
+  return cold && cold.length > 0 ? cold : [];
 }
 
 const PIPELINE_LS_TELEMETRY_KEY = "wgdom-pipeline-ls-telemetry";
@@ -630,7 +704,11 @@ const PIPELINE_LS_TELEMETRY_MAX = 50;
 
 export interface PipelineLsTelemetryEntry {
   at: string;
-  kind: "quota_exceeded" | "save_error";
+  /**
+   * `quota_exceeded` = warstwa A (wyjątek przeglądarki) · `budget_block` = warstwa B (NEW-06,
+   * decyzja projektowa przed `setItem`) — DF §7 zakazuje utożsamiania tych dwóch.
+   */
+  kind: "quota_exceeded" | "save_error" | "budget_block";
   bytes?: number;
   itemCount?: number;
   message?: string;
@@ -666,48 +744,446 @@ export function readPipelineLocalSaveTelemetry(): PipelineLsTelemetryEntry[] {
   }
 }
 
-export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
-  setPipelineColdMemory(items);
-  const lean = stripTenderPipelineForLocalStorage(items);
-  const payload = JSON.stringify(lean);
-  const bytes = typeof Blob !== "undefined"
-    ? new Blob([payload]).size
-    : payload.length * 2;
+// ---------------------------------------------------------------------------
+// STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 3 — NEW-04: canonical local writer (DF §3, in-place).
+// Sekwencja §3.2: RAM FULL → VALIDATE → IDB FULL envelope → read-back ACK → BUILD INDEX (seq = ACK) →
+// LS INDEX. Flag OFF (default) = compat: kroki 1–3 + synchroniczny LEGACY_LEAN jak MAIN (Phase 3 ⊇ MAIN).
+// Writer NIGDY: nie pisze FULL do LS jako canonical, nie pisze INDEX do IDB, nie robi removeItem,
+// nie nadpisuje LS pustką po błędzie, nie wykonuje retry, nie dotyka cloud (seam = caller).
+//
+// Phase 7 — krok 6 BUDGET (NEW-06 / DF §7): trzy rozdzielne warstwy quota.
+//   A. browser quota  — `catch` DOMException wokół `setItem` (`quota_blocked_index` / `_compat`)
+//   B. per-key INDEX  — `evaluatePipelineIndexBudget(bytes)` PRZED `setItem`; BLOCK ⇒ skip
+//   C. global LS      — `scheduleLocalStorageTotalTelemetry()` po zapisie, w idle, tylko telemetria
+// A i B nigdy nie są utożsamiane; C nigdy nie blokuje. W żadnej z nich nie ginie IDB FULL.
+// ---------------------------------------------------------------------------
+
+const PIPELINE_LOCAL_WRITER = "tenders-bzp.saveTendersPipelineLocal";
+
+export type PipelineLocalWriteLsMode = "index" | "compat" | "skipped";
+/** `legacy_subset` = Phase 5 cutover guard (PLAN Phase 5; additive wobec unii DF §3.2). */
+export type PipelineLocalWriteLsReason = "quota" | "error" | "budget_block" | "no_ack" | "legacy_subset";
+
+export interface PipelineLocalWriteLsResult {
+  mode: PipelineLocalWriteLsMode;
+  ok: boolean;
+  bytes: number;
+  reason?: PipelineLocalWriteLsReason;
+}
+
+/** NEW-04 — wynik ostatniego zapisu lokalnego (IDB ACK + LS). */
+export interface PipelineLocalWriteResult {
+  idb: PipelineIdbWriteResult;
+  ls: PipelineLocalWriteLsResult;
+}
+
+let lastPipelineLocalWrite: Promise<PipelineLocalWriteResult> | null = null;
+
+/**
+ * NEW-04 (DF §3.2) — ostatni zapis `saveTendersPipelineLocal` po ustaleniu IDB ACK + LS.
+ * Test/diag; sygnatura writera (`void`) bez zmian. `null` = brak zapisu w tej sesji.
+ */
+export function awaitPipelineLocalWriteSettled(): Promise<PipelineLocalWriteResult | null> {
+  return lastPipelineLocalWrite ?? Promise.resolve(null);
+}
+
+function isLsQuotaError(e: unknown): boolean {
+  if (e instanceof DOMException) {
+    return e.name === "QuotaExceededError" || e.code === 22 || e.code === 1014;
+  }
+  return typeof e === "object" && e != null && (e as { name?: unknown }).name === "QuotaExceededError";
+}
+
+function lsPayloadBytes(payload: string): number {
+  return typeof Blob !== "undefined" ? new Blob([payload]).size : payload.length * 2;
+}
+
+/**
+ * Jedyny `localStorage.setItem(TENDERS_PIPELINE_KEY)` w module. Quota/error ⇒ BLOCK: LS pozostaje
+ * z poprzednią zawartością (brak removeItem, brak retry, brak zmiany formatu) — DF §3.3 B/C, §7 A.
+ */
+function writePipelineLsPayload(
+  payload: string,
+  mode: "index" | "compat",
+  itemCount: number,
+  okNote: string,
+  /** Phase 7: bajty zmierzone już przez budżet NEW-06 — bez drugiego `Blob()` na tym samym payloadzie. */
+  measuredBytes?: number,
+): PipelineLocalWriteLsResult {
+  const bytes = measuredBytes ?? lsPayloadBytes(payload);
   try {
     localStorage.setItem(TENDERS_PIPELINE_KEY, payload);
     recordStorageWrite({
       key: TENDERS_PIPELINE_KEY,
       bytes,
-      writer: "tenders-bzp.saveTendersPipelineLocal",
+      writer: PIPELINE_LOCAL_WRITER,
       ok: true,
       tier: 1,
-      note: "lean",
+      note: okNote,
     });
+    return { mode, ok: true, bytes };
   } catch (e) {
-    const isQuota = e instanceof DOMException
-      && (e.name === "QuotaExceededError" || e.code === 22);
+    const isQuota = isLsQuotaError(e);
     logPipelineLocalSaveTelemetry({
       kind: isQuota ? "quota_exceeded" : "save_error",
       bytes,
-      itemCount: items.length,
+      itemCount,
       message: e instanceof Error ? e.message : String(e),
     });
     recordStorageWrite({
       key: TENDERS_PIPELINE_KEY,
       bytes,
-      writer: "tenders-bzp.saveTendersPipelineLocal",
+      writer: PIPELINE_LOCAL_WRITER,
       ok: false,
       tier: 1,
-      note: isQuota ? "quota_exceeded_lean" : "save_error",
+      note: mode === "index"
+        ? (isQuota ? "quota_blocked_index" : "ls_write_error")
+        : (isQuota ? "quota_exceeded_lean" : "save_error"),
     });
+    return { mode, ok: false, bytes, reason: isQuota ? "quota" : "error" };
   }
 }
 
-/** DESIGN-C — registry FULL → bridge → cold. No cloud write / no re-ingest. */
+/** Compat (flag OFF / fallback po ACK FAIL): LEGACY_LEAN = zdefiniowany format MAIN, nigdy INDEX. */
+function writePipelineLsCompatLean(items: TenderPipelineItem[]): PipelineLocalWriteLsResult {
+  const lean = stripTenderPipelineForLocalStorage(items);
+  const result = writePipelineLsPayload(JSON.stringify(lean), "compat", items.length, "lean");
+  // Rollback ON→OFF: LEAN nadpisuje INDEX przy następnym zapisie (DF §13); LS = LEAN(items).
+  if (result.ok) markPipelineLsWriterState("LEGACY_LEAN", items);
+  return result;
+}
+
+function recordLsSkipped(note: string): void {
+  recordStorageWrite({ key: TENDERS_PIPELINE_KEY, bytes: 0, writer: PIPELINE_LOCAL_WRITER, ok: false, tier: 1, note });
+}
+
+/**
+ * Phase 11 — obserwowalność HARD VERSION GATE. `flag_off` = normalny compat (bez wpisu);
+ * każdy inny powód blokady przy fladze ON jest raportowany raz na zapis (bez ponownego
+ * czytania ustawień — decyzja pochodzi z tego samego wywołania `isPipelineLocalIndexEnabled`).
+ */
+function recordIndexGateBlockedIfAny(): void {
+  const gate = getLastPipelineLocalIndexGateDecision();
+  if (gate == null || gate.allowed || gate.reason === "flag_off") return;
+  recordStorageWrite({
+    key: TENDERS_PIPELINE_KEY,
+    bytes: 0,
+    writer: PIPELINE_LOCAL_WRITER,
+    ok: false,
+    tier: 1,
+    note: `index_gate_blocked:${gate.reason}:min=${gate.minAppVersion ?? "unset"}:client=${gate.appVersion ?? "unknown"}`,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5 — LS INDEX CUTOVER (PLAN Phase 5 GATE 5, DF §8.1/§8.2/§8.4).
+// Legacy LS (LEGACY_FULL/LEGACY_LEAN) zostaje nadpisany INDEX-em WYŁĄCZNIE po ACK envelope,
+// którego id-set ⊇ id-set legacy LS (∪ deletedIds). Inaczej LS pozostaje legacy (bez removeItem,
+// bez compat overwrite) — dopóki nie istnieje durable FULL pokrywający legacy id-y.
+// Kształt LS czytany raz na sesję (memo), tylko w ścieżce flag ON; flag OFF = 0 dodatkowego I/O.
+// ---------------------------------------------------------------------------
+
+interface PipelineLsWriterState {
+  kind: PipelineLsKind;
+  /** Tylko LEGACY_* — id-y wymagające pokrycia przed cutover; null = brak legacy do ochrony. */
+  legacyIds: string[] | null;
+}
+
+let pipelineLsWriterState: PipelineLsWriterState | null = null;
+
+function collectLsItemIds(items: unknown[]): string[] {
+  const out: string[] = [];
+  for (const item of items) {
+    const id = (item as { id?: unknown } | null | undefined)?.id;
+    if (typeof id === "string" && id.length > 0) out.push(id);
+  }
+  return out;
+}
+
+function readPipelineLsWriterState(): PipelineLsWriterState {
+  if (pipelineLsWriterState != null) return pipelineLsWriterState;
+  const ls = detectPipelineLsKind(readPipelineLsRaw());
+  const isLegacy = ls.kind === "LEGACY_FULL" || ls.kind === "LEGACY_LEAN";
+  pipelineLsWriterState = {
+    kind: ls.kind,
+    legacyIds: isLegacy ? collectLsItemIds(ls.items ?? []) : null,
+  };
+  recordStorageWrite({
+    key: TENDERS_PIPELINE_KEY,
+    bytes: 0,
+    writer: PIPELINE_LOCAL_WRITER,
+    ok: true,
+    tier: 1,
+    note: `cutover_ls_kind:${ls.kind}`,
+  });
+  return pipelineLsWriterState;
+}
+
+/** Po udanym zapisie LS writer zna kształt bez ponownego czytania (brak full LS scan). */
+function markPipelineLsWriterState(kind: PipelineLsKind, items: TenderPipelineItem[] | null): void {
+  pipelineLsWriterState = {
+    kind,
+    legacyIds: items == null ? null : items.map((it) => it.id),
+  };
+}
+
+export interface PipelineIndexCutoverDecision {
+  ok: boolean;
+  lsKind: PipelineLsKind;
+  /** ≤ 50 id-ów legacy LS bez pokrycia w ACK-owanym FULL ∪ deletedIds. */
+  missingIds: string[];
+  /** Guard pominięty: jawnie pusta kolekcja (parity z MAIN / DF §3.3 EMPTY). */
+  exemption?: "empty_collection";
+}
+
+export function evaluatePipelineIndexCutover(items: TenderPipelineItem[]): PipelineIndexCutoverDecision {
+  const state = readPipelineLsWriterState();
+  const legacyIds = state.legacyIds;
+  if (legacyIds == null || legacyIds.length === 0) {
+    return { ok: true, lsKind: state.kind, missingIds: [] };
+  }
+  // Jawnie pusta kolekcja = autoryzowane opróżnienie (reset/tombstony). Guard chroni przed
+  // CZĘŚCIOWYM cutoverem, nie przed intencjonalnym `[]` — tam obowiązuje write-safety/reset (§10).
+  if (items.length === 0) {
+    return { ok: true, lsKind: state.kind, missingIds: [], exemption: "empty_collection" };
+  }
+  const covered = new Set<string>(items.map((it) => it.id));
+  for (const id of getDeletedTenderIds()) covered.add(id);
+  const missing = legacyIds.filter((id) => !covered.has(id));
+  return { ok: missing.length === 0, lsKind: state.kind, missingIds: missing.slice(0, 50) };
+}
+
+/**
+ * Canonical local pipeline writer (D6/D7). `items` = FULL wg kontraktu callera (Owner PH2-P2-01);
+ * INDEX (`_lsIndex`) odrzucany przez VALIDATE §3.1 — bez RAM/IDB/LS. Sygnatura `(items) => void` bez zmian;
+ * wynik dual-write dostępny przez `awaitPipelineLocalWriteSettled()`.
+ */
+export function saveTendersPipelineLocal(items: TenderPipelineItem[]): void {
+  const indexMode = isPipelineLocalIndexEnabled();
+  const validation = validatePipelineFullForWrite(items);
+
+  // Kroki 1–3 (Phase 1): RAM coldMem (sync) + VALIDATE + IDB envelope write; Promise = read-back ACK.
+  const ack = setPipelineColdMemory(items, { writer: PIPELINE_LOCAL_WRITER });
+
+  let settled: Promise<PipelineLocalWriteResult>;
+
+  if (!validation.ok) {
+    // §3.1 FAIL ⇒ żaden zapis LS (INDEX ani compat). Telemetria `writer_validation_failed` już w cold.ts.
+    recordLsSkipped(`ls_skipped:validation:${validation.reason}`);
+    settled = ack.then((idb) => ({ idb, ls: { mode: "skipped", ok: false, bytes: 0, reason: "no_ack" } }));
+  } else if (!indexMode) {
+    // Flag OFF (compat, Phase 3 ⊇ MAIN): LEGACY_LEAN synchronicznie, bez czekania na ACK.
+    // IDB FAIL w tym trybie = jak MAIN (telemetria envelope:* w cold.ts); LS lean nadal zapisany (DF §3.3 D/E).
+    // Phase 11: flaga ON + bramka wersji BLOCK ⇒ ta sama ścieżka compat (fail closed) + sygnał.
+    recordIndexGateBlockedIfAny();
+    const ls = writePipelineLsCompatLean(items);
+    settled = ack.then((idb) => ({ idb, ls }));
+  } else {
+    // Flag ON: LS INDEX wyłącznie PO ACK tego samego seq (IDB-first). Brak ACK ⇒ fallback compat LEAN (nie INDEX).
+    settled = ack.then((idb) => {
+      if (!idb.ok) {
+        recordLsSkipped(`idb_write_failed:${idb.reason ?? "unknown"}:compat_write`);
+        const ls = writePipelineLsCompatLean(items);
+        if (!ls.ok) recordLsSkipped(`no_local_durable:${ls.reason ?? "error"}`);
+        return { idb, ls };
+      }
+      // Phase 5: cutover legacy → INDEX dopiero gdy ACK-owany FULL pokrywa id-y legacy LS.
+      const cutover = evaluatePipelineIndexCutover(items);
+      if (!cutover.ok) {
+        recordLsSkipped(
+          `index_cutover_blocked:${cutover.lsKind}:legacy_ids_missing=${cutover.missingIds.length}`,
+        );
+        return { idb, ls: { mode: "skipped", ok: false, bytes: 0, reason: "legacy_subset" } };
+      }
+      try {
+        // Krok 5: INDEX z jawnym seq = localSeq potwierdzony read-backiem; FULL nie jest mutowany.
+        const index = buildTenderPipelineLsIndex(items, idb.localSeq);
+        // Krok 6 (Phase 7, NEW-06 / DF §7 B): MEASURE na TYM SAMYM payloadzie, który pójdzie do
+        // `setItem` — jedna serializacja i jeden pomiar na zapis.
+        const payload = JSON.stringify(index);
+        const budget = evaluatePipelineIndexBudget(lsPayloadBytes(payload));
+        if (budget.state === "block") {
+          // BLOCK = świadomy degraded mode: brak `setItem`, LS zachowuje poprzednią zawartość
+          // (stary INDEX / legacy), envelope FULL w IDB pozostaje durable (PIPELINE-QUOTA-01).
+          // Bez truncate, bez usuwania pól, bez partial INDEX, bez retry, bez removeItem.
+          logPipelineLocalSaveTelemetry({
+            kind: "budget_block",
+            bytes: budget.bytes,
+            itemCount: items.length,
+            message: `index_budget_block:${budget.bytes}>=${budget.block}`,
+          });
+          recordStorageWrite({
+            key: TENDERS_PIPELINE_KEY,
+            bytes: budget.bytes,
+            writer: PIPELINE_LOCAL_WRITER,
+            ok: false,
+            tier: 1,
+            note: `index_budget_block:bytes=${budget.bytes}:block=${budget.block}`,
+          });
+          return { idb, ls: { mode: "skipped", ok: false, bytes: budget.bytes, reason: "budget_block" } };
+        }
+        if (budget.state === "warning") {
+          // WARN nigdy nie blokuje zapisu (DF §7 B) — tylko sygnał obserwowalności.
+          recordStorageWrite({
+            key: TENDERS_PIPELINE_KEY,
+            bytes: budget.bytes,
+            writer: PIPELINE_LOCAL_WRITER,
+            ok: true,
+            tier: 1,
+            note: `index_budget_warning:bytes=${budget.bytes}:warn=${budget.warn}`,
+          });
+        }
+        // Krok 7: setItem tego samego payloadu; quota (warstwa A) obsłużona w seamie.
+        const ls = writePipelineLsPayload(
+          payload,
+          "index",
+          items.length,
+          `index_written:seq=${idb.localSeq}`,
+          budget.bytes,
+        );
+        if (ls.ok) markPipelineLsWriterState("INDEX", null);
+        return { idb, ls };
+      } catch (e) {
+        recordLsSkipped(`index_build_failed:${e instanceof Error ? e.message : String(e)}`);
+        return { idb, ls: { mode: "skipped", ok: false, bytes: 0, reason: "error" } };
+      }
+    });
+  }
+
+  // Wynik dostępny dla diag/testów; brak unhandled rejection przy fire-and-forget callerach.
+  lastPipelineLocalWrite = settled;
+  settled.catch(() => undefined);
+  // Warstwa C (DF §7 C): pomiar całego LS PO zapisie, w idle, ≤ 1×/60 s — nigdy w hot-path
+  // i nigdy jako warunek zapisu. Nie zmienia wyniku `settled`.
+  scheduleLocalStorageTotalTelemetry();
+}
+
+// ---------------------------------------------------------------------------
+// DF §A.5.2 — FULL-source resolver (PIPELINE-FULL-SOURCE-01). Kolejność D8: RAM → IDB (OK/LEGACY_ARRAY)
+// → LS tylko LEGACY_FULL/LEGACY_LEAN. INDEX NIGDY nie jest zwracany jako FULL (NO_FULL + id-set).
+// Phase 3: API dostępne; podłączenie callerów FULL-required (E1–E6) = Phase 4.
+// ---------------------------------------------------------------------------
+
+export type PipelineFullSourceResult =
+  | {
+      status: "FULL";
+      items: TenderPipelineItem[];
+      provenance: "RAM" | "IDB_OK" | "IDB_LEGACY_ARRAY" | "LS_LEGACY_FULL" | "LS_LEGACY_LEAN";
+    }
+  | {
+      status: "NO_FULL";
+      index: TenderPipelineIndexItemV1[] | null;
+      lsKind: PipelineLsKind;
+      idbStatus: PipelineIdbReadStatus;
+    }
+  | { status: "EMPTY" };
+
+function readPipelineLsRaw(): string | null {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage.getItem(TENDERS_PIPELINE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export async function resolvePipelineFullSource(): Promise<PipelineFullSourceResult> {
+  const ram = getPipelineColdMemory();
+  if (ram != null) {
+    // RAM = prawda sesji (D8). Jawnie pusta kolekcja po zapisie writera ⇒ EMPTY.
+    if (ram.length > 0) return { status: "FULL", items: ram, provenance: "RAM" };
+    return { status: "EMPTY" };
+  }
+
+  const idb = await hydratePipelineColdEnvelopeFromIdb();
+  const idbFullShape = idb.status === "OK" || idb.status === "LEGACY_ARRAY";
+  if (idbFullShape && idb.items && idb.items.length > 0) {
+    return {
+      status: "FULL",
+      items: idb.items,
+      provenance: idb.status === "OK" ? "IDB_OK" : "IDB_LEGACY_ARRAY",
+    };
+  }
+
+  const ls = detectPipelineLsKind(readPipelineLsRaw());
+  if (ls.kind === "LEGACY_FULL" || ls.kind === "LEGACY_LEAN") {
+    // Provenance jawna — LEGACY_LEAN jest FULL w sensie kontraktu §A.4 (heavy → recovery §8.2), nie „promocją".
+    return {
+      status: "FULL",
+      items: ls.items as TenderPipelineItem[],
+      provenance: ls.kind === "LEGACY_FULL" ? "LS_LEGACY_FULL" : "LS_LEGACY_LEAN",
+    };
+  }
+
+  const idbNoData = idb.status === "MISSING" || (idbFullShape && (!idb.items || idb.items.length === 0));
+  if (idbNoData && (ls.kind === "MISSING" || ls.kind === "EMPTY")) return { status: "EMPTY" };
+
+  return {
+    status: "NO_FULL",
+    index: ls.kind === "INDEX" ? (ls.items as TenderPipelineIndexItemV1[]) : null,
+    lsKind: ls.kind,
+    idbStatus: idb.status,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// DF §A.5.3 — zewnętrzne źródło FULL (cloud lean / plik backupu / cloud snapshot).
+// Jedyna dopuszczalna droga odzysku FULL, gdy lokalnie jest wyłącznie INDEX.
+// ---------------------------------------------------------------------------
+
+export type PipelineExternalFullReject =
+  | "external_source_index"
+  | "external_source_not_array"
+  | `validation:${string}`
+  | `index_ids_not_in_source:${number}`;
+
+export type PipelineExternalFullResult =
+  | { ok: true; items: TenderPipelineItem[] }
+  | { ok: false; reason: PipelineExternalFullReject; missingIds?: string[] };
+
+/**
+ * §A.5.3 — `acceptExternalFull`. Kroki: klasa FULL (∄ `_lsIndex`) → VALIDATE §3.1 →
+ * SUBSET `ids(INDEX_local) ⊆ ids(source) ∪ deletedIds` → FULL′ = source **nienaruszone**
+ * (bez merge z INDEX). REJECT nie kasuje niczego lokalnie (CASE 7 = deterministyczny brak zapisu).
+ */
+export function acceptExternalFull(
+  source: unknown,
+  indexIds: string[] = [],
+  deletedIds: string[] = getDeletedTenderIds(),
+): PipelineExternalFullResult {
+  if (!Array.isArray(source)) return { ok: false, reason: "external_source_not_array" };
+  const representation = classifyPipelineRepresentation(source);
+  if (representation === "INDEX" || representation === "INDEX_INVALID") {
+    return { ok: false, reason: "external_source_index" };
+  }
+  const items = source as TenderPipelineItem[];
+  const validation = validatePipelineFullForWrite(items);
+  if (!validation.ok) return { ok: false, reason: `validation:${validation.reason}` };
+
+  const known = new Set<string>(items.map((it) => it.id));
+  for (const id of deletedIds) known.add(id);
+  const missing = indexIds.filter((id) => !known.has(id));
+  if (missing.length > 0) {
+    return {
+      ok: false,
+      reason: `index_ids_not_in_source:${missing.length}`,
+      missingIds: missing.slice(0, 50),
+    };
+  }
+  return { ok: true, items };
+}
+
+/**
+ * §A.6.2 — DESIGN-C registry FULL → bridge → cold. No cloud write / no re-ingest.
+ * INDEX na wejściu ⇒ zwrot bez hydracji i bez zapisu (hydracja artefaktów do INDEX = konwersja).
+ */
 function finalizePipelineLoadWithIngestHydrate(
   items: TenderPipelineItem[],
   opts?: { persistAlways?: boolean },
 ): TenderPipelineItem[] {
+  if (hasLsIndexMarker(items)) {
+    recordPipelineReadTelemetry("ingest_hydrate_skipped:index_not_full");
+    return items;
+  }
   const { items: hydrated, hydratedCount } = hydratePipelineItemsFromIngestRegistry(items);
   if (opts?.persistAlways || hydratedCount > 0) {
     saveTendersPipelineLocal(hydrated);
@@ -715,10 +1191,54 @@ function finalizePipelineLoadWithIngestHydrate(
   return hydrated;
 }
 
+/**
+ * §4.3 / §A.7 CASE 2–3, 6–7 — brak valid FULL lokalnie. Recovery WYŁĄCZNIE z cloud lean jako
+ * całości (§A.5.3). Zakaz `merge(INDEX, cloud)`. Brak push (recovery jest lokalne).
+ */
+async function recoverPipelineFullFromCloud(
+  source: Extract<PipelineFullSourceResult, { status: "NO_FULL" }>,
+): Promise<TenderPipelineItem[]> {
+  const indexItems = (source.index ?? []) as unknown as TenderPipelineItem[];
+  markPipelineFullAvailability("DEGRADED_INDEX", `no_full:${source.lsKind}:${source.idbStatus}`);
+  recordPipelineReadTelemetry(`index_without_full:${source.lsKind}:${source.idbStatus}`);
+
+  let cloud: unknown = null;
+  try {
+    [cloud] = await fetchKeysFromCloud([TENDERS_PIPELINE_KEY]);
+  } catch {
+    // CASE 6 — cloud niedostępny: INDEX pozostaje jedynym lokalnym źródłem (read-only, 0 zapisów).
+    recordPipelineReadTelemetry("recovery_unavailable:cloud_fetch_failed");
+    return indexItems;
+  }
+  if (cloud == null || !Array.isArray(cloud)) {
+    recordPipelineReadTelemetry("recovery_unavailable:cloud_empty");
+    return indexItems;
+  }
+
+  const accepted = acceptExternalFull(cloud, (source.index ?? []).map((it) => it.id));
+  if (!accepted.ok) {
+    // CASE 7 — subset FAIL / niepoprawne źródło: brak zapisu FULL, brak push, stan DEGRADED_INDEX.
+    recordPipelineReadTelemetry(`recovery_rejected:${accepted.reason.replace("index_ids_not_in_source", "index_ids_not_in_cloud")}`);
+    return indexItems;
+  }
+
+  // FULL′ nienaruszone → canonical writer (envelope + ACK + rebuild LS). Cloud nie jest zapisywany.
+  saveTendersPipelineLocal(accepted.items);
+  markPipelineFullAvailability("FULL", "recovery.cloud_lean");
+  return finalizePipelineLoadWithIngestHydrate(accepted.items);
+}
+
 export async function loadTendersPipeline(): Promise<TenderPipelineItem[]> {
   try {
-    await hydratePipelineColdFromIdb();
-    const local = loadTendersPipelineLocal();
+    // FULL-required (§4.1): RAM → valid IDB → LS tylko LEGACY_*; INDEX nigdy jako FULL.
+    const source = await resolvePipelineFullSource();
+    if (source.status === "NO_FULL") return await recoverPipelineFullFromCloud(source);
+
+    const local = source.status === "FULL" ? source.items : [];
+    markPipelineFullAvailability(
+      source.status === "FULL" ? "FULL" : "EMPTY",
+      source.status === "FULL" ? `source:${source.provenance}` : "source:empty",
+    );
     const [cloud] = await fetchKeysFromCloud([TENDERS_PIPELINE_KEY]);
     if (cloud == null || !Array.isArray(cloud)) {
       return finalizePipelineLoadWithIngestHydrate(local);
@@ -726,8 +1246,18 @@ export async function loadTendersPipeline(): Promise<TenderPipelineItem[]> {
     const merged = mergeTenderPipelineForCloud(local, cloud);
     return finalizePipelineLoadWithIngestHydrate(merged, { persistAlways: true });
   } catch {
-    await hydratePipelineColdFromIdb();
-    return finalizePipelineLoadWithIngestHydrate(loadTendersPipelineLocal());
+    const fallback = await resolvePipelineFullSource();
+    if (fallback.status === "FULL") {
+      markPipelineFullAvailability("FULL", `catch:${fallback.provenance}`);
+      return finalizePipelineLoadWithIngestHydrate(fallback.items);
+    }
+    if (fallback.status === "EMPTY") {
+      markPipelineFullAvailability("EMPTY", "catch:empty");
+      return [];
+    }
+    markPipelineFullAvailability("DEGRADED_INDEX", `catch:no_full:${fallback.lsKind}`);
+    recordPipelineReadTelemetry(`index_without_full:${fallback.lsKind}:${fallback.idbStatus}`);
+    return (fallback.index ?? []) as unknown as TenderPipelineItem[];
   }
 }
 

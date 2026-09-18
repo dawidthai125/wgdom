@@ -6,6 +6,7 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { TendersCustomKeywords } from "@/lib/tenders-bzp-learn";
 import { loadCustomKeywordsLocal } from "@/lib/tenders-bzp-learn";
+import { getPipelineColdMemory } from "@/lib/storage/tenders-pipeline-cold";
 
 /** Musi być identyczny z WGDOM_DEFERRED_BOOTSTRAP_EVENT w cloud-sync.ts (bez importu — unikamy cyklu app-core). */
 const WGDOM_DEFERRED_BOOTSTRAP_EVENT = "wgdom-deferred-bootstrap";
@@ -30,19 +31,7 @@ export type PipelineSessionCacheEntry = {
 let cache: PipelineSessionCacheEntry | null = null;
 let generationCounter = 0;
 
-const LS_PIPELINE_KEY = "kw-tenders-pipeline";
 const LS_KEYWORDS_KEY = "kw-tenders-custom-keywords";
-
-function readPipelineLocal(): TenderPipelineItem[] {
-  try {
-    const raw = localStorage.getItem(LS_PIPELINE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? (parsed as TenderPipelineItem[]) : [];
-  } catch {
-    return [];
-  }
-}
 
 function readKeywordsLocal(): TendersCustomKeywords {
   try {
@@ -61,16 +50,24 @@ function readKeywordsLocal(): TendersCustomKeywords {
   }
 }
 
-/** Performance 2.1C+ — CloudLoader zmergował LS; nie invaliduj TTL po starcie sesji. */
+/**
+ * Performance 2.1C+ — CloudLoader zmergował LS; nie invaliduj TTL po starcie sesji.
+ *
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 4 (DF §5, R2): `cache.items` **nigdy** nie pochodzi
+ * z body LS (mogłoby to być INDEX / LEGACY_LEAN). Źródłem FULL jest wyłącznie RAM/IDB cold memory;
+ * gdy FULL nie ma — patchujemy tylko keywords, items zostają bez zmian.
+ */
 function hydratePipelineSessionCacheFromLocalStorage(): void {
   if (!cache) return;
   if (Date.now() - cache.meta.cloudFetchedAt >= PIPELINE_SESSION_CACHE_TTL_MS) return;
-  const items = readPipelineLocal();
   const customKeywords = readKeywordsLocal();
-  patchPipelineSessionCache(items, {
-    customKeywords,
-    partialMeta: { keywordsEpoch: keywordsEpochFromCustom(customKeywords) },
-  });
+  const partialMeta = { keywordsEpoch: keywordsEpochFromCustom(customKeywords) };
+  const full = getPipelineColdMemory();
+  if (full == null) {
+    cache = { ...cache, customKeywords, meta: { ...cache.meta, ...partialMeta } };
+    return;
+  }
+  patchPipelineSessionCache(full, { customKeywords, partialMeta });
 }
 
 export function keywordsEpochFromCustom(kw: TendersCustomKeywords): string {

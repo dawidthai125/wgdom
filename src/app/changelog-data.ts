@@ -12,6 +12,22 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-18",
+    version: "2.66.231",
+    label: "Przetargi — magazyn pipeline Tier-1 (IDB FULL · LS INDEX · Cloud LEAN)",
+    items: [
+      {
+        type: "new",
+        text: "STORAGE-TIER1-PIPELINE-CONTRACT-01: pełne dane pipeline (FULL) trwale w IndexedDB (koperta z ACK), w localStorage kompaktowy INDEX — tylko za flagą pipelineLocalIndexV1 (domyślnie OFF) i bramką wersji fail-closed (pipelineLocalIndexMinAppVersion; brak/niepoprawna wartość = INDEX wyłączony). Chmura pozostaje LEAN — INDEX nigdy nie trafia do Cloud (sanityzacja przy push). Jeden kanoniczny writer, budżet quota per klucz z blokadą zapisu zamiast cichej utraty danych. Stary klient nie może stać się rollout-capable.",
+      },
+      {
+        type: "improve",
+        text: "Backup/Restore przetargów: eksport wyłącznie FULL (niekompletny FULL → plik z tagiem -INCOMPLETE i komunikat), import i restore z chmury przez kanoniczny writer (INDEX pomijany, komunikat o pominiętych pozycjach), reset pipeline czyści IDB + LS + cache sesji. Backup e-mail nie wysyła INDEX jako danych. Testy: scripts/test-storage-tier1-pipeline-*.mjs (10 suit) · Gate B scope tenders.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-16",
     version: "2.66.230",
     label: "IK — ATH RMS → Discovery Evidence persist",

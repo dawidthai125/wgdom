@@ -38,6 +38,11 @@ import {
 } from "@/lib/tender-pipeline-write-safety";
 import { getDeletedTenderIds, TENDERS_PIPELINE_KEY } from "@/lib/tenders-sync";
 import { mergeTenderPipelineForCloud } from "@/lib/tenders-sync";
+import {
+  hasLsIndexMarker,
+  PipelineIndexNotFullError,
+} from "@/lib/tender-pipeline/tender-pipeline-representation";
+import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
 
 export class PipelineCloudPushError extends Error {
   readonly code: string;
@@ -76,8 +81,30 @@ function assertNotUnconfirmed(): void {
   }
 }
 
+/**
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 §A.6 E (R-P2-01: precondition-only) — seam nigdy nie dostaje
+ * INDEX-derived FULL. Rzut PRZED write-safety: bez latcha, bez zmiany kontraktu Track B.
+ */
+function assertSeamFullOnly(items: TenderPipelineItem[]): void {
+  if (!hasLsIndexMarker(items)) return;
+  try {
+    recordStorageWrite({
+      key: TENDERS_PIPELINE_KEY,
+      bytes: 0,
+      writer: "tender-pipeline.cloud-push",
+      ok: false,
+      tier: 3,
+      note: "seam_rejected:index_not_full",
+    });
+  } catch {
+    /* telemetry best-effort */
+  }
+  throw new PipelineIndexNotFullError("pushTenderPipelineToCloud");
+}
+
 /** Push FULL local intent to cloud — lean strip + guard when flag ON. */
 export async function pushTenderPipelineToCloud(fullItems: TenderPipelineItem[]): Promise<void> {
+  assertSeamFullOnly(fullItems);
   if (!isPipelineCloudLeanGuardEnabled()) {
     await pushKeysToCloudSafe([TENDERS_PIPELINE_KEY], [fullItems]);
     return;

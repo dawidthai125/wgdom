@@ -88,6 +88,7 @@ import {
 import {
   asTenderPipelineItems,
   extractUnguardedPipelineFromPushKeys,
+  sanitizePipelineIndexFromPushKeys,
   shouldRoutePipelinePushToCanonicalSeam,
 } from "@/lib/tender-pipeline/tender-pipeline-cloud-route";
 import { mergeEmployeeLeaves, normalizeEmployeeLeaves } from "@/lib/employee-leaves";
@@ -156,6 +157,9 @@ import {
   refreshUserClassificationDictionaryCacheFromLocalStorage,
 } from "@/lib/wgdom-user-classification-dictionary";
 import { mergeDeliveryPackagePublications } from "@/lib/delivery-package-publications/merge";
+import { getPipelineColdMemory } from "@/lib/storage/tenders-pipeline-cold";
+import { classifyPipelineRepresentation } from "@/lib/tender-pipeline/tender-pipeline-representation";
+import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
 import { recordBatchGet, recordBatchSet, recordBatchSetRetry, bundleFingerprint } from "@/lib/cloud-sync-throttle";
 import {
   BATCH_SET_MAX_ATTEMPTS,
@@ -2153,10 +2157,22 @@ export function resolveReconcileFreshForKey(
 }
 
 /** Przed pushem do chmury — localStorage może być świeższy niż React (inna karta). stored wygrywa nad incoming. */
+/**
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 §A.6.3 — domknięcie null-short-circuit (ARCH REVIEW P2 #2).
+ * `stored` (body LS) może być INDEX; INDEX nie jest FULL, więc dla klucza pipeline jest traktowany
+ * jak brak strony lokalnej (`null`) — również gdy `incoming == null`. Marker NIE jest zdejmowany.
+ */
+function storedSideForMerge(key: DataKey, stored: unknown): unknown {
+  if (key !== TENDERS_PIPELINE_KEY) return stored;
+  const representation = classifyPipelineRepresentation(stored);
+  return representation === "INDEX" || representation === "INDEX_INVALID" ? null : stored;
+}
+
 export function mergeIncomingWithStored(key: DataKey, stored: unknown, incoming: unknown): unknown {
-  if (stored == null) return incoming;
-  if (incoming == null) return stored;
-  return mergeDataKey(key, stored, incoming);
+  const storedSide = storedSideForMerge(key, stored);
+  if (storedSide == null) return incoming;
+  if (incoming == null) return storedSide;
+  return mergeDataKey(key, storedSide, incoming);
 }
 
 /** Przed pushem do chmury — uwzględnij localStorage (inna karta mogła zapisać świeższe dane). */
@@ -3374,9 +3390,32 @@ export function safeRemoveLocalStorageKey(key: string): LocalStoragePersistResul
   }
 }
 
+/**
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 6 (WRITER-01 / DF §11 B) — ostatnia delegacja pipeline
+ * z `persistBootstrapMergedKey` do canonical writera. Test/diag; produkcja jest fire-and-forget.
+ */
+let lastBootstrapPipelinePersist: Promise<void> | null = null;
+
+export function awaitBootstrapPipelinePersistSettled(): Promise<void> {
+  return lastBootstrapPipelinePersist ?? Promise.resolve();
+}
+
 /** Bootstrap / deferred — ten sam kontrakt co safeSetLocalStorageJson + shouldPersist. */
 export function persistBootstrapMergedKey(key: DataKey, merged: unknown): LocalStoragePersistResult {
   if (!bootstrapMergedShouldPersist(key, merged)) {
+    return { ok: true, storageFailure: false };
+  }
+  if (key === TENDERS_PIPELINE_KEY) {
+    // WRITER-01 / DF §11 B — ZERO raw setItem dla pipeline: zapis wyłącznie przez canonical writer
+    // (dynamic import jak `persistKey` — `tenders-bzp` importuje ten moduł statycznie).
+    // Kontrakt callera zachowany (`{ok:true}`); IDB ACK / LS / telemetria należą do writera.
+    lastBootstrapPipelinePersist = (async () => {
+      const { saveTendersPipelineLocal, awaitPipelineLocalWriteSettled } = await import(
+        "@/lib/tenders-bzp"
+      );
+      saveTendersPipelineLocal(asTenderPipelineItems(merged));
+      await awaitPipelineLocalWriteSettled();
+    })().catch(() => undefined);
     return { ok: true, storageFailure: false };
   }
   const result = safeSetLocalStorageJson(key, merged);
@@ -3384,6 +3423,29 @@ export function persistBootstrapMergedKey(key: DataKey, merged: unknown): LocalS
     refreshUserClassificationDictionaryCacheFromLocalStorage();
   }
   return result;
+}
+
+/**
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 §A.8.4 (R9) — local side deferred bootstrap dla pipeline.
+ * FULL wyłącznie z RAM/IDB cold memory albo z LS klasy LEGACY_* (FULL-compatible §A.4).
+ * `undefined` = brak FULL ⇒ klucz pomijany (INDEX nigdy nie awansuje do FULL przez bootstrap).
+ */
+function resolveBootstrapPipelineLocalSide(lsValue: unknown): unknown | undefined {
+  const cold = getPipelineColdMemory();
+  if (cold != null) return cold;
+  const representation = classifyPipelineRepresentation(lsValue);
+  if (representation === "INDEX" || representation === "INDEX_INVALID") {
+    recordStorageWrite({
+      key: TENDERS_PIPELINE_KEY,
+      bytes: 0,
+      writer: "cloud-sync.bootstrap",
+      ok: false,
+      tier: 3,
+      note: "bootstrap_pipeline_skipped_no_full",
+    });
+    return undefined;
+  }
+  return lsValue;
 }
 
 /** Faza 2 — deferred klucze + tombstone kontaktów; na końcu wgdom-deferred-bootstrap. */
@@ -3416,7 +3478,14 @@ export async function fetchAndMergeDeferredBootstrap(): Promise<void> {
     const pushValues: unknown[] = [];
 
     keys.forEach((key, i) => {
-      const local = readLocalStorageDataKey(key);
+      let local = readLocalStorageDataKey(key);
+      if (key === TENDERS_PIPELINE_KEY) {
+        // STORAGE-TIER1-PIPELINE-CONTRACT-01 §A.8.4 / R9 — INDEX nie jest FULL: bez FULL po stronie
+        // lokalnej klucz pipeline jest POMIJANY (brak merge, persist i push). Odzysk = loadTendersPipeline.
+        const localFull = resolveBootstrapPipelineLocalSide(local);
+        if (localFull === undefined) return;
+        local = localFull;
+      }
       const cloudVal = cloudValues[i];
       const merged = mergeDataKey(
         key,
@@ -3800,7 +3869,27 @@ export async function pushKeysToCloud(
     }
   }
 
-  const guarded = await applyPayrollGuardBeforePush(keys, values, options);
+  // STORAGE-TIER1 Phase 11 (PIPELINE-CLOUD-SAFETY-01) — ostatnia granica przed `batch-set`:
+  // ciało pipeline klasy INDEX/INDEX_INVALID nie jest publikowane (CLOUD = LEAN). Reszta bundla
+  // idzie dalej; Cloud zachowuje poprzednie pipeline body (bez omijania write-safety).
+  const egress = sanitizePipelineIndexFromPushKeys(keys, values);
+  if (egress.blocked) {
+    try {
+      recordStorageWrite({
+        key: TENDERS_PIPELINE_KEY,
+        bytes: 0,
+        writer: "cloud-sync.pushKeysToCloud",
+        ok: false,
+        tier: 3,
+        note: `cloud_publish_skipped:index_not_full:${egress.representation}`,
+      });
+    } catch {
+      /* telemetry best-effort */
+    }
+    if (egress.keys.length === 0) return {};
+  }
+
+  const guarded = await applyPayrollGuardBeforePush(egress.keys, egress.values, options);
   if (guarded.blocked) {
     throw new Error(PAYROLL_GUARD_BLOCKED_MESSAGE);
   }

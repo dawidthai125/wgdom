@@ -6,6 +6,11 @@
 import type { TenderPipelineItem } from "@/lib/tenders-bzp";
 import type { CostBranchArtifact } from "@/lib/cost-multi-02-types";
 import type { TenderDossierScanSummary } from "@/lib/tender-dossier-pipeline";
+import {
+  hasLsIndexMarker,
+  PipelineIndexNotFullError,
+} from "@/lib/tender-pipeline/tender-pipeline-representation";
+import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
 
 /** Frozen OD-OCR-24/25 — additive per-item marker (ignored by legacy clients). */
 export type CloudLeanOmittedField =
@@ -41,8 +46,29 @@ export function isCloudLeanFieldOmitted(
   return item?._cloudLean?.v === 1 && Array.isArray(omitted) && omitted.includes(field);
 }
 
-/** Strip heavy fields for cloud KV only — returns new array, does not mutate input. */
+/**
+ * Strip heavy fields for cloud KV only — returns new array, does not mutate input.
+ *
+ * Phase 11 (Owner Decision #2) — precondition: serializer Cloud NIGDY nie dostaje INDEX.
+ * Zdjęcie `_lsIndex` byłoby ukrytą konwersją INDEX → LEAN (PIPELINE-NO-CONVERSION-01, DF §A.10),
+ * a publikacja z markerem złamałaby CLOUD = LEAN — dlatego jedyną bezpieczną reakcją jest odmowa.
+ */
 export function stripTenderPipelineForCloud(items: TenderPipelineItem[]): TenderPipelineItem[] {
+  if (hasLsIndexMarker(items)) {
+    try {
+      recordStorageWrite({
+        key: "kw-tenders-pipeline",
+        bytes: 0,
+        writer: "tender-pipeline.cloud-lean",
+        ok: false,
+        tier: 3,
+        note: "cloud_lean_rejected:index_not_full",
+      });
+    } catch {
+      /* telemetry best-effort */
+    }
+    throw new PipelineIndexNotFullError("stripTenderPipelineForCloud");
+  }
   return items.map((item) => {
     const omitted: CloudLeanOmittedField[] = [...CLOUD_LEAN_OMITTED_FIELDS];
     const next: TenderPipelineItem = { ...item };
@@ -71,6 +97,9 @@ export function stripTenderPipelineForCloud(items: TenderPipelineItem[]): Tender
         const rows = Array.isArray(k.rows) ? k.rows : [];
         k.rows = [];
         (k as { _rowsOmitted?: boolean })._rowsOmitted = rows.length > 0;
+        // Marker LS-lean (`stripTenderPipelineForLocalStorage`) nie należy do cloud body — Phase 5 / test M.
+        // NIE usuwamy `_lsIndex` (seam nigdy nie dostaje INDEX — DF §A.10 / §A.6.5).
+        delete (k as { _coldRowsCount?: number })._coldRowsCount;
         dossier.kosztorys = k;
       }
       if (dossier.scanSummary && typeof dossier.scanSummary === "object") {

@@ -1,5 +1,17 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.231 — Przetargi STORAGE-TIER1-PIPELINE-CONTRACT-01 — IDB FULL · LS INDEX · Cloud LEAN (2026-09-18)
+
+- Kontrakt: IDB = lokalny FULL authority (koperta + ACK, `storage-idb.ts` / `storage/tenders-pipeline-cold.ts`) · LS = kanoniczny INDEX (`_lsIndex`) · Cloud = LEAN (`stripTenderPipelineForCloud`, `sanitizePipelineIndexFromPushKeys`) — INDEX **nigdy** do Cloud, INDEX **nigdy** nie staje się FULL
+- Nowy moduł: `src/lib/tender-pipeline/tender-pipeline-representation.ts` (klasyfikacja FULL / INDEX / LEGACY_LEAN, `PipelineIndexCapability`)
+- Rollout: `pipelineLocalIndexV1` **OFF** (default) · `pipelineLocalIndexMinAppVersion` **nieustawiony** · `evaluatePipelineLocalIndexRolloutGate` fail-closed (`APP_VERSION` + `isAppVersionAtLeast`, format wymagany `X.Y.Z`) — pierwszy kompatybilny release = **2.66.231**
+- ONE WRITER: `saveTendersPipelineLocal` jako jedyny writer (`tenders-bzp.ts`, `tenders-sync.ts`, session cache hydruje z cold memory); reset (`tenders-admin.ts`) czyści IDB + LS + cache
+- Quota/budget: per-key INDEX budget (NEW-06) + telemetria (`storage-budget.ts`, `storage-telemetry.ts`) — write-block zamiast cichej utraty
+- Backup: `exportBackup` FULL-only + tag `-INCOMPLETE` · `importBackup` / cloud-restore / `restoreAllDataFromLocal` przez canonical writer (`acceptExternalFull`) · `weekly-backup-email.ts` `hasLsIndexMarker`
+- Bez migracji danych · bez zmian Cloud KV · downgrade po rollout INDEX nieobsługiwany (Owner Rule)
+- Testy: `scripts/test-storage-tier1-pipeline-{idb-envelope,index-never-full,index-builder,dual-write,reader,cutover,one-writer,quota-budget,version-gate-cloud}.mjs` (Gate B `--scope tenders`) · `…-old-client.mjs` (preflight P9-P1-01, `--main <checkout @3bfecc7f>`, suite `lib-storage-tier1-pipeline-old-client`) · helpers `scripts/_lib/`
+- Docs: `docs/architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-DESIGN-FREEZE.md` · manifest: usunięty martwy `LIB-NG10-01` (PH0-P2-01)
+
 ## 2.66.230 — IK ATH RMS → canonical Discovery Evidence persist (2026-09-16)
 
 - `ik-orchestra-runtime.ts`: `persistKl3DiscoveryEvidence` — jeden CONNECT w `executeKl3KnowledgeLookup` po `result` (`!isCancelled`)

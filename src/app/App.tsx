@@ -1711,13 +1711,35 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
   }, [view, executeCloudFreshnessPull, refreshPayrollFreshnessUx, weekFrom, weekTo]);
 
   // Backup
-  const exportBackup = () => {
+  const exportBackup = async () => {
     const data: Record<string,unknown> = {};
     [...DATA_KEYS, ...OPERATIONAL_NOTES_BACKUP_AUX_KEYS, ADMIN_PASSWORDS_KEY, ADMIN_USERS_CONFIG_KEY].forEach((k) => {
       const v = localStorage.getItem(k);
       if (v) data[k] = JSON.parse(v);
     });
-    saveAs(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),`backup-${new Date().toISOString().slice(0,10)}.json`);
+    // STORAGE-TIER1-PIPELINE-CONTRACT-01 §9 / §A.6 F — pipeline eksportowany wyłącznie jako FULL
+    // (RAM / valid IDB / LEGACY_*). Brak FULL ⇒ klucz POMINIĘTY + plik oznaczony INCOMPLETE.
+    let pipelineTag = "";
+    try {
+      const { resolvePipelineFullSource } = await import("@/lib/tenders-bzp");
+      const source = await resolvePipelineFullSource();
+      if (source.status === "FULL") {
+        data[TENDERS_PIPELINE_KEY] = source.items;
+        pipelineTag = "-full";
+      } else if (source.status === "EMPTY") {
+        delete data[TENDERS_PIPELINE_KEY];
+      } else {
+        delete data[TENDERS_PIPELINE_KEY];
+        pipelineTag = "-INCOMPLETE";
+      }
+    } catch {
+      delete data[TENDERS_PIPELINE_KEY];
+      pipelineTag = "-INCOMPLETE";
+    }
+    saveAs(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),`backup-${new Date().toISOString().slice(0,10)}${pipelineTag}.json`);
+    if (pipelineTag === "-INCOMPLETE") {
+      alert("Backup niekompletny — pełne dane przetargów (FULL) nie są dostępne lokalnie. Klucz pipeline został pominięty; pozostałe dane zapisano.");
+    }
   };
   const importBackup = (file: File) => {
     const reader=new FileReader();
@@ -1794,8 +1816,20 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           );
         }
         if (data[TENDERS_PIPELINE_KEY] != null) {
-          const local = JSON.parse(localStorage.getItem(TENDERS_PIPELINE_KEY) || "[]");
-          data[TENDERS_PIPELINE_KEY] = mergeTenderDataKey(TENDERS_PIPELINE_KEY, local, data[TENDERS_PIPELINE_KEY]);
+          // STORAGE-TIER1-PIPELINE-CONTRACT-01 §A.8.1 (E4) — local side = FULL source (nie body LS,
+          // które może być INDEX); plik = zewnętrzne źródło FULL walidowane przez acceptExternalFull.
+          const { resolvePipelineFullSource, acceptExternalFull } = await import("@/lib/tenders-bzp");
+          const local = await resolvePipelineFullSource();
+          const indexIds = local.status === "NO_FULL" ? (local.index ?? []).map((it) => it.id) : [];
+          const accepted = acceptExternalFull(data[TENDERS_PIPELINE_KEY], indexIds);
+          if (!accepted.ok) {
+            delete data[TENDERS_PIPELINE_KEY];
+            alert(`Import: pominięto przetargi (plik odrzucony — ${accepted.reason}). Pozostałe dane zaimportowano.`);
+          } else if (local.status === "FULL") {
+            data[TENDERS_PIPELINE_KEY] = mergeTenderDataKey(TENDERS_PIPELINE_KEY, local.items, accepted.items);
+          } else {
+            data[TENDERS_PIPELINE_KEY] = accepted.items;
+          }
         }
         if (data[TENDERS_COMPANY_PROFILE_KEY] != null) {
           const local = JSON.parse(localStorage.getItem(TENDERS_COMPANY_PROFILE_KEY) || "null");
@@ -1805,9 +1839,22 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
           const local = JSON.parse(localStorage.getItem(TENDERS_CUSTOM_KEYWORDS_KEY) || "null");
           data[TENDERS_CUSTOM_KEYWORDS_KEY] = mergeTenderDataKey(TENDERS_CUSTOM_KEYWORDS_KEY, local, data[TENDERS_CUSTOM_KEYWORDS_KEY]);
         }
+        // STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 6 (WRITER-01 / DF §11 C) — klucz pipeline NIE idzie
+        // przez surową pętlę `setItem`; zapis lokalny wyłącznie przez canonical writer (IDB ACK → LS).
+        const pipelineImported = Object.prototype.hasOwnProperty.call(data, TENDERS_PIPELINE_KEY)
+          ? (data[TENDERS_PIPELINE_KEY] as import("@/lib/tenders-bzp").TenderPipelineItem[])
+          : undefined;
+        if (pipelineImported !== undefined) delete data[TENDERS_PIPELINE_KEY];
         Object.entries(data).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
+        if (pipelineImported !== undefined) {
+          const { saveTendersPipelineLocal, awaitPipelineLocalWriteSettled } = await import("@/lib/tenders-bzp");
+          saveTendersPipelineLocal(pipelineImported);
+          await awaitPipelineLocalWriteSettled();
+        }
         try {
           const bundle = DATA_KEYS.map((k) => {
+            // Pipeline: do chmury idzie zwalidowane FULL z importu (nie body LS, które jest INDEX).
+            if (k === TENDERS_PIPELINE_KEY) return pipelineImported ?? null;
             try {
               const raw = localStorage.getItem(k);
               return raw ? JSON.parse(raw) : null;
@@ -2029,8 +2076,39 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
       const cloudValues = await fetchKeysFromCloud([...DATA_KEYS]);
       const localBundle = readLocalDataBundle();
       const merged = DATA_KEYS.map((key, i) => mergeDataKey(key, localBundle[key], cloudValues[i]));
+      // STORAGE-TIER1-PIPELINE-CONTRACT-01 §A.8.2 (E5) — pipeline: local side = FULL source
+      // (nie body LS), snapshot chmury walidowany jak źródło zewnętrzne. REJECT ⇒ klucz pominięty.
+      const pipeIdx = DATA_KEYS.indexOf(TENDERS_PIPELINE_KEY);
+      let pipelineSkipped = false;
+      if (pipeIdx >= 0) {
+        const { resolvePipelineFullSource, acceptExternalFull } = await import("@/lib/tenders-bzp");
+        const localPipeline = await resolvePipelineFullSource();
+        const indexIds = localPipeline.status === "NO_FULL"
+          ? (localPipeline.index ?? []).map((it) => it.id)
+          : [];
+        const accepted = acceptExternalFull(cloudValues[pipeIdx] ?? [], indexIds);
+        if (!accepted.ok) {
+          pipelineSkipped = true;
+        } else if (localPipeline.status === "FULL") {
+          merged[pipeIdx] = mergeDataKey(TENDERS_PIPELINE_KEY, localPipeline.items, accepted.items);
+        } else {
+          merged[pipeIdx] = accepted.items;
+        }
+      }
       for (let i = 0; i < DATA_KEYS.length; i++) {
+        if (i === pipeIdx) {
+          // Phase 6 (WRITER-01 / DF §11 F) — pipeline wyłącznie przez canonical writer; REJECT ⇒ LS nietknięty.
+          if (pipelineSkipped) continue;
+          const { saveTendersPipelineLocal, awaitPipelineLocalWriteSettled } = await import("@/lib/tenders-bzp");
+          saveTendersPipelineLocal(merged[pipeIdx] as import("@/lib/tenders-bzp").TenderPipelineItem[]);
+          await awaitPipelineLocalWriteSettled();
+          continue;
+        }
         localStorage.setItem(DATA_KEYS[i], JSON.stringify(merged[i]));
+      }
+      if (pipelineSkipped) {
+        // Brak zwalidowanego FULL ⇒ LS nietknięty, a do chmury wraca jej własny snapshot (no-op).
+        merged[pipeIdx] = cloudValues[pipeIdx] ?? null;
       }
       await pushAllDataToCloud(merged);
       auditRestoreBackup("completed", {
@@ -2054,7 +2132,7 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
   };
 
-  const restoreAllDataFromLocal = (usePrev = false) => {
+  const restoreAllDataFromLocal = async (usePrev = false) => {
     const snaps = listLocalDataSnapshots();
     const pick = snaps.find((s) => s.usePrev === usePrev) ?? snaps[0];
     if (!pick) {
@@ -2063,7 +2141,8 @@ function AppInner({onLogout}: {onLogout?: ()=>void}) {
     }
     if (!window.confirm(`Przywrócić dane z kopii lokalnej (${new Date(pick.at).toLocaleString("pl-PL")})?`)) return;
     auditRestoreBackup("started", { scope: "all", source: "local" });
-    restoreLocalDataSnapshot(pick.usePrev);
+    // Phase 6: pipeline idzie przez canonical writer (async ACK) — reload dopiero po zapisie.
+    await restoreLocalDataSnapshot(pick.usePrev);
     auditRestoreBackup("completed", { scope: "all", source: "local" });
     window.location.reload();
   };

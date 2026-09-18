@@ -5,7 +5,13 @@ import {
   APP_VERSION,
   PIPELINE_CLOUD_LEAN_MIN_APP_VERSION,
   isAppVersionAtLeast,
+  parseAppVersionTriple,
 } from "@/lib/app-version";
+import {
+  isPipelineIndexCapabilitySatisfied,
+  PIPELINE_INDEX_CLIENT_CAPABILITY,
+  type PipelineIndexCapability,
+} from "@/lib/tender-pipeline/tender-pipeline-representation";
 
 export { APP_SETTINGS_KEY };
 
@@ -232,6 +238,19 @@ export interface AppSettings {
   pipelineCloudLeanMigrationComplete: boolean;
   /** OD-OCR-25 — rollback flag (legacy full-body cloud writes). */
   pipelineCloudLeanRollback: boolean;
+  /**
+   * STORAGE-TIER1-PIPELINE-CONTRACT-01 — NEW-03 (DF §13). ON = writer pisze do LS INDEX
+   * (`_lsIndex`) po IDB ACK; OFF (default, compat) = LEGACY_LEAN jak MAIN. Kontrakt flagi
+   * tylko — rollout/UI = Phase 5; readery INDEX = Phase 4. NIE włączać przed Phase 4/5.
+   */
+  pipelineLocalIndexV1: boolean;
+  /**
+   * STORAGE-TIER1 Phase 11 — HARD VERSION GATE dla rollout'u INDEX (Owner Decision #1).
+   * Minimalna `APP_VERSION` klienta, który wolno dopuścić do zapisu LS INDEX (`major.minor.patch`).
+   * `""` = polityka nieustalona ⇒ **FAIL CLOSED** (INDEX zablokowany nawet przy fladze ON).
+   * Wartość deklaruje Owner w chwili rollout'u — kod nie zgaduje numeru wydania.
+   */
+  pipelineLocalIndexMinAppVersion: string;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -275,6 +294,8 @@ export function defaultAppSettings(): AppSettings {
     pipelineCloudLeanMigrationRev: 0,
     pipelineCloudLeanMigrationComplete: false,
     pipelineCloudLeanRollback: false,
+    pipelineLocalIndexV1: false,
+    pipelineLocalIndexMinAppVersion: "",
   };
 }
 
@@ -344,6 +365,87 @@ export function isPipelineCloudLeanGuardEnabled(): boolean {
   const s = loadAppSettingsLocal();
   if (s.pipelineCloudLeanRollback === true) return false;
   return s.pipelineCloudLeanGuardV1 === true;
+}
+
+/** STORAGE-TIER1 NEW-03 — surowa flaga rollout'u (bez bramki wersji). Diagnostyka / UI. */
+export function isPipelineLocalIndexFlagEnabled(): boolean {
+  return loadAppSettingsLocal().pipelineLocalIndexV1 === true;
+}
+
+export type PipelineLocalIndexPolicy = {
+  pipelineLocalIndexV1: boolean;
+  pipelineLocalIndexMinAppVersion: string;
+};
+
+export type PipelineLocalIndexGateReason =
+  | "allowed"
+  | "flag_off"
+  | "min_version_unset"
+  | "min_version_invalid"
+  | "client_below_min_version"
+  | "capability_mismatch";
+
+export type PipelineLocalIndexGateDecision = {
+  allowed: boolean;
+  reason: PipelineLocalIndexGateReason;
+  minAppVersion: string | null;
+  appVersion: string | null;
+};
+
+/**
+ * Phase 11 HARD VERSION GATE (Owner Decision #1) — pure, FAIL CLOSED.
+ * INDEX wolno produkować tylko gdy: flaga ON ∧ build rozumie INDEX/envelope (capability)
+ * ∧ Owner zadeklarował minimalną wersję ∧ `APP_VERSION` tego klienta ≥ minimum.
+ * Wzorzec = OD-OCR-34 (`evaluatePipelineCloudLeanClientVersionAllowed`); brak nowego frameworku.
+ */
+export function evaluatePipelineLocalIndexRolloutGate(
+  appVersion: unknown,
+  policy: PipelineLocalIndexPolicy,
+  capability: Partial<PipelineIndexCapability> | null | undefined = PIPELINE_INDEX_CLIENT_CAPABILITY,
+): PipelineLocalIndexGateDecision {
+  const min = typeof policy.pipelineLocalIndexMinAppVersion === "string"
+    ? policy.pipelineLocalIndexMinAppVersion.trim()
+    : "";
+  const version = typeof appVersion === "string" ? appVersion : null;
+  const base = { minAppVersion: min === "" ? null : min, appVersion: version };
+  if (policy.pipelineLocalIndexV1 !== true) {
+    return { allowed: false, reason: "flag_off", ...base };
+  }
+  if (!isPipelineIndexCapabilitySatisfied(capability)) {
+    return { allowed: false, reason: "capability_mismatch", ...base };
+  }
+  if (min === "") {
+    return { allowed: false, reason: "min_version_unset", ...base };
+  }
+  if (parseAppVersionTriple(min) == null) {
+    return { allowed: false, reason: "min_version_invalid", ...base };
+  }
+  if (!isAppVersionAtLeast(version, min)) {
+    return { allowed: false, reason: "client_below_min_version", ...base };
+  }
+  return { allowed: true, reason: "allowed", ...base };
+}
+
+let lastPipelineLocalIndexGate: PipelineLocalIndexGateDecision | null = null;
+
+/** Ostatnia decyzja bramki (diag / telemetria writera) — bez ponownego czytania ustawień. */
+export function getLastPipelineLocalIndexGateDecision(): PipelineLocalIndexGateDecision | null {
+  return lastPipelineLocalIndexGate;
+}
+
+/**
+ * STORAGE-TIER1 NEW-03 + Phase 11 — jedyny warunek zapisu LS INDEX
+ * (default OFF = compat LEGACY_LEAN). Czytana raz per zapis w `saveTendersPipelineLocal`;
+ * zwraca `true` dopiero po przejściu HARD VERSION GATE (precondition przed budową INDEX).
+ */
+export function isPipelineLocalIndexEnabled(): boolean {
+  const s = loadAppSettingsLocal();
+  const decision = evaluatePipelineLocalIndexRolloutGate(APP_VERSION, {
+    pipelineLocalIndexV1: s.pipelineLocalIndexV1 === true,
+    pipelineLocalIndexMinAppVersion: s.pipelineLocalIndexMinAppVersion,
+  });
+  lastPipelineLocalIndexGate = decision;
+  return decision.allowed;
 }
 
 /** OD-OCR-25 — migration complete marker. */
@@ -659,6 +761,11 @@ export function loadAppSettingsLocal(): AppSettings {
       ),
       pipelineCloudLeanMigrationComplete: parsed.pipelineCloudLeanMigrationComplete === true,
       pipelineCloudLeanRollback: parsed.pipelineCloudLeanRollback === true,
+      pipelineLocalIndexV1: parsed.pipelineLocalIndexV1 === true,
+      pipelineLocalIndexMinAppVersion:
+        typeof parsed.pipelineLocalIndexMinAppVersion === "string"
+          ? parsed.pipelineLocalIndexMinAppVersion
+          : d.pipelineLocalIndexMinAppVersion,
     };
   } catch {
     return defaultAppSettings();
@@ -782,5 +889,15 @@ export function mergeAppSettings(
         : remote?.pipelineCloudLeanRollback === false
           ? false
           : local.pipelineCloudLeanRollback === true,
+    pipelineLocalIndexV1:
+      remote?.pipelineLocalIndexV1 === true
+        ? true
+        : remote?.pipelineLocalIndexV1 === false
+          ? false
+          : local.pipelineLocalIndexV1 === true,
+    pipelineLocalIndexMinAppVersion:
+      typeof remote?.pipelineLocalIndexMinAppVersion === "string"
+        ? remote.pipelineLocalIndexMinAppVersion
+        : local.pipelineLocalIndexMinAppVersion,
   };
 }

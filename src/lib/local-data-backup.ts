@@ -3,6 +3,8 @@
  */
 
 import { DATA_KEYS, OPERATIONAL_NOTES_BACKUP_AUX_KEYS, type DataKey } from "@/lib/cloud-sync";
+import { TENDERS_PIPELINE_KEY } from "@/lib/tenders-sync";
+import { classifyPipelineRepresentation } from "@/lib/tender-pipeline/tender-pipeline-representation";
 import { idbGet, idbSet } from "@/lib/storage/storage-idb";
 import { estimateJsonBytes } from "@/lib/storage/storage-budget";
 import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
@@ -135,18 +137,49 @@ export function listLocalDataSnapshots(): { label: string; at: string; usePrev: 
   return out;
 }
 
-export function restoreLocalDataSnapshot(usePrev = false): LocalDataSnapshot | null {
+/**
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 6 (WRITER-01 / ARCH REVIEW F-P2-04) — generic writer
+ * objęty granicą ONE WRITER: klucz `kw-tenders-pipeline` NIE jest zapisywany surowym `setItem`.
+ * Snapshot klasy FULL (LEGACY_*) → canonical writer; snapshot INDEX ⇒ klucz pominięty
+ * (INDEX nigdy nie awansuje do FULL) + telemetria `restore_pipeline_skipped:index_not_full`.
+ */
+export async function restoreLocalDataSnapshot(usePrev = false): Promise<LocalDataSnapshot | null> {
   migrateLegacyLsSync();
   const snap = usePrev ? memPrev : memCurrent;
   if (!snap?.data) return null;
   try {
+    let pipelineValue: unknown | undefined;
     for (const [key, val] of Object.entries(snap.data)) {
-      if (val != null) {
-        try {
-          localStorage.setItem(key, JSON.stringify(val));
-        } catch {
-          /* quota — partial restore */
-        }
+      if (val == null) continue;
+      if (key === TENDERS_PIPELINE_KEY) {
+        pipelineValue = val;
+        continue;
+      }
+      try {
+        localStorage.setItem(key, JSON.stringify(val));
+      } catch {
+        /* quota — partial restore */
+      }
+    }
+    if (pipelineValue !== undefined) {
+      const representation = classifyPipelineRepresentation(pipelineValue);
+      if (representation === "INDEX" || representation === "INDEX_INVALID") {
+        recordStorageWrite({
+          key: TENDERS_PIPELINE_KEY,
+          bytes: 0,
+          writer: "local-data-backup.restore",
+          ok: false,
+          tier: 1,
+          note: "restore_pipeline_skipped:index_not_full",
+        });
+      } else {
+        const { saveTendersPipelineLocal, awaitPipelineLocalWriteSettled } = await import(
+          "@/lib/tenders-bzp"
+        );
+        saveTendersPipelineLocal(
+          pipelineValue as import("@/lib/tenders-bzp").TenderPipelineItem[],
+        );
+        await awaitPipelineLocalWriteSettled();
       }
     }
     return snap;

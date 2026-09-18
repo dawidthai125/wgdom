@@ -1,9 +1,14 @@
 import { API_BASE, API_HEADERS, DATA_KEYS } from "@/lib/cloud-sync";
+import { getPipelineColdMemory } from "@/lib/storage/tenders-pipeline-cold";
+import { hasLsIndexMarker } from "@/lib/tender-pipeline/tender-pipeline-representation";
+import { recordStorageWrite } from "@/lib/storage/storage-telemetry";
 import { saveLocalJobsSnapshot } from "@/lib/jobs-safety";
 import type { Job, WeekSnapshot } from "@/app/app-domain";
 import { localIsoDate } from "@/app/app-domain";
 
 const KW_LAST_BACKUP_WEEK_KEY = "kw-last-backup-week";
+
+const TENDERS_PIPELINE_BACKUP_KEY = "kw-tenders-pipeline";
 
 export function collectLocalBackupData(overrides?: Partial<Record<string, unknown>>): Record<string, unknown> {
   const data: Record<string, unknown> = {};
@@ -11,6 +16,25 @@ export function collectLocalBackupData(overrides?: Partial<Record<string, unknow
     const v = localStorage.getItem(k);
     if (v) {
       try { data[k] = JSON.parse(v); } catch { /* ignore */ }
+    }
+  }
+  // STORAGE-TIER1-PIPELINE-CONTRACT-01 §9 / §A.6 F (R8) — e-mail backup nigdy nie wysyła INDEX
+  // jako FULL. Ścieżka sync (kontrakt `triggerWeeklyBackupEmail`): FULL = RAM/IDB cold memory,
+  // inaczej LS wyłącznie klasy LEGACY_* (FULL-compatible §A.4). INDEX ⇒ klucz POMINIĘTY + telemetria.
+  if (data[TENDERS_PIPELINE_BACKUP_KEY] != null) {
+    const cold = getPipelineColdMemory();
+    if (cold != null) {
+      data[TENDERS_PIPELINE_BACKUP_KEY] = cold;
+    } else if (hasLsIndexMarker(data[TENDERS_PIPELINE_BACKUP_KEY])) {
+      delete data[TENDERS_PIPELINE_BACKUP_KEY];
+      recordStorageWrite({
+        key: TENDERS_PIPELINE_BACKUP_KEY,
+        bytes: 0,
+        writer: "weekly-backup-email",
+        ok: false,
+        tier: 1,
+        note: "backup_pipeline_incomplete:index_without_full",
+      });
     }
   }
   if (overrides) Object.assign(data, overrides);

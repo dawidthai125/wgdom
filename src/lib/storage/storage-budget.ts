@@ -8,6 +8,19 @@ export const STORAGE_LIMIT = Math.floor(1.5 * 1024 * 1024);
 
 export type StorageBudgetState = "ok" | "warning" | "critical" | "over";
 
+/**
+ * STORAGE-TIER1-PIPELINE-CONTRACT-01 NEW-06 (DF §7 B) — budżet **per-key** dla INDEX
+ * `kw-tenders-pipeline`. Rozdzielny od progów globalnych powyżej: LS total w produkcji
+ * (4.679 MB) przekracza `STORAGE_LIMIT`, więc globalne progi nie mogą warunkować INDEX.
+ *
+ * Wartości zamrożone w DF §7 (PROVISIONAL, kalibracja = pomiar P-3 Phase 2: INDEX 505 poz.
+ * = 530 182 B ≈ 51% BLOCK). Semantyka: `bytes >= WARN` → telemetria, zapis wykonany;
+ * `bytes >= BLOCK` → brak `setItem` (LS zachowuje poprzednią zawartość, FULL żyje w IDB).
+ * Dotyczy WYŁĄCZNIE payloadu INDEX — nigdy compat LEGACY_LEAN (parity z MAIN).
+ */
+export const PIPELINE_INDEX_LS_WARN = 768 * 1024;
+export const PIPELINE_INDEX_LS_BLOCK = 1024 * 1024;
+
 export function estimateJsonBytes(value: unknown): number {
   try {
     const payload = typeof value === "string" ? value : JSON.stringify(value);

@@ -97,6 +97,52 @@ export function recordStorageWrite(input: {
   writerMap.set(input.writer, prev);
 }
 
+// ---------------------------------------------------------------------------
+// STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 7 (DF §7 C) — warstwa globalna 1.2/1.4/1.5 MiB.
+// Wyłącznie TELEMETRIA: nigdy nie blokuje zapisu (blokuje tylko warstwa B per-key i warstwa A
+// quota). `measureLocalStorageBytes()` jest pełnym skanem LS, dlatego NIGDY nie wolno go wołać
+// w hot-path zapisu (lekcja 02F V-PERF-A): planujemy go po zapisie, w idle, max 1×/60 s.
+// ---------------------------------------------------------------------------
+
+export const LS_TOTAL_TELEMETRY_KEY = "__ls_total__";
+const LS_TOTAL_MIN_INTERVAL_MS = 60_000;
+
+let lsTotalLastScheduledAt = 0;
+
+type IdleG = { requestIdleCallback?: (cb: () => void) => unknown };
+
+/**
+ * Throttled (≤ 1×/60 s), nieblokujące. Wywołanie jest O(1) — sam pomiar biegnie w idle.
+ * Zwraca `true`, jeżeli pomiar został zaplanowany (diag/testy).
+ */
+export function scheduleLocalStorageTotalTelemetry(): boolean {
+  if (!on()) return false;
+  const now = Date.now();
+  if (lsTotalLastScheduledAt !== 0 && now - lsTotalLastScheduledAt < LS_TOTAL_MIN_INTERVAL_MS) {
+    return false;
+  }
+  lsTotalLastScheduledAt = now;
+  const run = () => {
+    try {
+      const { total } = measureLocalStorageBytes();
+      recordStorageWrite({
+        key: LS_TOTAL_TELEMETRY_KEY,
+        bytes: total,
+        writer: "storage-budget.ls_total",
+        ok: true,
+        tier: 3,
+        note: `ls_total:${budgetStateForTotal(total)}`,
+      });
+    } catch {
+      /* telemetria best-effort — nigdy nie wpływa na zapis */
+    }
+  };
+  const idle = (globalThis as IdleG).requestIdleCallback;
+  if (typeof idle === "function") idle(run);
+  else setTimeout(run, 0);
+  return true;
+}
+
 export function reportStorageTelemetry(): string {
   const { total, perKey } = measureLocalStorageBytes();
   const state = budgetStateForTotal(total);
