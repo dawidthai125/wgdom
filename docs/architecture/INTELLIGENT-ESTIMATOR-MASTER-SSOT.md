@@ -1011,6 +1011,24 @@ guard: schemaVersion · bundleRevision · bundleAt · itemCount · deletedIdsRev
 
 **HARD:** cloud lean **≠** cloud FULL authority. FULL artifacts żyją w `kw-tender-ingest-v1` (+ local hydrate).
 
+#### 10.5.1 STORAGE-TIER1 local contract (CLOSED / PRODUCTION VERIFIED — nie reopen)
+
+> **Local durable model** (nie zmienia Track B Cloud LEAN):
+
+```text
+IDB tenders-pipeline-full  = local durable FULL authority (envelope + ACK)
+LS  kw-tenders-pipeline     = hot INDEX only (_lsIndex) — NEVER FULL
+Cloud kw-tenders-pipeline  = LEAN (Track B UNCHANGED) — INDEX never published
+```
+
+| | |
+|--|--|
+| **Status** | **EPIC CLOSED / PRODUCTION VERIFIED** |
+| **Tip** | **2.66.231** / **`16bfb9f3`** · flag **`pipelineLocalIndexV1=true`** · min **`2.66.231`** |
+| **SSOT** | [`STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md`](STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · ADR · PLAN · DF |
+| **HARD** | INDEX ≠ FULL · no implicit INDEX→FULL · downgrade after INDEX **UNSUPPORTED** · `kw-tender-ingest-v1` **OUT OF SCOPE** |
+| **≠** | Track B reopen · Cloud FULL · generic storage-manager |
+
 ### 10.6 OCR / C2 timeline (compact HISTORY — capability only)
 
 | ID / tip | Status | Skrót |
@@ -1056,6 +1074,7 @@ guard: schemaVersion · bundleRevision · bundleAt · itemCount · deletedIdsRev
 
 - **Store:** `kw-tender-ingest-v1` = **FULL browser/session artifact registry** · **NOT** cloud SSOT · **nie** w `DATA_KEYS`.
 - **Cloud pipeline:** `kw-tenders-pipeline` = **lean** (snapshots mogą być omitted) — Track B **CLOSED**.
+- **Local pipeline (STORAGE-TIER1):** IDB FULL → LS INDEX → Cloud LEAN — **CLOSED / PV** @ **2.66.231 / `16bfb9f3`** · §10.5.1 · epic closeout.
 - **Hydration:** FULL z ingest → `loadTendersPipeline` hydrate → `applyIngestArtifactsToPipelineItem` · checkpoint **`75d0f090`**.
 - **Legal PV path:** restore FULL z dump dla obserwacji PV = **valid observation path** (nie = auto cloud FULL authority).
 

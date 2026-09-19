@@ -1,10 +1,10 @@
 # STORAGE-TIER1-PIPELINE-CONTRACT-01 — DESIGN FREEZE
 
-> **Status:** **DESIGN FREEZE v1.1 — AMENDED (F-P0-01)** · **IMPLEMENT BLOCKED** do RE-RUN ARCH REVIEW + Owner GO IMPLEMENT  
-> **Data:** 2026-09-17 (v1.0) · **Amendment A:** 2026-09-17 — [§A DESIGN FREEZE AMENDMENT — F-P0-01](#a-design-freeze-amendment--f-p0-01) (Owner: F-P0-01 ACCEPTED, D1–D10 LOCKED)  
-> **Baseline:** `main` @ `3bfecc7f` = `origin/main` = prod 2.66.230  
-> **ADR (LOCKED):** [`ADR-STORAGE-TIER1-PIPELINE-CONTRACT-01.md`](ADR-STORAGE-TIER1-PIPELINE-CONTRACT-01.md) · **PLAN (APPROVED):** [`STORAGE-TIER1-PIPELINE-CONTRACT-01-PLAN.md`](STORAGE-TIER1-PIPELINE-CONTRACT-01-PLAN.md)  
-> **Owner GO:** YES (Design Freeze) · **Owner Confirmations:** #1 RESET BLOCK · #2 NO IDB = NO INDEX · #3 BACKUP = FULL  
+> **Status:** **DESIGN FREEZE v1.1 — AMENDED (F-P0-01)** · **IMPLEMENTED · PRODUCTION VERIFIED · EPIC CLOSED** (Phase 22 closeout)  
+> **Data:** 2026-09-17 (v1.0) · **Amendment A:** 2026-09-17 — [§A DESIGN FREEZE AMENDMENT — F-P0-01](#a-design-freeze-amendment--f-p0-01) (Owner: F-P0-01 ACCEPTED, D1–D10 LOCKED) · **Closeout:** 2026-09-19 — [§23](#23-closeout--production-verified-phase-22)  
+> **Implement baseline (history):** `main` @ `3bfecc7f` = prod 2.66.230 · **Production tip:** **2.66.231** / **`16bfb9f3`**  
+> **ADR (LOCKED):** [`ADR-STORAGE-TIER1-PIPELINE-CONTRACT-01.md`](ADR-STORAGE-TIER1-PIPELINE-CONTRACT-01.md) · **PLAN:** [`STORAGE-TIER1-PIPELINE-CONTRACT-01-PLAN.md`](STORAGE-TIER1-PIPELINE-CONTRACT-01-PLAN.md) · **Epic:** [`STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md`](STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md)  
+> **Owner GO:** YES (Design Freeze + IMPLEMENT + rollout) · **Owner Confirmations:** #1 RESET BLOCK · #2 NO IDB = NO INDEX · #3 BACKUP = FULL  
 > **Zakres:** wyłącznie `kw-tenders-pipeline` (LS) · `tenders-pipeline-full` (IDB) · readery R1–R10 · writerzy A/B/C/D/F. **Poza zakresem:** cloud contract, Edge, Payroll, `kw-tender-ingest-v1`, inne klucze LS, generic storage-manager.
 
 ```text
@@ -843,7 +843,7 @@ NEW-07                      = NOT REQUIRED
 
 ---
 
-## 22. FINAL GATE
+## 22. FINAL GATE (historyczny — pre-IMPLEMENT)
 
 ```text
 DESIGN_FREEZE        = AMENDED (v1.1 — F-P0-01)
@@ -859,4 +859,34 @@ PUSH                 = NO
 PROD_MUTATION        = NO
 
 NEXT                 = RE-RUN ARCH REVIEW (nie automatycznie)
+```
+
+---
+
+## 23. CLOSEOUT — PRODUCTION VERIFIED (Phase 22 · documentation only)
+
+> Amendment A (§A) i invarianty PIPELINE-* **pozostają LOCKED**. Historyczny §22 = stan sprzed IMPLEMENT. Brak zmian runtime w Phase 22.
+
+| Pole | Wartość |
+|---|---|
+| **DF status** | **FROZEN · IMPLEMENTED · PRODUCTION VERIFIED** |
+| **Release** | **2.66.231** / **`16bfb9f3`** |
+| **Authority** | IDB FULL (local durable) · LS INDEX (hot) · Cloud LEAN (cross-device) |
+| **INDEX** | NEVER FULL · NEVER Cloud · NO implicit conversion |
+| **Flag / min (prod)** | `pipelineLocalIndexV1=true` · `pipelineLocalIndexMinAppVersion=2.66.231` |
+| **Phase 21** | COMPLETE · P20-P3-03 **CLOSED** |
+| **Downgrade** | **UNSUPPORTED** after INDEX rollout |
+| **Rollback** | flag `false` only (IDB FULL preserved) |
+| **Ingest** | OUT OF SCOPE |
+| **Epic** | [`STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md`](STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) |
+
+```text
+DESIGN_FREEZE_CLOSEOUT = COMPLETE
+AMENDMENT_A            = PRESERVED
+INVARIANTS             = LOCKED
+IMPLEMENTATION         = COMPLETE
+PRODUCTION_ROLLOUT     = PASS
+RUNTIME_CHANGE_P22     = NO
+PROD_MUTATION_P22      = NO
+EPIC                   = CLOSED
 ```

@@ -12,6 +12,13 @@
 - Testy: `scripts/test-storage-tier1-pipeline-{idb-envelope,index-never-full,index-builder,dual-write,reader,cutover,one-writer,quota-budget,version-gate-cloud}.mjs` (Gate B `--scope tenders`) · `…-old-client.mjs` (preflight P9-P1-01, `--main <checkout @3bfecc7f>`, suite `lib-storage-tier1-pipeline-old-client`) · helpers `scripts/_lib/`
 - Docs: `docs/architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-DESIGN-FREEZE.md` · manifest: usunięty martwy `LIB-NG10-01` (PH0-P2-01)
 
+### Post-release production closeout (2026-09-19 · Phase 19–22 · documentation)
+
+- Production AppSettings: `pipelineLocalIndexMinAppVersion = "2.66.231"` (Phase 19) → `pipelineLocalIndexV1 = true` (Phase 20) · PRODUCTION_ROLLOUT **PASS** · no data loss · no QuotaExceeded · Cloud LEAN unchanged (INDEX absent)
+- Phase 21 authenticated Przetargi UI **PASS** · **P20-P3-03 CLOSED**
+- Phase 22: ADR/PLAN/DF + epic closeout + tip SSOT — **zero** runtime change · epic [`docs/architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md`](docs/architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md)
+- Code defaults remain fail-closed (`pipelineLocalIndexV1` default `false`) until remote settings ON — production already ON
+
 ## 2.66.230 — IK ATH RMS → canonical Discovery Evidence persist (2026-09-16)
 
 - `ik-orchestra-runtime.ts`: `persistKl3DiscoveryEvidence` — jeden CONNECT w `executeKl3KnowledgeLookup` po `result` (`!isCancelled`)
