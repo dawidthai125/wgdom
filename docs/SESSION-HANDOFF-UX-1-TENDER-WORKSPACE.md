@@ -124,7 +124,7 @@ Helper: `bidPrepTileToWorkspace(checkId)`.
 
 | Plik | Uwagi |
 |------|-------|
-| `TenderQualificationSection.tsx` | Accordion z UX.1A — **nie używany** w UX.1B (zastąpiony przez `TenderQualificationWorkspace`). Można usunąć w przyszłym cleanup — **nie robić bez polecenia**. |
+| `TenderQualificationSection.tsx` | **USUNIĘTY** 2026-09-20 · commit `3de1262a` · PRZETARGI_CLEANUP-01 WAVE 4. Żywa ścieżka: `TenderQualificationWorkspace`. **Nie przywracać.** |
 
 ### 4.3 Stałe w `tender-workspace-ux.ts`
 
@@ -268,7 +268,7 @@ npm run build
 - Zmiana algorytmów SWZ, ATH, Cost Intelligence, Qualification, Offer logic „przy okazji” UX.
 - Static import `cloud-sync` w nowych plikach lib (ARCH-001).
 - Przywracanie Command Center w runtime.
-- Usuwanie `TenderQualificationSection` bez audytu — może być referencja w testach/starych docs.
+- Przywracanie `TenderQualificationSection` — usunięty w WAVE 4 (`3de1262a`). Żywa ścieżka to `TenderQualificationWorkspace`.
 
 ---
 
@@ -298,7 +298,7 @@ npm run build
 - P2-G.3C/D/E (Benchmark, AI Validation, RMS) → workspace **Wycena**
 - P2-F.6 Kompletność oferty → workspace **Oferta**
 - P2 Audit Center
-- Cleanup: usunięcie martwego `TenderQualificationSection` (opcjonalnie)
+- Cleanup `TenderQualificationSection` — **zrobione** WAVE 4 (`3de1262a`). Nie powtarzać.
 
 ---
 

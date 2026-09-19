@@ -10,6 +10,7 @@
 > **★★ CURRENT PRODUCTION:** APP **2.66.165** · LIVE = **FETCH** `/version.json` · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 **HISTORY** · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **no** SSOT≡live equality
 > **★★ Track B:** **CLOSED / VERIFIED / UNCHANGED** (Cloud LEAN)
 > **★★ STORAGE-TIER1-PIPELINE-CONTRACT-01 (2026-09-19):** **EPIC CLOSED / PRODUCTION VERIFIED** · tip **2.66.231 / `16bfb9f3`** · **IDB FULL → LS INDEX → Cloud LEAN** · flag **`pipelineLocalIndexV1=true`** · min **`2.66.231`** · downgrade after INDEX **UNSUPPORTED** · ingest **OUT** · Phase 22 = documentation only · **NO** runtime/prod mutation · epic [`../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · tip [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
+> **★★ PRZETARGI_CLEANUP-01 WAVE 4 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED** · source **`3de1262a`** · UI **2.66.231 bez bumpu** · [`WAVE-4-CLOSEOUT`](../architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) · **NIE** przywracać `TenderQualificationSection` · hub **CONDITIONAL**
 > **★★ CHROBREGO:** **CLOSED CASE** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)
 > **★★ C2 parent admission + KL-3 lifecycle:** C2 parent admission **IMPLEMENTED / VERIFIED** (Master §10.0.2 · MULTI-BOQ closeout §6 pointer) · KL-3 knowledgeBusy lifecycle **PRODUCTION VERIFIED** @ **`ece4f8be`** (app **2.66.166**) · LIVE = **FETCH** `/version.json` · **brak** wymogu exact documentary tip ≡ live SHA · TPI LP2 Identity GAP (**NIEPRAWIDŁOWA_JEDNOSTKA**) **pozostaje OPEN** · **NIE** closed / **NIE** G1 bez Owner GO
@@ -42,6 +43,8 @@ Backlog bez Owner GO = **zakaz IMPLEMENT**.
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1 · **PAYROLL GREEN / HARDENED / CLOSED · AKORD V1 CLOSED** (prod tip **2.66.226 / `892e04c4`** — verify live `version.json` · SSOT [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) · AKORD [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md)).
 
 **STORAGE-TIER1 (pipeline local):** **EPIC CLOSED** @ **2.66.231 / `16bfb9f3`** — IDB FULL → LS INDEX → Cloud LEAN · [`EPIC-CLOSEOUT`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · **NIE** reopen Track B · **NIE** downgrade · **NIE** traktuj INDEX jako FULL.
+
+**PRZETARGI_CLEANUP-01 WAVE 4 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED** · source **`3de1262a`** · UI **2.66.231 bez bumpu** · orphan `TenderQualificationSection` usunięty · żywa ścieżka `TenderQualificationWorkspace` · hub **CONDITIONAL** · Edge 546 = platform WARN · [`CLOSEOUT`](../architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) · **NIE** przywracać sekcji · **NIE** zmieniać montowania huba bez Owner GO.
 
 ---
 
@@ -81,6 +84,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **Doc detection** | `src/lib/doc-detection/` · Doc.D1/D2/D3 · bez rename KV `dossier.kosztorys` |
 | **Foundation Lib P0** | COMPLETE (FND-01…05) · **FND-06 BLOCKED** · app **nie** podłączona |
 | **Workflow Przetargi** | Workspace v2 · Hub · Process Strip · CTA — [`WORKFLOW-ARCHITECTURE-v2.63.md`](../WORKFLOW-ARCHITECTURE-v2.63.md) · [`NG-TENDERS-WORKSPACE-01-CLOSEOUT`](../architecture/NG-TENDERS-WORKSPACE-01-CLOSEOUT.md) |
+| **PRZETARGI_CLEANUP-01 WAVE 4** | **CLOSED** @ **`3de1262a`** · UI 2.66.231 bez bumpu · orphan qualification section removed · hub conditional on `scoringContext` · [`WAVE-4-CLOSEOUT`](../architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) |
 | **Cost Knowledge** | CK-01 A0+A1 CLOSED · Foundation TS-A0+A1 (Decision/C1/Health) — [`cost-knowledge/`](../../src/lib/cost-knowledge/) · [`FOUNDATION-CLOSEOUT`](../architecture/NG-TENDERS-KNOWLEDGE-FOUNDATION-01-CLOSEOUT.md) · [`CK-01-CLOSEOUT`](../architecture/NG-TENDERS-COST-KNOWLEDGE-01-CLOSEOUT.md) |
 | **Technology Foundation** | B0 CLOSED — Pack/Capability/Plan/BOM pure-lib — [`technology-foundation/`](../../src/lib/technology-foundation/) · [`TF-CLOSEOUT`](../architecture/NG-TENDERS-TECHNOLOGY-FIRST-FOUNDATION-01-CLOSEOUT.md) |
 | **Experts P0** | EE→ME→PE→Cost→Offer CLOSED — [`execution-expert/`](../../src/lib/execution-expert/) … [`offer-expert/`](../../src/lib/offer-expert/) · [`EXPERTS-P0-CLOSEOUT`](../architecture/EXPERTS-P0-CLOSEOUT.md) |

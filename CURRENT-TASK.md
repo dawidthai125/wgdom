@@ -1,7 +1,8 @@
 # CURRENT-TASK — W&G DOM
 
-**Ostatnia aktualizacja:** 2026-09-19 (**docs closeout:** STORAGE-TIER1-PIPELINE-CONTRACT-01 Phase 22) · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json`
+**Ostatnia aktualizacja:** 2026-09-20 (**docs closeout:** PRZETARGI_CLEANUP-01 WAVE 4) · prior 2026-09-19 STORAGE-TIER1 Phase 22 · tip SSOT [`docs/AI/09_PRODUCTION_BASELINE.md`](docs/AI/09_PRODUCTION_BASELINE.md) · live `version.json`
 
+> **★★ PRZETARGI_CLEANUP-01 WAVE 4:** **CLOSED / PRODUCTION VERIFIED** @ source **`3de1262a`** · UI **2.66.231 bez bumpu** · orphan `TenderQualificationSection` usunięty · żywa ścieżka `TenderQualificationWorkspace` · `DIRECT_WAVE4_REGRESSION = NO` · hub **CONDITIONAL** (`scoringContext`) · Edge 546 = platform WARN · [`CLOSEOUT`](docs/architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) · **NIE** przywracać · **NIE** zmieniać huba bez Owner GO
 > **★★ STORAGE-TIER1:** **EPIC CLOSED / PRODUCTION VERIFIED** @ **2.66.231 / `16bfb9f3`** · IDB FULL → LS INDEX → Cloud LEAN · flag ON · min 2.66.231 · Phase 22 = **documentation only** · **NO** runtime/prod mutation · [`EPIC-CLOSEOUT`](docs/architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · **NIE** downgrade · **NIE** INDEX as FULL
 > **★★ IK CURRENT NODE:** [`docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](docs/architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §10.0 — **ŚRODA A0.2** · KV **rev 57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)** · tip SSOT **2.66.231 / `16bfb9f3`** · **OD-OCR-47 PASS** · **CHROBREGO CLOSED** · **GLOBAL IK PV = NO** · **AUTONOMY-08 OPEN** · Phase 5 **NOT AUTHORIZED**
 > **★★ PAYROLL PROTECTED:** [`docs/AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](docs/AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) — Lista Płac = CRITICAL PROTECTED CORE · GO8.1 `1f63e5c4` · GO9.2 `96dd9324` PRODUCTION VERIFIED · GO10 NO-FIX · **NOWY FEATURE ≠** Payroll sync.

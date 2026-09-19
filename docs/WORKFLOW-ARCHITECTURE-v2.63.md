@@ -134,6 +134,8 @@ Poniżej Huba (w `TenderPrzetargWorkspace`): bloki informacyjne — podstawowe d
 
 **Czego NIE ma na Przetargu:** werdyktu GO/HOLD/ODPUŚĆ, pełnej ekonomii decyzyjnej, przycisków decyzji właściciela — to zakładka **Decyzja**.
 
+**Montowanie (WAVE 4, 2026-09-20):** `[data-tender-workflow-hub]` jest w DOM tylko gdy `TenderPrzetargWorkspace` ma `intelligenceCtx`. Ten kontekst wymaga `scoringContext`. Bez scoringu panel się nie montuje. To nie jest zamknięte `<details>`. Na `/decyzja?ws=qualification` huba nie ma z kontraktu. Nie zmieniać bez osobnego audytu i Owner GO. Closeout: [`architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md`](architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md).
+
 ---
 
 ### 4.2 Process Strip (EPIC B · 2.62.69)

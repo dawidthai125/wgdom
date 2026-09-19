@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-09-19 (**V4 LOCK CONFIRMED** · Hosted rollback abandoned — § 12.1.23) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) · Foundation Lib [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-09-20 (**PRZETARGI_CLEANUP-01 WAVE 4 CLOSED** — § 12.1.9) · prior 2026-09-19 (**V4 LOCK CONFIRMED** · Hosted rollback abandoned — § 12.1.23) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) · Foundation Lib [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
 > **★ Nowa sesja AI:** [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · **★ Payroll CRITICAL PROTECTED · GREEN/HARDENED/CLOSED @ 2.66.220:** [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md) · **★ Mapa aplikacji:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · tip [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -2493,7 +2493,7 @@ Reorganizacja **ekranu pojedynczego przetargu** (`TenderDetailPanel`) — bez za
 | 1. Tender Summary (sticky) | `TenderSummaryBar` · `#tender-summary-bar` |
 | 2. Karta ofertowa + 6 kafelków | `TenderBidPrepPanel` (tylko header + tiles) |
 | 3. Dokumenty / Załączniki | `TenderAttachmentsPanel` · `#tender-attachments-section` — **primary ATH** |
-| 4. Kwalifikacja ofertowa | `TenderQualificationSection` · accordion open: Participation + Works + Fit |
+| 4. Kwalifikacja ofertowa | historycznie `TenderQualificationSection` · accordion. **Usunięty** WAVE 4 (`3de1262a`). Żywa ścieżka: `TenderQualificationWorkspace` |
 | 5. Wycena | `TenderBidProposalPanel` · `#tender-valuation-section` |
 | 6. Oferta | `TenderOfferSection` · złożona + wynik BZP + kalibracja |
 | 7. Szczegóły formalne | accordion 📑 · `TenderDossierPanel` · `#tender-formal-details-section` |
