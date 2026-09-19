@@ -2,7 +2,7 @@
  * WC-P2.1 — nawigacja Biblioteki Robót w Przetargach + ACL + redirect + embedded layout.
  * Run: npx vite-node scripts/test-work-catalog-nav-p2.1.mjs
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import {
@@ -125,10 +125,14 @@ assert("TendersCompanyTab import", tendersModule.includes("TendersCompanyTab"));
 const companyTab = readSrc("src/app/tenders/tabs/TendersCompanyTab.tsx");
 assert("company hub has workcatalog section", companyTab.includes("workcatalog"));
 assert("layout embedded WorkCatalogView", companyTab.includes('layout="embedded"'));
-
-const workCatalogTab = readSrc("src/app/tenders/tabs/TendersWorkCatalogTab.tsx");
-assert("legacy tab file keeps embedded", workCatalogTab.includes('layout="embedded"'));
-assert("tab is scroll owner", workCatalogTab.includes("overflow-y-auto") && workCatalogTab.includes("overscroll-contain"));
+assert(
+  "orphan TendersWorkCatalogTab removed",
+  !existsSync(join(root, "src/app/tenders/tabs/TendersWorkCatalogTab.tsx")),
+);
+assert(
+  "company hub is scroll owner for embedded catalog",
+  companyTab.includes("overflow-y-auto") && companyTab.includes("overscroll-contain"),
+);
 
 const workCatalogView = readSrc("src/app/work-catalog/WorkCatalogView.tsx");
 assert("layout prop type", workCatalogView.includes("WorkCatalogLayout"));
