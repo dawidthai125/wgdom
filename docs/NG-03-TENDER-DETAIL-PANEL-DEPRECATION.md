@@ -1,9 +1,10 @@
 # NG-03 — Deprecation map: `TenderDetailPanelHosted`
 
-> **Status:** **DEPRECATED** · **NOT REMOVED**  
-> **Data:** 2026-07-05 · Bundle #2 NG-03 Maintenance (M-06)  
+> **Status:** **DEPRECATED** · **NOT REMOVED** · **V4 LOCK CONFIRMED** · **HOSTED_ROLLBACK = ABANDONED**  
+> **Data:** 2026-09-19 · PRZETARGI_CLEANUP-01 V4 lock formalization (docs)  
+> **Owner GO:** `OWNER GO — V4 LOCK CONFIRMED: TENDERS_V4_ROUTING irreversible; Hosted rollback abandoned`  
 > **Klasa:** docs / architecture SSOT  
-> **Powiązane:** A-02-1 · [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · ARCHITECTURE § 12.1.23
+> **Powiązane:** A-02-1 · [`SESSION-HANDOFF-NG-02-EPIC-CLOSE.md`](SESSION-HANDOFF-NG-02-EPIC-CLOSE.md) · ARCHITECTURE § 12.1.23 · [`architecture/NG-06-TEUX-HOSTED-DEPRECATION.md`](architecture/NG-06-TEUX-HOSTED-DEPRECATION.md)
 
 ---
 
@@ -12,41 +13,58 @@
 | Pole | Wartość |
 |------|---------|
 | **Symbol** | `TenderDetailPanelHosted` |
-| **Plik** | `src/app/TenderDetailPanel.tsx` (export ~L840) |
-| **Status** | **DEPRECATED** |
-| **Usunięcie kodu** | **BLOCKED** — patrz §5 Removal Checklist |
-| **Prod path** | `TenderDetailPage` (V4) — **ACTIVE** |
+| **Plik** | `src/app/TenderDetailPanel.tsx` |
+| **Status** | **DEPRECATED** · kod nadal w drzewie |
+| **V4 routing** | **IRREVERSIBLE** — kontrakt docelowy Przetargów |
+| **Hosted rollback** | **ABANDONED** — nie jest wspieraną ścieżką |
+| **Usunięcie kodu Hosted** | **BLOCKED** do domknięcia pozostałych punktów §5 (osobne Owner GO IMPLEMENT) |
+| **Prod path** | `TenderDetailPage` (V4) — **ACTIVE SSOT** |
 
 > **DEPRECATED ≠ REMOVED**  
-> Komponent pozostaje w repo jako **rollback safety** dopóki flaga `TENDERS_V4_ROUTING` i ścieżka accordion mogą być aktywowane.
+> Komponent może pozostać w repo jako **martwy stub** (TEUX7F/TEUX3 presence contracts) do WAVE 2 IMPLEMENT.  
+> **Nie** przywracać Hosted / accordion rollback bez **nowego** Owner GO + ARCH REVIEW.
 
 ---
 
-## 2. Mount matrix
+## 1b. V4 LOCK CONTRACT (2026-09-19)
+
+| Zasada | Treść |
+|--------|--------|
+| V4 | Routing URL `/przetargi` + `/przetargi/:id/:tab` jest **obecnym i docelowym** kontraktem |
+| Flag | `TENDERS_V4_ROUTING = true` traktować jako **trwały** kontrakt (nie planujemy `false` jako rollback) |
+| Hosted | Rollback do `TenderDetailPanelHosted` / accordion = **ABANDONED** (historyczny / stale) |
+| Nowe prace | **Zakaz** przywracania Hosted bez nowego Owner GO + ARCH REVIEW |
+| Redirects | `/strategia` · `/materialy` pozostają **KEEP_REDIRECT** (kompatybilność bookmarków) — niezależnie od locku |
+| Runtime | Ta formalizacja = **docs only** — **nie** zmienia kodu produkcyjnego |
+
+**Rationale:** Prod od dawna V4-only; ścieżka rollback opisana w starych docs jest **broken/stale** (`TendersListTab` usunięty WAVE 1A; `V4=false` → `queue:null`). Owner potwierdził irreversible V4 i abandon Hosted rollback.
+
+---
+
+## 2. Mount matrix (aktualny stan)
 
 ```text
-TENDERS_V4_ROUTING = true     [src/lib/tenders-v4-config.ts — prod default]
+TENDERS_V4_ROUTING = true     [IRREVERSIBLE contract — prod + tip]
         │
-        ├─ Lista → onItemNavigate(id) → TenderDetailPage
-        │           └─ useTenderPipelineRuntime() × 1  ✅ SSOT
-        │
-        └─ TENDERS_V4_ROUTING = false  (rollback)
-              └─ TendersView accordion expanded
-                    └─ TenderDetailPanelHosted
-                          └─ useTenderPipelineRuntime() × 2  ⚠ A-02-1
-                                └─ TenderDetailPanel (render-only props)
+        └─ Lista → onItemNavigate(id) → TenderDetailPage
+                    └─ useTenderPipelineRuntime() × 1  ✅ SSOT
+
+[ABANDONED — nie wspierać]
+  TENDERS_V4_ROUTING = false / accordion / TenderDetailPanelHosted
+  → historycznie: TendersView expand → Hosted → 2× runtime (A-02-1)
+  → dziś: nieosiągalne na happy path; rollback docs = HISTORICAL/STALE
 ```
 
-| Warstwa | V4 (prod) | Legacy accordion |
-|---------|-----------|------------------|
-| Shell | `TenderDetailPage.tsx` | `TenderDetailPanel.tsx` |
-| Runtime mount | 1× w Page | 1× w Hosted wrapper |
-| Routing | URL SSOT (`tender-detail-routes-v4.ts`) | inline expand |
-| Aktywny na prod | **TAK** | **NIE** (flag + navigate) |
+| Warstwa | V4 (SSOT) | Hosted (abandoned) |
+|---------|-----------|---------------------|
+| Shell | `TenderDetailPage.tsx` | `TenderDetailPanelHosted` (stub w drzewie) |
+| Runtime mount | 1× w Page | 0 na prod |
+| Routing | URL SSOT (`tender-detail-routes-v4.ts`) | martwy gate `!onItemNavigate` |
+| Aktywny na prod | **TAK** | **NIE** |
 
 ---
 
-## 3. Callsite (jedyny UI)
+## 3. Callsite (jedyny UI — obecnie nieosiągalny na prod)
 
 `src/app/TendersView.tsx`:
 
@@ -56,12 +74,7 @@ TENDERS_V4_ROUTING = true     [src/lib/tenders-v4-config.ts — prod default]
 )}
 ```
 
-Hosted mountuje się **wyłącznie** gdy:
-
-1. `TENDERS_V4_ROUTING === false` **lub** brak `onItemNavigate`, **oraz**
-2. wiersz listy jest `expanded`.
-
-Na prod (`V4_ROUTING=true` + `onItemNavigate` z modułu): **Hosted nie renderuje się**.
+Na tip: jedyny consumer `TendersView` to `TendersListPage` z **zawsze** ustawionym `onItemNavigate` → Hosted **nie montuje się**.
 
 ---
 
@@ -70,10 +83,8 @@ Na prod (`V4_ROUTING=true` + `onItemNavigate` z modułu): **Hosted nie renderuje
 | Scenariusz | Severity | Uwagi |
 |------------|----------|-------|
 | Prod V4 | 🟢 NONE | Hosted nieaktywny |
-| Rollback `V4_ROUTING=false` | 🟡 MEDIUM | Drugi `useTenderPipelineRuntime` na accordion |
-| Usunięcie Hosted bez AUDIT | 🔴 HIGH | Utrata rollback bez revertu git |
-
-**Nie naprawiać** A-02-1 w bundle FEATURE — osobny CORE/PLATFORM bundle tylko po zamknięciu rollback requirement (§5).
+| Próba „rollback” `V4_ROUTING=false` | 🔴 **NIEWSPERANY** | Abandoned; `queue:null`; ListTab absent |
+| Usunięcie Hosted bez GO IMPLEMENT | 🔴 HIGH | TEUX7F/TEUX3 + NG-02 boundary — osobny zakres |
 
 ---
 
@@ -81,15 +92,18 @@ Na prod (`V4_ROUTING=true` + `onItemNavigate` z modułu): **Hosted nie renderuje
 
 `TenderDetailPanelHosted` **może zostać usunięty wyłącznie gdy** spełnione są **wszystkie** punkty:
 
-- [ ] Rollback path (`TENDERS_V4_ROUTING=false` + accordion) **nie jest już wymagany** — decyzja Owner na piśmie
-- [ ] `TENDERS_V4_ROUTING` uznany za **permanentny** (flaga usunięta lub hardcoded true bez rollback docs)
-- [ ] **TI-B4 CLOSED** — smoke agregat Przetargi PASS na prod
-- [ ] **Owner GO** — explicit polecenie usunięcia
-- [ ] **Osobny AUDIT** — wpływ na NG-02 mount, session cache, bootstrap guards
-- [ ] **Osobny FEATURE bundle** — #CORE-013 · #CORE-014 Boundary Check PASS
-- [ ] **Boundary Check PASS** — zero dotknięcia PWRB · cloud-sync · CloudLoader payroll · Edge batch payroll bez osobnego CORE bundle
+- [x] Rollback path **nie jest już wymagany** — Owner GO 2026-09-19 (`HOSTED_ROLLBACK = ABANDONED`)
+- [x] `TENDERS_V4_ROUTING` uznany za **permanentny / irreversible** — Owner GO 2026-09-19 (`V4 LOCK CONFIRMED`); rollback docs → HISTORICAL (ten closeout)
+- [x] **TI-B4 CLOSED** — smoke agregat Przetargi (projekt: 2.63.27+)
+- [ ] **Owner GO** — explicit polecenie **usunięcia** Hosted / WAVE 2 IMPLEMENT (PLAN A) — **OPEN** (ten GO = tylko lock)
+- [ ] **Osobny AUDIT** usunięcia — wpływ NG-02 mount, session cache, bootstrap + migracja TEUX7F/TEUX3 — **OPEN** (WAVE 2 AUDIT istnieje; wymaga odświeżenia pod IMPLEMENT)
+- [ ] **Osobny FEATURE bundle** — #CORE-013 · #CORE-014 Boundary Check PASS — **OPEN**
+- [ ] **Boundary Check PASS** — zero PWRB · cloud-sync · CloudLoader payroll · Edge payroll bez CORE — **OPEN**
 
-**Do spełnienia checklisty:** minimum **7/7** · brak skrótów · brak „quick delete”.
+**Lock formalization (ten dokument):** punkty 1–3 = **CLOSED**.  
+**Hosted code removal:** punkty 4–7 = **OPEN** → `NG03_STATUS = OPEN` (removal incomplete).
+
+**Do usunięcia kodu:** minimum **7/7** · brak skrótów.
 
 ---
 
@@ -97,10 +111,10 @@ Na prod (`V4_ROUTING=true` + `onItemNavigate` z modułu): **Hosted nie renderuje
 
 | Dozwolone | Zakazane |
 |-----------|----------|
-| Czytanie / dokumentacja | Usunięcie Hosted w bundle docs lub mobile |
-| Render-only fix w `TenderDetailPanel` gdy props-only | Refactor łączący Panel + Page |
-| V4 feature w `TenderDetailPage` | Nowy mount `useTenderPipelineRuntime` poza Page/Hosted |
-| Aktualizacja tego dokumentu | Zmiana `TENDERS_V4_ROUTING` bez Owner GO |
+| Czytanie / dokumentacja | Usunięcie Hosted bez Owner GO IMPLEMENT |
+| V4 feature w `TenderDetailPage` | Przywracanie Hosted / `TENDERS_V4_ROUTING=false` jako wspierany rollback |
+| Render-only fix w `TenderDetailPanel` gdy props-only | Refactor łączący Panel + Page bez briefu |
+| Aktualizacja tego dokumentu | Zmiana flagi V4 / runtime „dla formalizacji locku” |
 
 ---
 
@@ -108,6 +122,7 @@ Na prod (`V4_ROUTING=true` + `onItemNavigate` z modułu): **Hosted nie renderuje
 
 | Dokument | Rola |
 |----------|------|
-| [`audit/NG-03-EPIC-CLOSE-REPORT.md`](../audit/NG-03-EPIC-CLOSE-REPORT.md) | Epic close |
-| [`docs/A-03-1-STATUS-OVERLAP-AUDIT.md`](A-03-1-STATUS-OVERLAP-AUDIT.md) | Status layers · HubPanel legacy path |
-| [`docs/ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVIEW-2026-TENDERS.md) §4.2 | A-02-1 |
+| [`architecture/NG-06-TEUX-HOSTED-DEPRECATION.md`](architecture/NG-06-TEUX-HOSTED-DEPRECATION.md) | TEUX-7f dual-runtime → zaktualizowany: rollback HISTORICAL |
+| [`audit/NG-03-EPIC-CLOSE-REPORT.md`](../audit/NG-03-EPIC-CLOSE-REPORT.md) | Epic close (historyczny) |
+| [`docs/ARCHITECTURE-REVIEW-2026-TENDERS.md`](ARCHITECTURE-REVIEW-2026-TENDERS.md) §4.2 | A-02-1 (historyczny kontekst) |
+| `.tmp/PRZETARGI-CLEANUP-01-V4-LOCK-FORMALIZATION.md` | Sesja formalizacji (artefakt lokalny) |

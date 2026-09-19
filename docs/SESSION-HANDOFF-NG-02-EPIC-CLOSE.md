@@ -35,7 +35,7 @@ Po wejściu w przetarg V4 (`TenderDetailPage`) użytkownik **nie powinien** musi
 | Trust | `useTenderTrustAssessment` | read-only overlay |
 | Stan UI | `derivePipelineState` | `PipelineState` enum |
 
-**Mount:** wyłącznie `TenderDetailPage` (V4). `TenderDetailPanel` = render-only (`pipelineRuntime` props). Legacy: `TenderDetailPanelHosted` — **DEPRECATED not REMOVED** · SSOT: [`docs/NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md) · Removal Checklist przed usunięciem kodu.
+**Mount:** wyłącznie `TenderDetailPage` (V4). `TenderDetailPanel` = render-only (`pipelineRuntime` props). Legacy: `TenderDetailPanelHosted` — **DEPRECATED · NOT REMOVED · Hosted rollback ABANDONED** · V4 **IRREVERSIBLE** (Owner GO 2026-09-19) · SSOT: [`docs/NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md) · usunięcie kodu dopiero po checklist NG-03 §5 + Owner GO IMPLEMENT.
 
 ---
 

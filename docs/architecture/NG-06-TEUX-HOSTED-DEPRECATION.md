@@ -1,79 +1,94 @@
 # NG-06-TEUX — Hosted legacy deprecation (SSOT)
 
-> **Status:** **ACTIVE** · TEUX-7f · prod default **V4**  
-> **Data:** 2026-07-08  
-> **Slice:** [`NG-06-TEUX-TEUX7F-AUDIT-REPORT.md`](./NG-06-TEUX-TEUX7F-AUDIT-REPORT.md) · [`NG-06-TEUX-DESIGN-FREEZE.md`](./NG-06-TEUX-DESIGN-FREEZE.md) § TEUX-7f
+> **Status:** **ACTIVE (V4 SSOT)** · Hosted rollback = **ABANDONED / HISTORICAL** · kod Hosted = **NOT REMOVED**  
+> **Data:** 2026-09-19 · PRZETARGI_CLEANUP-01 V4 lock formalization  
+> **Owner GO:** `OWNER GO — V4 LOCK CONFIRMED: TENDERS_V4_ROUTING irreversible; Hosted rollback abandoned`  
+> **Slice historyczny:** TEUX-7f · [`NG-06-TEUX-TEUX7F-AUDIT-REPORT.md`](./NG-06-TEUX-TEUX7F-AUDIT-REPORT.md) · [`NG-06-TEUX-DESIGN-FREEZE.md`](./NG-06-TEUX-DESIGN-FREEZE.md) § TEUX-7f  
+> **Removal map SSOT:** [`../NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](../NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md)
 
 ---
 
-## 1. Cel
+## 1. Cel (aktualny)
 
-Udokumentować **dual runtime** modułu Przetargów i oznaczyć ścieżkę **hosted accordion** jako **deprecated** — **bez usuwania** kodu rollback.
+Utrzymać **SSOT routingu V4** oraz jawnie oznaczyć ścieżkę **hosted accordion / rollback** jako **porzuconą**.
 
-**Prod SSOT:** routing URL V4 (`TENDERS_V4_ROUTING = true`).
+**Prod + tip SSOT:** routing URL V4 (`TENDERS_V4_ROUTING = true`) — **IRREVERSIBLE**.
+
+**Nie** jest celem tego dokumentu usuwanie kodu Hosted (wymaga WAVE 2 IMPLEMENT + checklisty NG-03 §5 punktów 4–7).
 
 ---
 
-## 2. Dwa runtime (mapa)
+## 2. Runtime mapa (aktualna)
 
 ```text
-TENDERS_V4_ROUTING (src/lib/tenders-v4-config.ts)
+TENDERS_V4_ROUTING = true  [IRREVERSIBLE]
 │
-├─ true  [PROD DEFAULT]
-│   TendersListPage → onItemNavigate → openTenderDetailV4
-│   TenderDetailPage → TenderDetailPanel (embedV4ChromeHidden)
-│   Zakładki V4: Przetarg · Dokumenty · Kosztorys · Ceny · Decyzja (PL)
-│
-└─ false [ROLLBACK ONLY — nie prod]
-    TendersListTab → TendersView accordion expand
-    TenderDetailPanelHosted → TenderDetailPanel (pełny chrome)
-    TenderWorkspaceTabBar → etykieta overview „Intelligence” (legacy id overview)
+└─ TendersListPage → onItemNavigate → openTenderDetailV4 / TenderDetailPage
+   TenderDetailPanel (embedV4ChromeHidden)
+   Zakładki V4: Przetarg · Dokumenty · Kosztorys · Ceny · Decyzja (PL)
+```
+
+### 2b. Historyczny dual runtime (STALE — nie wspierać)
+
+```text
+[HISTORICAL / ABANDONED — TEUX-7f era]
+TENDERS_V4_ROUTING = false
+  → docs wskazywały: TendersListTab + accordion + TenderDetailPanelHosted
+  → po WAVE 1A: TendersListTab ABSENT; Module queue → null gdy false
+  → Hosted gate w TendersView nieosiągalny na happy path ListPage
 ```
 
 ---
 
-## 3. Deprecated API (kod pozostaje)
+## 3. Deprecated API (kod może pozostać do IMPLEMENT)
 
-| Symbol | Plik | Rola |
-|--------|------|------|
-| `TenderDetailPanelHosted` | `src/app/TenderDetailPanel.tsx` | Mount pipeline + panel w accordionie listy |
-| `TendersListTab` | `src/app/tenders/tabs/TendersListTab.tsx` | Lista bez V4 navigate (gdy flag `false`) |
+| Symbol | Plik | Status |
+|--------|------|--------|
+| `TenderDetailPanelHosted` | `src/app/TenderDetailPanel.tsx` | DEPRECATED · **KEEP_FOR_NOW** · rollback abandoned |
+| `TendersListTab` | — | **REMOVED** (WAVE 1A) — nie przywracać |
 
-**Dev guard:** `console.warn` przy pierwszym mount `TenderDetailPanelHosted` (`import.meta.env.DEV`).
+**Dev guard:** `console.warn` przy mount Hosted (`import.meta.env.DEV`) — bez zmian w tej formalizacji.
 
 ---
 
-## 4. Rollback (awaryjny)
+## 4. Rollback — HISTORICAL (nieaktywny)
 
-1. Ustaw `TENDERS_V4_ROUTING = false` w `src/lib/tenders-v4-config.ts`.
-2. Deploy frontend.
-3. Lista wraca do accordion; detal bez osobnego URL V4.
+> **Klasyfikacja:** **HISTORICAL / STALE** · **HOSTED_ROLLBACK = ABANDONED**
 
-**Nie** usuwać `TenderDetailPanelHosted` bez osobnego epicu Owner + testów regresji (`test-tender-list-cards-teux3`, `test-tender-workspace-ux`).
+Dawna procedura TEUX-7f („ustaw `TENDERS_V4_ROUTING = false` → accordion”) **nie jest** wspieraną ścieżką operacyjną ani architektoniczną.
+
+| Było (TEUX-7f) | Jest (2026-09-19) |
+|----------------|-------------------|
+| Rollback awaryjny opisany jako aktywny | **Abandoned** — Owner GO V4 LOCK |
+| `TendersListTab` w mapie | Usunięty WAVE 1A |
+| Hosted = safety net | Hosted = martwy stub do osobnego delete GO |
+
+**Nie** usuwać `TenderDetailPanelHosted` w tym dokumencie / tej sesji. Usunięcie: NG-03 §5 + Owner GO IMPLEMENT + migracja TEUX7F/TEUX3.
 
 ---
 
 ## 5. Etykieta „Intelligence”
 
 - Dotyczy **tylko** legacy `TenderWorkspaceTabBar` (`overview` tab id).
-- **Nie zmieniana** w TEUX-7f (Owner GO conditional).
-- V4 używa zakładki **„Decyzja”** (`tender-detail-routes-v4.ts`) — bez „Intelligence”.
+- V4 używa zakładki **„Decyzja”** — bez „Intelligence”.
+- Bez zmian w tej formalizacji.
 
 ---
 
-## 6. Anti-goals (TEUX-7f)
+## 6. Anti-goals (nadal ważne)
 
 | Zakaz | Powód |
 |-------|--------|
-| Usunięcie accordion / hosted | Rollback + testy TEUX-3 |
+| Przywracanie Hosted / `V4=false` jako rollback | V4 LOCK CONFIRMED |
+| Usunięcie Hosted bez Owner GO IMPLEMENT | NG-03 §5 punkty 4–7 OPEN; TEUX7F/TEUX3 KEEP |
 | Zmiana `useTenderPipelineRuntime` | NG-02 frozen |
 | Cloud Sync / Payroll / Edge / PWRB | #CORE-014 |
 | Edycja `tender-ux-tokens.ts` | TOKEN FREEZE |
 
 ---
 
-## 7. Usunięcie hosted (przyszłość)
+## 7. Usunięcie hosted (przyszłość — poza tą formalizacją)
 
-Wymaga **osobnego bundle** Owner GO: migracja testów, potwierdzenie braku użycia rollback, TEUX-7z epic review.
+Wymaga: Owner GO WAVE 2 IMPLEMENT (PLAN A) · migracja TEUX7F/TEUX3 · NG-03 checklist 7/7 · boundary checks.
 
-**TEUX-7f nie usuwa hosted.**
+**Ta formalizacja nie usuwa hosted i nie migruje testów.**

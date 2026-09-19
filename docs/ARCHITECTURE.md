@@ -2,7 +2,7 @@
 
 > **Dla kogo:** programista, reviewer — kto ma zrozumieć system **bez czytania plik po pliku**.  
 > **Produkcja:** https://www.wgdom.fun · **Repo:** https://github.com/dawidthai125/wgdom · branch `main`  
-> **Ostatnia aktualizacja tego dokumentu:** 2026-07-28 (**Foundation Lib Phase 0**) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) · Foundation Lib [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
+> **Ostatnia aktualizacja tego dokumentu:** 2026-09-19 (**V4 LOCK CONFIRMED** · Hosted rollback abandoned — § 12.1.23) · living sync: tip w [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · stan sesji [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) · Foundation Lib [`architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md`](architecture/WGDOM-FOUNDATION-LIB-PHASE-0-SSOT.md)  
 > **★ Nowa sesja AI:** [`AI/MASTER_HANDOFF.md`](AI/MASTER_HANDOFF.md) → [`AI/AI_ENTRY.md`](AI/AI_ENTRY.md) · **★ Payroll CRITICAL PROTECTED · GREEN/HARDENED/CLOSED @ 2.66.220:** [`AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md`](AI/PAYROLL_CRITICAL_PROTECTED_MODULE.md) · Gate [`AI/PAYROLL_SAFETY_GATE.md`](AI/PAYROLL_SAFETY_GATE.md) · **★ Mapa aplikacji:** [`AGENT-APP-MAP.md`](AGENT-APP-MAP.md) · **★ Onboarding:** [`AGENT-ONBOARDING.md`](AGENT-ONBOARDING.md) · **★ SSOT baseline prod:** [`PROJECT-HANDOFF-CURRENT.md`](PROJECT-HANDOFF-CURRENT.md) · tip [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · **★ SSOT Workflow:** [`WORKFLOW-ARCHITECTURE-v2.63.md`](WORKFLOW-ARCHITECTURE-v2.63.md) · **★ POST ZI:** [`MASTER-HANDOFF-POST-ZI-2026.md`](MASTER-HANDOFF-POST-ZI-2026.md)  
 > **Backup baseline:** tag `pre-next-feature-2.50.64` · [`BACKUP-REPORT-2.50.64.md`](BACKUP-REPORT-2.50.64.md) · [`SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md`](SESSION-HANDOFF-PRE-NEXT-FEATURE-2.50.64.md)
 
@@ -1839,7 +1839,7 @@ Odbiory | Pomiary | Schematy | Katalog Pomiarów | Szablony | Historia | Ustawie
 | **Stan** | `tender-pipeline-types.ts` | `PipelineState` enum · `TenderPipelineRuntime` |
 | **Dev** | `TenderPipelineDevTimeline.tsx` | Timeline tylko `import.meta.env.DEV` |
 | **Panel** | `TenderDetailPanel.tsx` | **Render only** — `pipelineRuntime` przez props |
-| **Legacy** | `TenderDetailPanelHosted` | Accordion `TendersView` gdy `TENDERS_V4_ROUTING=false` · **DEPRECATED not REMOVED** — SSOT: [`NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md) · Removal Checklist przed usunięciem |
+| **Legacy** | `TenderDetailPanelHosted` | **DEPRECATED · NOT REMOVED · rollback ABANDONED** · V4 routing **IRREVERSIBLE** (Owner GO 2026-09-19) · SSOT: [`NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md`](NG-03-TENDER-DETAIL-PANEL-DEPRECATION.md) · [`architecture/NG-06-TEUX-HOSTED-DEPRECATION.md`](architecture/NG-06-TEUX-HOSTED-DEPRECATION.md) · usunięcie kodu dopiero po NG-03 §5 (4–7) + Owner GO IMPLEMENT |
 
 **PipelineState:** `Idle` → `Notice` → `Discovery` → `External` → `Heavy` → `Pricing` → `Ready` | `Failed`
 
