@@ -2,7 +2,7 @@
  * #5C-3C — Dead UX cleanup gate.
  * Run: npx vite-node scripts/test-tender-dead-ux-cleanup-5c3c.mjs
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CATALOG_UX_SOURCE_LABEL } from "../src/lib/tender-catalog-ux-labels.ts";
@@ -50,7 +50,7 @@ function countOccurrences(text, needle) {
 console.log("=== TENDER DEAD UX CLEANUP 5C-3C ===\n");
 
 const priceBasePanel = readFileSync(join(appRoot, "TenderPriceBasePanel.tsx"), "utf8");
-const priceBaseTab = readFileSync(join(appRoot, "tenders/tabs/TendersPriceBaseTab.tsx"), "utf8");
+const companyTab = readFileSync(join(appRoot, "tenders/tabs/TendersCompanyTab.tsx"), "utf8");
 const calculator = readFileSync(join(root, "src/lib/tenders-bid-calculator.ts"), "utf8");
 const guideView = readFileSync(join(appRoot, "GuideView.tsx"), "utf8");
 const workCatalogView = readFileSync(join(appRoot, "work-catalog/WorkCatalogView.tsx"), "utf8");
@@ -66,8 +66,16 @@ assert(
     && priceBasePanel.includes("Przejdź do {CATALOG_UX_WORK_CATALOG_TAB_LABEL}"),
 );
 
-// T3 — tab shell without redundant intro
-assert("T3 no tab intro copy", !priceBaseTab.includes("Podgląd stawek kategorii"));
+// T3 — orphan PriceBaseTab removed; live panel hosted in Firma hub
+assert(
+  "T3 orphan TendersPriceBaseTab removed",
+  !existsSync(join(appRoot, "tenders/tabs/TendersPriceBaseTab.tsx")),
+);
+assert(
+  "T3b CompanyTab hosts TenderPriceBasePanel",
+  companyTab.includes("TenderPriceBasePanel")
+    && !companyTab.includes("Podgląd stawek kategorii"),
+);
 
 // T4 — app does not import legacy store for labels
 const appFiles = walkTsFiles(appRoot);

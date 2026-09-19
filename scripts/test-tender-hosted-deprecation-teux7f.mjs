@@ -42,8 +42,13 @@ ok("T8 console.warn in hosted", panel.includes("console.warn") && panel.includes
 ok("T9 dev guard import.meta.env.DEV", panel.includes("import.meta.env.DEV"));
 ok("T10 HOSTED_DEPRECATION_DOC ref", panel.includes("NG-06-TEUX-HOSTED-DEPRECATION.md"));
 
-const listTab = readSrc("src/app/tenders/tabs/TendersListTab.tsx");
-ok("T11 TendersListTab @deprecated", /@deprecated[\s\S]*export function TendersListTab/.test(listTab));
+const listTabPath = `${ROOT}/src/app/tenders/tabs/TendersListTab.tsx`;
+ok("T11 orphan TendersListTab removed", !existsSync(listTabPath));
+const tendersModule = readSrc("src/app/tenders/TendersModule.tsx");
+ok(
+  "T11b V4 queue uses TendersListPage (not orphan ListTab)",
+  tendersModule.includes("TendersListPage") && !tendersModule.includes("TendersListTab"),
+);
 
 const v4cfg = readSrc("src/lib/tenders-v4-config.ts");
 ok("T12 TENDERS_V4_ROUTING true", /export const TENDERS_V4_ROUTING\s*=\s*true/.test(v4cfg));
