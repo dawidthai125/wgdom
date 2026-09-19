@@ -44,7 +44,7 @@ TENDERS_V4_ROUTING = false
 
 | Symbol | Plik | Status |
 |--------|------|--------|
-| `TenderDetailPanelHosted` | `src/app/TenderDetailPanel.tsx` | DEPRECATED · **KEEP_FOR_NOW** · rollback abandoned |
+| `TenderDetailPanelHosted` | `src/app/TenderDetailPanel.tsx` | **REMOVED** (WAVE 2 IMPLEMENT) · rollback remains **ABANDONED** |
 | `TendersListTab` | — | **REMOVED** (WAVE 1A) — nie przywracać |
 
 **Dev guard:** `console.warn` przy mount Hosted (`import.meta.env.DEV`) — bez zmian w tej formalizacji.

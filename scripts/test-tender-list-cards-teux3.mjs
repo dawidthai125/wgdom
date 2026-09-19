@@ -107,7 +107,8 @@ ok("tokens file frozen — no edit in bundle", !readSrc("src/lib/tender-ux-token
 const tendersView = readSrc("src/app/TendersView.tsx");
 ok("TendersView uses mobile card", tendersView.includes("TenderListMobileCard"));
 ok("TendersView uses desktop card", tendersView.includes("TenderListDesktopCard"));
-ok("hosted expand preserved", tendersView.includes("TenderDetailPanelHosted"));
+ok("V4 list click uses onItemNavigate", tendersView.includes("onItemNavigate?.(item.id)") || tendersView.includes("onItemNavigate(item.id)"));
+ok("hosted accordion removed", !tendersView.includes("TenderDetailPanelHosted"));
 ok("onItemNavigate preserved", tendersView.includes("onItemNavigate"));
 
 const protectedPaths = [

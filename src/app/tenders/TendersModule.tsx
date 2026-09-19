@@ -226,16 +226,12 @@ export function TendersModule({
               />
             )}
             {activeTab === "queue" && (
-              TENDERS_V4_ROUTING
-                ? (
-                  <TendersListPage
-                    showTestBadge={false}
-                    onCreateJobFromTender={onCreateJobFromTender}
-                    onOpenJob={onOpenJob}
-                    athPreviewEnabled={athPreviewEnabled}
-                  />
-                )
-                : null
+              <TendersListPage
+                showTestBadge={false}
+                onCreateJobFromTender={onCreateJobFromTender}
+                onOpenJob={onOpenJob}
+                athPreviewEnabled={athPreviewEnabled}
+              />
             )}
             {activeTab === "map" && <TendersMapTab />}
             {activeTab === "company" && (

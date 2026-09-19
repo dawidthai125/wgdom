@@ -14,7 +14,7 @@
 |------|---------|
 | **Symbol** | `TenderDetailPanelHosted` |
 | **Plik** | `src/app/TenderDetailPanel.tsx` |
-| **Status** | **DEPRECATED** · kod nadal w drzewie |
+| **Status** | **REMOVED** from runtime (WAVE 2) · NG-03 removal checklist **not fully closed** (§5 pkt 6–7 OPEN) |
 | **V4 routing** | **IRREVERSIBLE** — kontrakt docelowy Przetargów |
 | **Hosted rollback** | **ABANDONED** — nie jest wspieraną ścieżką |
 | **Usunięcie kodu Hosted** | **BLOCKED** do domknięcia pozostałych punktów §5 (osobne Owner GO IMPLEMENT) |
@@ -95,10 +95,10 @@ Na tip: jedyny consumer `TendersView` to `TendersListPage` z **zawsze** ustawion
 - [x] Rollback path **nie jest już wymagany** — Owner GO 2026-09-19 (`HOSTED_ROLLBACK = ABANDONED`)
 - [x] `TENDERS_V4_ROUTING` uznany za **permanentny / irreversible** — Owner GO 2026-09-19 (`V4 LOCK CONFIRMED`); rollback docs → HISTORICAL (ten closeout)
 - [x] **TI-B4 CLOSED** — smoke agregat Przetargi (projekt: 2.63.27+)
-- [ ] **Owner GO** — explicit polecenie **usunięcia** Hosted / WAVE 2 IMPLEMENT (PLAN A) — **OPEN** (ten GO = tylko lock)
-- [ ] **Osobny AUDIT** usunięcia — wpływ NG-02 mount, session cache, bootstrap + migracja TEUX7F/TEUX3 — **OPEN** (WAVE 2 AUDIT istnieje; wymaga odświeżenia pod IMPLEMENT)
-- [ ] **Osobny FEATURE bundle** — #CORE-013 · #CORE-014 Boundary Check PASS — **OPEN**
-- [ ] **Boundary Check PASS** — zero PWRB · cloud-sync · CloudLoader payroll · Edge payroll bez CORE — **OPEN**
+- [x] **Owner GO** — explicit polecenie **usunięcia** Hosted — `OWNER GO — WAVE 2 IMPLEMENT` (2026-09-19)
+- [x] **Osobny AUDIT** — WAVE 2 AUDIT + RCA (Hosted runtime callers = 0; IK path = TenderDetailPage, nie Hosted)
+- [ ] **Osobny FEATURE bundle** — #CORE-013 · #CORE-014 Boundary Check PASS — **OPEN** (poza zakresem WAVE 2)
+- [ ] **Boundary Check PASS** — formalny CORE bundle PWRB/payroll — **OPEN** (WAVE 2 nie dotknął Payroll/sync; formalny CORE check nie wykonany)
 
 **Lock formalization (ten dokument):** punkty 1–3 = **CLOSED**.  
 **Hosted code removal:** punkty 4–7 = **OPEN** → `NG03_STATUS = OPEN` (removal incomplete).

@@ -11,14 +11,12 @@ import {
   jobDraftFromTender,
 } from "@/lib/tenders-bzp";
 import type { TenderQuickFilter } from "@/lib/tenders-actions";
-import { TenderDetailPanelHosted } from "@/app/TenderDetailPanel";
 import { TenderCompanyProfilePanel } from "@/app/TenderCompanyProfilePanel";
 import { CompanyQualificationProfilePanel } from "@/app/CompanyQualificationProfilePanel";
 import { TenderKeywordsPanel } from "@/app/TenderKeywordsPanel";
 import { TendersMapPanel } from "@/app/TendersMapPanel";
 import { loadCompanyProfileLocal } from "@/lib/tenders-bzp-company";
 import { useTendersContext } from "@/app/tenders/context/TendersContext";
-import { bindTenderPipelineOnUpdate } from "@/lib/tender-pipeline/bind-tender-pipeline-on-update";
 import { getPipelineSessionCacheIfFresh } from "@/lib/tenders-pipeline-session-cache";
 import { TenderListDesktopCard } from "@/app/tenders/list/TenderListDesktopCard";
 import { TenderListMobileCard } from "@/app/tenders/list/TenderListMobileCard";
@@ -106,9 +104,12 @@ export function TendersView({
   athPreviewEnabled?: boolean;
   initialExpandedId?: string | null;
   onExpandedIdChange?: (id: string | null) => void;
-  /** V4 — klik w wiersz nawiguje do /przetargi/:id zamiast accordionu. */
+  /** V4 — klik w wiersz nawiguje do /przetargi/:id. */
   onItemNavigate?: (id: string) => void;
 }) {
+  void onCreateJobFromTender;
+  void onOpenJob;
+  void athPreviewEnabled;
   const [expandedId, setExpandedId] = useState<string | null>(initialExpandedId);
   const [showMoreFilters, setShowMoreFilters] = useState(() => !loadTendersListFiltersCollapsed());
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -413,18 +414,12 @@ export function TendersView({
     onExpandedIdChange?.(id);
   };
 
-  const handleRemoveItem = async (id: string) => {
-    const removed = await pipeline.removeItem(id);
-    if (removed) setExpanded(expandedId === id ? null : expandedId);
-  };
-
   const handleBulkRemove = async () => {
     await pipeline.bulkRemove();
     setExpanded(null);
   };
 
   const renderTenderItem = (item: TenderPipelineItem, todayHighlight = false) => {
-    const expanded = !onItemNavigate && expandedId === item.id;
     const vm = buildTenderListCardViewModel(
       item,
       todayHighlight,
@@ -432,18 +427,10 @@ export function TendersView({
     );
 
     const handleCardClick = () => {
-      if (onItemNavigate) {
-        if (item.status === "new") {
-          pipeline.updateItem(item.id, { status: "seen" });
-        }
-        onItemNavigate(item.id);
-        return;
-      }
-      const opening = expandedId !== item.id;
-      setExpanded(opening ? item.id : null);
-      if (opening && item.status === "new") {
+      if (item.status === "new") {
         pipeline.updateItem(item.id, { status: "seen" });
       }
+      onItemNavigate?.(item.id);
     };
 
     const handleToggleBulk = (e: MouseEvent) => {
@@ -472,21 +459,6 @@ export function TendersView({
         <div className="hidden lg:block">
           <TenderListDesktopCard {...cardProps} />
         </div>
-
-        {expanded && !onItemNavigate && (
-          <TenderDetailPanelHosted
-            item={item}
-            allItems={pipeline.items}
-            onUpdate={bindTenderPipelineOnUpdate(pipeline.updateItem, item.id)}
-            onRemove={() => void handleRemoveItem(item.id)}
-            athPreviewEnabled={athPreviewEnabled}
-            profileVersion={profileVersion}
-            onOpenJob={onOpenJob}
-            onCreateJob={onCreateJobFromTender
-              ? (t) => onCreateJobFromTender(jobDraftFromTender(t), t)
-              : undefined}
-          />
-        )}
       </article>
     );
   };
