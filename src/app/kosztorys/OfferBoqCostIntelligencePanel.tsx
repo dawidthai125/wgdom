@@ -514,8 +514,15 @@ function AiQualitySection({ section }: { section: OfferBoqAiQualitySection }) {
   );
 }
 
-function FieldLabel({ children }: { children: string }) {
-  return <label className={`${TEUX_FONT_META} text-muted-foreground block mb-0.5`}>{children}</label>;
+function FieldLabel({ children, htmlFor }: { children: string; htmlFor?: string }) {
+  return (
+    <label
+      htmlFor={htmlFor}
+      className={`${TEUX_FONT_META} text-muted-foreground block mb-0.5`}
+    >
+      {children}
+    </label>
+  );
 }
 
 function EditableComponentFields({
@@ -533,13 +540,21 @@ function EditableComponentFields({
 }) {
   const inputClass =
     "w-full rounded-md border border-border bg-background px-2 py-1.5 text-base sm:text-xs text-foreground";
+  const idPrefix = `offer-boq-${lineId}-${component.componentId}`;
+  const nameId = `${idPrefix}-name`;
+  const categoryId = `${idPrefix}-category`;
+  const originId = `${idPrefix}-origin`;
+  const qtyId = `${idPrefix}-qty`;
+  const unitId = `${idPrefix}-unit`;
+  const unitPriceId = `${idPrefix}-unitPrice`;
 
   return (
     <div className="space-y-2" data-offer-boq-component-fields>
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <FieldLabel>Nazwa</FieldLabel>
+          <FieldLabel htmlFor={nameId}>Nazwa</FieldLabel>
           <input
+            id={nameId}
             className={inputClass}
             value={component.namePl}
             onChange={(e) =>
@@ -548,8 +563,9 @@ function EditableComponentFields({
           />
         </div>
         <div>
-          <FieldLabel>Kategoria</FieldLabel>
+          <FieldLabel htmlFor={categoryId}>Kategoria</FieldLabel>
           <select
+            id={categoryId}
             className={inputClass}
             value={component.category}
             onChange={(e) =>
@@ -566,8 +582,9 @@ function EditableComponentFields({
           </select>
         </div>
         <div>
-          <FieldLabel>Źródło wyceny</FieldLabel>
+          <FieldLabel htmlFor={originId}>Źródło wyceny</FieldLabel>
           <select
+            id={originId}
             className={inputClass}
             value={component.sourceKind}
             onChange={(e) => {
@@ -586,12 +603,14 @@ function EditableComponentFields({
           </select>
         </div>
         <div>
-          <FieldLabel>Ilość</FieldLabel>
+          <FieldLabel htmlFor={qtyId}>Ilość</FieldLabel>
           <input
+            id={qtyId}
             className={inputClass}
             type="number"
             step="any"
             min="0"
+            autoComplete="off"
             value={Number.isFinite(component.quantity) ? component.quantity : 0}
             onChange={(e) =>
               onPatch(lineId, component.componentId, {
@@ -601,8 +620,9 @@ function EditableComponentFields({
           />
         </div>
         <div>
-          <FieldLabel>Jednostka</FieldLabel>
+          <FieldLabel htmlFor={unitId}>Jednostka</FieldLabel>
           <input
+            id={unitId}
             className={inputClass}
             value={component.unit === "—" ? "" : component.unit}
             onChange={(e) =>
@@ -611,12 +631,14 @@ function EditableComponentFields({
           />
         </div>
         <div>
-          <FieldLabel>Cena jednostkowa (PLN)</FieldLabel>
+          <FieldLabel htmlFor={unitPriceId}>Cena jednostkowa (PLN)</FieldLabel>
           <input
+            id={unitPriceId}
             className={inputClass}
             type="number"
             step="0.01"
             min="0"
+            autoComplete="off"
             value={component.unitPricePln ?? ""}
             onChange={(e) => {
               const raw = e.target.value.trim();
@@ -1573,6 +1595,7 @@ export function OfferBoqCostIntelligencePanel({
         data-offer-boq-scan-toolbar
       >
         <input
+          id="offer-boq-search"
           type="search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

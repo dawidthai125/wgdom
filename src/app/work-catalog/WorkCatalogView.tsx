@@ -395,6 +395,7 @@ export function WorkCatalogView({ layout = "standalone" }: WorkCatalogViewProps)
         {section === "works" && (
         <>
         <WgField
+          id="work-catalog-search"
           type="search"
           value={filters.search}
           onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}

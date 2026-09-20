@@ -520,13 +520,16 @@ export function TendersView({
             <div className="relative flex-1 min-w-[180px] max-w-3xl">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
+                id="tenders-list-search"
                 value={pipeline.search}
                 onChange={(e) => pipeline.setSearch(e.target.value)}
                 placeholder="Szukaj tytułu, zamawiającego, miasta, numeru BZP…"
+                aria-label="Szukaj przetargów"
                 className="w-full bg-secondary rounded-lg pl-8 pr-3 py-1.5 text-sm border border-transparent focus:border-primary focus:outline-none"
               />
             </div>
             <select
+              id="tenders-list-status-filter"
               value={pipeline.statusFilter}
               onChange={(e) => pipeline.setStatusFilter(e.target.value as TenderPipelineStatus | "all")}
               className="w-full sm:w-40 bg-secondary rounded-lg px-2.5 py-1.5 text-xs border border-border focus:border-primary focus:outline-none"
@@ -608,9 +611,11 @@ export function TendersView({
           <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-violet-500/10 border border-violet-500/20">
             <span className="text-xs font-medium">{pipeline.selectedIds.size} zaznaczonych</span>
             <select
+              id="tenders-list-bulk-status"
               value={pipeline.bulkStatus}
               onChange={(e) => pipeline.setBulkStatus(e.target.value as TenderPipelineStatus)}
               className="bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
+              aria-label="Status zbiorczy"
             >
               {(Object.keys(TENDER_STATUS_LABELS) as TenderPipelineStatus[]).map((s) => (
                 <option key={s} value={s}>{TENDER_STATUS_LABELS[s]}</option>

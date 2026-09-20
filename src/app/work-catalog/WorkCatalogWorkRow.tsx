@@ -38,8 +38,12 @@ export function WorkCatalogWorkRow({
       <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           {bulkEditMode && onBulkSelectToggle && (
-            <label className="flex min-h-[44px] min-w-[44px] shrink-0 cursor-pointer items-center justify-center">
+            <label
+              htmlFor={`work-catalog-bulk-${work.id}`}
+              className="flex min-h-[44px] min-w-[44px] shrink-0 cursor-pointer items-center justify-center"
+            >
               <input
+                id={`work-catalog-bulk-${work.id}`}
                 type="checkbox"
                 checked={bulkSelected}
                 onChange={(e) => onBulkSelectToggle(work.id, e.target.checked)}

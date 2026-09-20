@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useState, type ReactNode } from "react";
 import { Building2, ChevronDown, Loader2, Plus, RefreshCw, Save, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -47,14 +47,17 @@ function NumInput({
   step?: number;
   hint?: string;
 }) {
+  const inputId = useId();
   return (
-    <label className="block text-[10px] text-muted-foreground">
+    <label htmlFor={inputId} className="block text-[10px] text-muted-foreground">
       <span className="font-medium text-foreground/90">{label}</span>
       {hint && <span className="block font-normal opacity-80 mt-0.5 leading-snug">{hint}</span>}
       <input
+        id={inputId}
         type="number"
         min={0}
         step={step}
+        autoComplete="off"
         value={value}
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
@@ -94,20 +97,24 @@ function ProfileSection({
 function LinesInput({
   label,
   hint,
+  fieldKey,
   value,
   onChange,
 }: {
   label: string;
   hint?: string;
+  fieldKey: "licenses" | "strengths" | "regions" | "preferredCpvPrefixes";
   value: string[];
   onChange: (v: string[]) => void;
 }) {
   const text = value.join("\n");
+  const inputId = `company-profile-lines-${fieldKey}`;
   return (
-    <label className="block text-[10px] text-muted-foreground col-span-full">
+    <label htmlFor={inputId} className="block text-[10px] text-muted-foreground col-span-full">
       {label}
       {hint && <span className="block font-normal opacity-80">{hint}</span>}
       <textarea
+        id={inputId}
         rows={3}
         value={text}
         onChange={(e) => onChange(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
@@ -119,10 +126,12 @@ function LinesInput({
 
 function RefEditor({
   title,
+  listKey,
   items,
   onChange,
 }: {
   title: string;
+  listKey: "references" | "tender-wins" | "tender-participations";
   items: TenderCompanyReference[];
   onChange: (items: TenderCompanyReference[]) => void;
 }) {
@@ -146,32 +155,38 @@ function RefEditor({
       {items.map((r, i) => (
         <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 p-2 rounded-lg bg-background/50 border border-border/40">
           <input
+            id={`company-ref-${listKey}-${i}-client`}
             placeholder="Klient / zamawiający"
             value={r.client}
             onChange={(e) => update(i, { client: e.target.value })}
             className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
           />
           <input
+            id={`company-ref-${listKey}-${i}-year`}
             placeholder="Rok"
             value={r.year ?? ""}
             onChange={(e) => update(i, { year: e.target.value })}
             className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
           />
           <input
+            id={`company-ref-${listKey}-${i}-valuePln`}
             placeholder="Wartość PLN"
             type="number"
             min={0}
+            autoComplete="off"
             value={r.valuePln ?? ""}
             onChange={(e) => update(i, { valuePln: e.target.value ? Number(e.target.value) : null })}
             className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
           />
           <input
+            id={`company-ref-${listKey}-${i}-source`}
             placeholder="Źródło (BZP, wgdom.pl…)"
             value={r.source ?? ""}
             onChange={(e) => update(i, { source: e.target.value })}
             className="bg-secondary rounded px-2 py-1 text-[10px] border border-border"
           />
           <textarea
+            id={`company-ref-${listKey}-${i}-scope`}
             placeholder="Zakres robót"
             rows={2}
             value={r.scope}
@@ -383,16 +398,19 @@ export function TenderCompanyProfilePanel({
               >
                 <RefEditor
                   title="Referencje (wgdom.pl)"
+                  listKey="references"
                   items={profile.references}
                   onChange={(references) => setProfile({ ...profile, references })}
                 />
                 <RefEditor
                   title="Wygrane przetargi BZP"
+                  listKey="tender-wins"
                   items={profile.tenderWins}
                   onChange={(tenderWins) => setProfile({ ...profile, tenderWins })}
                 />
                 <RefEditor
                   title="Udział w przetargach"
+                  listKey="tender-participations"
                   items={profile.tenderParticipations}
                   onChange={(tenderParticipations) => setProfile({ ...profile, tenderParticipations })}
                 />
@@ -404,11 +422,13 @@ export function TenderCompanyProfilePanel({
                   <LinesInput
                     label="Licencje / uprawnienia (PIIB, ISO…)"
                     hint="Używane przy dopasowaniu wymagań formalnych SWZ."
+                    fieldKey="licenses"
                     value={profile.licenses}
                     onChange={(licenses) => setProfile({ ...profile, licenses })}
                   />
                   <LinesInput
                     label="Mocne strony / specjalizacja"
+                    fieldKey="strengths"
                     value={profile.strengths}
                     onChange={(strengths) => setProfile({ ...profile, strengths })}
                   />
@@ -424,6 +444,7 @@ export function TenderCompanyProfilePanel({
                 <LinesInput
                   label="Regiony / miasta działania"
                   hint="Np. Wrocław, Dolny Śląsk, okolice."
+                  fieldKey="regions"
                   value={profile.regions}
                   onChange={(regions) => setProfile({ ...profile, regions })}
                 />
@@ -455,6 +476,7 @@ export function TenderCompanyProfilePanel({
                           <tr key={entry.id} className="border-t border-border/40">
                             <td className="px-2 py-1">
                               <input
+                                id={`company-class-${entry.id}-phrase`}
                                 value={entry.phrase}
                                 onChange={(e) => setClassificationDict(
                                   updateUserClassificationEntry(classificationDict, entry.id, { phrase: e.target.value }),
@@ -464,6 +486,7 @@ export function TenderCompanyProfilePanel({
                             </td>
                             <td className="px-2 py-1">
                               <select
+                                id={`company-class-${entry.id}-category`}
                                 value={entry.category}
                                 onChange={(e) => setClassificationDict(
                                   updateUserClassificationEntry(classificationDict, entry.id, {
@@ -564,25 +587,28 @@ export function TenderCompanyProfilePanel({
                 description="Rzadziej używane — limity zamówień, CPV, dane rejestrowe. Nie zmieniają algorytmu wyceny."
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  <label className="block text-[10px] text-muted-foreground">
+                  <label htmlFor="company-profile-nip" className="block text-[10px] text-muted-foreground">
                     NIP
                     <input
+                      id="company-profile-nip"
                       value={profile.nip}
                       onChange={(e) => setProfile({ ...profile, nip: e.target.value })}
                       className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
                     />
                   </label>
-                  <label className="block text-[10px] text-muted-foreground">
+                  <label htmlFor="company-profile-regon" className="block text-[10px] text-muted-foreground">
                     REGON
                     <input
+                      id="company-profile-regon"
                       value={profile.regon}
                       onChange={(e) => setProfile({ ...profile, regon: e.target.value })}
                       className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border font-mono"
                     />
                   </label>
-                  <label className="block text-[10px] text-muted-foreground sm:col-span-2">
+                  <label htmlFor="company-profile-owner-name" className="block text-[10px] text-muted-foreground sm:col-span-2">
                     Właścicielka / firma CEIDG
                     <input
+                      id="company-profile-owner-name"
                       value={profile.ownerName}
                       onChange={(e) => setProfile({ ...profile, ownerName: e.target.value })}
                       className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
@@ -595,12 +621,14 @@ export function TenderCompanyProfilePanel({
                   <NumInput label="Max. równoległych robót" value={profile.maxConcurrentProjects} onChange={(v) => setProfile({ ...profile, maxConcurrentProjects: v })} step={1} />
                   <LinesInput
                     label="Prefiksy CPV"
+                    fieldKey="preferredCpvPrefixes"
                     value={profile.preferredCpvPrefixes}
                     onChange={(preferredCpvPrefixes) => setProfile({ ...profile, preferredCpvPrefixes })}
                   />
-                  <label className="block text-[10px] text-muted-foreground col-span-full">
+                  <label htmlFor="company-profile-notes" className="block text-[10px] text-muted-foreground col-span-full">
                     Historia / notatki (np. ciągłość marki, wykluczenia)
                     <textarea
+                      id="company-profile-notes"
                       rows={3}
                       value={`${profile.formerOwnerNote}\n\n${profile.notes}`.trim()}
                       onChange={(e) => setProfile({ ...profile, notes: e.target.value })}

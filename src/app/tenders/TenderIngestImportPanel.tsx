@@ -128,9 +128,13 @@ export function TenderIngestImportPanel({
           Import / Pin przetarg
         </button>
         {activeItem ? (
-          <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs cursor-pointer min-h-[36px] hover:bg-secondary/50">
+          <label
+            htmlFor="tender-ingest-upload-file"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs cursor-pointer min-h-[36px] hover:bg-secondary/50"
+          >
             {uploadBusy ? "Wgrywanie…" : "Wgraj PDF / ZIP (wiele)"}
             <input
+              id="tender-ingest-upload-file"
               type="file"
               multiple
               accept=".pdf,.zip,.ath,.nor,.xml,application/pdf,application/zip"
@@ -158,42 +162,55 @@ export function TenderIngestImportPanel({
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <input
+              id="tender-ingest-ocds"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs"
               placeholder="OCDS id"
+              aria-label="OCDS id"
               value={ocdsId}
               onChange={(e) => setOcdsId(e.target.value)}
             />
             <input
+              id="tender-ingest-bzp"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs"
               placeholder="Numer BZP"
+              aria-label="Numer BZP"
               value={bzpNumber}
               onChange={(e) => setBzpNumber(e.target.value)}
             />
             <input
+              id="tender-ingest-title"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs sm:col-span-2"
               placeholder="Tytuł *"
+              aria-label="Tytuł"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
             <input
+              id="tender-ingest-org"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs"
               placeholder="Zamawiający *"
+              aria-label="Zamawiający"
               value={organizationName}
               onChange={(e) => setOrganizationName(e.target.value)}
             />
             <input
+              id="tender-ingest-city"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs"
               placeholder="Miasto"
+              aria-label="Miasto"
               value={organizationCity}
               onChange={(e) => setOrganizationCity(e.target.value)}
             />
             <input
+              id="tender-ingest-url"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs sm:col-span-2"
               placeholder="Source URL (BIP)"
+              aria-label="Source URL (BIP)"
               value={sourceUrl}
               onChange={(e) => setSourceUrl(e.target.value)}
             />
             <select
+              id="tender-ingest-mode"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs"
               value={ingestMode}
               onChange={(e) => setIngestMode(e.target.value as TenderIngestMode)}
@@ -203,6 +220,7 @@ export function TenderIngestImportPanel({
               <option value="fixture_pin">fixture_pin</option>
             </select>
             <select
+              id="tender-ingest-retention"
               className="bg-secondary rounded-lg px-2.5 py-1.5 text-xs"
               value={retention}
               onChange={(e) => setRetention(e.target.value as TenderIngestRetention)}

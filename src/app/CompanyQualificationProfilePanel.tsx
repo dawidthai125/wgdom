@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ClipboardCheck, ChevronDown, FileText, Loader2, Plus, Save, Sparkles, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -30,13 +30,16 @@ function NumInput({
   onChange: (v: number | null) => void;
   step?: number;
 }) {
+  const inputId = useId();
   return (
-    <label className="block text-[10px] text-muted-foreground">
+    <label htmlFor={inputId} className="block text-[10px] text-muted-foreground">
       {label}
       <input
+        id={inputId}
         type="number"
         min={0}
         step={step}
+        autoComplete="off"
         value={value ?? ""}
         onChange={(e) => {
           const raw = e.target.value;
@@ -57,9 +60,15 @@ function CheckRow({
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
+  const inputId = useId();
   return (
-    <label className="flex items-center gap-2 text-xs cursor-pointer py-0.5">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+    <label htmlFor={inputId} className="flex items-center gap-2 text-xs cursor-pointer py-0.5">
+      <input
+        id={inputId}
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
       <span>{label}</span>
     </label>
   );

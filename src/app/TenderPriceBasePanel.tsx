@@ -1,5 +1,5 @@
 import { Library, Loader2, Lock, Save, Tags } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTendersContextOptional } from "@/app/tenders/context/TendersContext";
 import {
@@ -40,8 +40,8 @@ import {
   openTendersAtWorkCatalogTab,
 } from "@/lib/tenders-module-nav";
 
-const READ_ONLY_INPUT_CLASS =
-  "w-full max-w-[88px] rounded px-1.5 py-1 border border-border/50 font-mono bg-muted/40 text-muted-foreground cursor-not-allowed opacity-90";
+const READ_ONLY_DISPLAY_CLASS =
+  "inline-block w-full max-w-[88px] rounded px-1.5 py-1 border border-border/50 font-mono bg-muted/40 text-muted-foreground opacity-90 tabular-nums";
 
 function NumInput({
   label,
@@ -56,14 +56,17 @@ function NumInput({
   step?: number;
   hint?: string;
 }) {
+  const inputId = useId();
   return (
-    <label className="block text-[10px] text-muted-foreground">
+    <label htmlFor={inputId} className="block text-[10px] text-muted-foreground">
       <span className="font-medium text-foreground/90">{label}</span>
       {hint && <span className="block font-normal opacity-80 mt-0.5 leading-snug">{hint}</span>}
       <input
+        id={inputId}
         type="number"
         min={0}
         step={step}
+        autoComplete="off"
         value={value}
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         className="mt-0.5 w-full bg-secondary rounded-lg px-2 py-1.5 text-xs border border-border"
@@ -228,12 +231,13 @@ export function TenderPriceBasePanel({
         </details>
       )}
 
-      <label className="block text-[10px] text-muted-foreground max-w-xs">
+      <label htmlFor="tender-price-base-region" className="block text-[10px] text-muted-foreground max-w-xs">
         <span className="inline-flex items-center gap-1 font-medium text-muted-foreground">
           <Lock size={11} aria-hidden />
           Region aktywny (tylko odczyt)
         </span>
         <select
+          id="tender-price-base-region"
           value={activeRegion}
           disabled
           aria-readonly="true"
@@ -279,16 +283,12 @@ export function TenderPriceBasePanel({
                     <td className="px-2 py-1.5 font-medium text-muted-foreground">{row.labelPl}</td>
                     <td className="px-2 py-1.5 text-muted-foreground">{row.unit}</td>
                     <td className="px-2 py-1">
-                      <input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={row.laborRbhPerUnit}
-                        readOnly
-                        tabIndex={-1}
-                        aria-readonly="true"
-                        className={READ_ONLY_INPUT_CLASS}
-                      />
+                      <span
+                        className={READ_ONLY_DISPLAY_CLASS}
+                        data-price-base-readonly="labor"
+                      >
+                        {row.laborRbhPerUnit}
+                      </span>
                     </td>
                     <td className="px-2 py-1.5 text-right font-mono font-medium tabular-nums text-muted-foreground">
                       {laborPln.toLocaleString("pl-PL")} zł
@@ -342,16 +342,12 @@ export function TenderPriceBasePanel({
                   <td className="px-2 py-1.5 font-medium text-muted-foreground">{row.labelPl}</td>
                   <td className="px-2 py-1.5 text-muted-foreground">{row.unit}</td>
                   <td className="px-2 py-1">
-                    <input
-                      type="number"
-                      min={0}
-                      step={1}
-                      value={row.materialPlnPerUnit}
-                      readOnly
-                      tabIndex={-1}
-                      aria-readonly="true"
-                      className={READ_ONLY_INPUT_CLASS}
-                    />
+                    <span
+                      className={READ_ONLY_DISPLAY_CLASS}
+                      data-price-base-readonly="material"
+                    >
+                      {row.materialPlnPerUnit}
+                    </span>
                   </td>
                   <td className="px-2 py-1.5 align-top">
                     <MaterialHistoryCell view={materialHistory} />

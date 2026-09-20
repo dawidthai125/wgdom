@@ -200,6 +200,7 @@ export function AdminTopbar({
             <Download size={16} />
           </WgButton>
           <label
+            htmlFor="admin-backup-import-file"
             title="Importuj backup"
             aria-label="Importuj backup"
             className={cn(
@@ -210,6 +211,7 @@ export function AdminTopbar({
           >
             <Upload size={16} />
             <input
+              id="admin-backup-import-file"
               type="file"
               accept=".json"
               className="hidden"
