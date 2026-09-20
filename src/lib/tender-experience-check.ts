@@ -83,10 +83,44 @@ function fmtPln(n: number): string {
   return n.toLocaleString("pl-PL");
 }
 
-export function traceExperienceCheck(detail: Record<string, unknown>): void {
-  if (typeof console !== "undefined" && console.debug) {
-    console.debug("[EXPERIENCE TRACE]", detail);
+/** Last emitted fingerprint — change-only default (TENDER_DETAIL_FREEZE P0-B). */
+let lastExperienceTraceFingerprint: string | null = null;
+
+/** Opt-in verbose: VITE_DEBUG_EXPERIENCE_TRACE=1 or localStorage wg-experience-trace=1 (payroll-trace pattern). */
+function isExperienceTraceVerbose(): boolean {
+  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_DEBUG_EXPERIENCE_TRACE === "1") {
+    return true;
   }
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage?.getItem("wg-experience-trace") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function experienceTraceFingerprint(detail: Record<string, unknown>): string {
+  return [
+    detail.requiredProjects ?? "",
+    detail.requiredValue ?? "",
+    detail.matchingProjects ?? "",
+    detail.status ?? "",
+  ].join("|");
+}
+
+/** Test-only — reset change-only gate between cases. */
+export function resetExperienceTraceFingerprintForTests(): void {
+  lastExperienceTraceFingerprint = null;
+}
+
+export function traceExperienceCheck(detail: Record<string, unknown>): void {
+  if (typeof console === "undefined" || !console.debug) return;
+  const fingerprint = experienceTraceFingerprint(detail);
+  if (!isExperienceTraceVerbose()) {
+    if (fingerprint === lastExperienceTraceFingerprint) return;
+    lastExperienceTraceFingerprint = fingerprint;
+  }
+  console.debug("[EXPERIENCE TRACE]", detail);
 }
 
 /** Porównanie jednego wymagania doświadczenia z profilem. */

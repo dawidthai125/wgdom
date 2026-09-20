@@ -13,7 +13,6 @@ import {
   buildPrzetargHighlights,
   buildPrzetargKeyFacts,
   buildPrzetargWorkScopeLabels,
-  hasParticipationDisplayData,
 } from "@/lib/tender-detail-v4-display";
 import { TenderWorkflowHubPanel } from "@/app/TenderWorkflowHubPanel";
 import { TenderDetailKpiBar } from "@/app/TenderDetailKpiBar";
@@ -201,7 +200,7 @@ export function TenderPrzetargWorkspace({
       </BlockShell>
 
       <BlockShell title="Warunki udziału">
-        {!hasParticipationDisplayData(swz) ? (
+        {participationGroups.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nie wykryto wymagań</p>
         ) : (
           <div className="space-y-3">
