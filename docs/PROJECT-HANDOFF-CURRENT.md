@@ -1,6 +1,8 @@
 # PROJECT HANDOFF CURRENT — W&G DOM
 
-> **★★ PRZETARGI_CLEANUP-01 WAVE 4 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED** · source **`3de1262a`** · UI **2.66.231 bez bumpu** · live commit **`3de1262`** · [`architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md`](architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) · **NIE** przywracać `TenderQualificationSection`
+> **★★ FORM-FIELD-A11Y-01 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED · GREEN** · final **`110aec71`** · live **`110aec7`** · UI **2.66.231 bez bumpu** · prod smoke S1–S5 = **0** · CORS/BIP ≠ A11Y · [`architecture/FORM-FIELD-A11Y-01-CLOSEOUT.md`](architecture/FORM-FIELD-A11Y-01-CLOSEOUT.md) · **NIE** reopen RCA · **NIE** Payroll/IK/Storage
+
+> **★★ PRZETARGI_CLEANUP-01 WAVE 4 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED** · source **`3de1262a`** · UI **2.66.231 bez bumpu** · live hist. **`3de1262`** · [`architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md`](architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) · **NIE** przywracać `TenderQualificationSection`
 
 > **Data closeout:** 2026-08-19 (**PAYROLL-O1 CAS CLOSED** · docs-only) · prior 2026-08-13 (**SESSION CLOSED** · Wrocław tender continuity) · tip UI **2.66.43** · **RUNTIME `dec7335`/`dec73351`** · deploy **`5892250601`** → [`AI/09_PRODUCTION_BASELINE.md`](AI/09_PRODUCTION_BASELINE.md) · handoff [`architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md`](architecture/SESSION-HANDOFF-2026-08-13-WROCLOW-TENDER-CONTINUITY.md) · NORMA-KALK / INGEST / MULTI-BOQ / MULTI-DWELLING **CLOSED · GREEN** · F5 / Final Bid **NOT VERIFIED GREEN** · **NEXT = Wrocław REAL TENDER AUDIT** (WM → ZZK → MOPS → uczelnie) · **Połczyn = NOT TARGET** · cold-start [`AI/WGDOM-COLD-START-HANDOFF.md`](AI/WGDOM-COLD-START-HANDOFF.md)
 
