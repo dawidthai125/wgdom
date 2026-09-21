@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.232 — IK OFN-01 Price Persistence (Evidence derived · exact leaf) (2026-09-21)
+
+- Owner GO: derived input routes BIP Kobylin (`1118-09` · 1.0664) + SR Zielona Góra (`2003-03` · 2.27) z `boundWorkId`/`boundUnit`
+- Persist Evidence `priceKind=derived` (LABOR_NORM_X_RATE × Cr 52.30) — **bez** Accept / **bez** OUR RATE; HOLD ≠ wipe ceny
+- Host lock: bind leaf+unit blokuje lookalike KNR
+- Test: `test-ofn01-derived-evidence-v2.mjs` (T15) · ops: `ops-ofn01-price-persistence-implement.mjs`
+
 ## 2.66.231 — Przetargi STORAGE-TIER1-PIPELINE-CONTRACT-01 — IDB FULL · LS INDEX · Cloud LEAN (2026-09-18)
 
 - Kontrakt: IDB = lokalny FULL authority (koperta + ACK, `storage-idb.ts` / `storage/tenders-pipeline-cold.ts`) · LS = kanoniczny INDEX (`_lsIndex`) · Cloud = LEAN (`stripTenderPipelineForCloud`, `sanitizePipelineIndexFromPushKeys`) — INDEX **nigdy** do Cloud, INDEX **nigdy** nie staje się FULL

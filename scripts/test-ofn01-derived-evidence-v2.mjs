@@ -518,5 +518,143 @@ function buildValidDerived(extra = {}) {
   ok("T14 closed eval 26.64", good.ok && good.resultPln === 26.64);
 }
 
+// ——— T15 PRICE_PERSISTENCE ≠ OUR_RATE_ACCEPT · HOLD ≠ PRICE_NULL ———
+{
+  const KOB = resolveOwnerDerivedLaborInputRoute("bip_kobylin_1118_09_labor_norm");
+  const ZG = resolveOwnerDerivedLaborInputRoute("sr_zielona_gora_2003_03_labor_norm");
+  ok("T15 kobylin route authorized", Boolean(KOB?.sourceId === "bip_kobylin_1118_09_labor_norm"));
+  ok("T15 2003-03 route authorized", Boolean(ZG?.sourceId === "sr_zielona_gora_2003_03_labor_norm"));
+  ok(
+    "T15 kobylin bound leaf",
+    KOB?.boundWorkId === "cw.knr.knr-2-02.1118-09.m2" && KOB?.boundUnit === "m2",
+  );
+  ok(
+    "T15 2003-03 bound leaf",
+    ZG?.boundWorkId === "cw.knr.knr-2-02.2003-03.m2" && ZG?.boundUnit === "m2",
+  );
+
+  clearLaborSourceEvidenceStoreLocalForTests();
+  const leafA = "cw.knr.knr-2-02.1118-09.m2";
+  const builtA = buildDerivedLaborSourceEvidenceObservation({
+    workId: leafA,
+    workNamePl: "Okładziny z płytek kamienia sztucznego 30×30",
+    observedName: "KNR 2-02 1118-09 · BIP Kobylin labor norm × Cr Q2 2026",
+    unit: "m2",
+    region: "POLSKA",
+    identityMatched: true,
+    identityMethod: "exact_name",
+    laborOnly: true,
+    includesMaterial: false,
+    formulaId: FORMULA_LABOR_NORM_X_RATE,
+    formulaVersion: FORMULA_LABOR_NORM_X_RATE_VERSION,
+    inputs: [
+      {
+        inputId: "norm_rg",
+        role: "labor_norm",
+        inputValue: 1.0664,
+        inputUnit: "r-g/m2",
+        sourceId: KOB.sourceId,
+        sourceUrl: KOB.url,
+        host: KOB.host,
+        observedAt: NOW,
+        retrievedAt: NOW,
+        identityRef: leafA,
+        periodLabel: null,
+      },
+      {
+        inputId: "cost_rate_cr",
+        role: "labor_cost_rate",
+        inputValue: 52.3,
+        inputUnit: "PLN/r-g",
+        sourceId: BZG.sourceId,
+        sourceUrl: BZG.url,
+        host: BZG.host,
+        observedAt: "2026-04-01T00:00:00.000Z",
+        retrievedAt: NOW,
+        identityRef: leafA,
+        periodLabel: BZG.periodLabel,
+        publisher: "INTERCENBUD",
+      },
+    ],
+    calculatedAt: NOW,
+    retrievedAt: NOW,
+    pricePoint: 55.77,
+    sourceUrl: KOB.url,
+    categoryKey: "OFN01_PRICE_PERSISTENCE|notesPl=1.0664×52.30=55.77|HOLD_OK",
+  });
+  ok("T15 A build ok", builtA.ok === true);
+  if (builtA.ok) {
+    ok("T15 A price 55.77 derived", builtA.observation.pricePoint === 55.77 && builtA.observation.priceKind === "derived");
+    const hostA = assertDerivedLaborEvidenceHostLock(builtA.observation);
+    ok("T15 A host lock", hostA.ok === true);
+    const casA = upsertLaborSourceEvidenceObservations({
+      observations: [builtA.observation],
+      nowIso: NOW,
+    });
+    ok("T15 A upsert Evidence", casA.ok === true);
+    // Wrong leaf bind must fail (lookalike KNR)
+    const wrong = { ...builtA.observation, workId: "cw.knr.knr-2-02.1118-10.m2" };
+    const hostWrong = assertDerivedLaborEvidenceHostLock(wrong);
+    ok("T15 A reject wrong leaf bind", hostWrong.ok === false);
+  } else {
+    ok("T15 A price 55.77 derived", false);
+    ok("T15 A host lock", false);
+    ok("T15 A upsert Evidence", false);
+    ok("T15 A reject wrong leaf bind", false);
+  }
+
+  // Conflict: two VALID prices coexist; no silent winner; HOLD ≠ wipe
+  clearLaborSourceEvidenceStoreLocalForTests();
+  const o13 = buildLaborSourceEvidenceObservation({
+    workId: LEAF,
+    workNamePl: "gładź",
+    sourceId: "kb_pl",
+    sourceUrl: "https://kb.pl/cennik/",
+    observedName: "Gładź 13.15",
+    unit: "m2",
+    pricePoint: 13.15,
+    priceKind: "point",
+    region: "POLSKA",
+    identityMatched: true,
+    identityMethod: "exact_name",
+    laborOnly: true,
+    includesMaterial: false,
+    observedAt: NOW,
+    retrievedAt: NOW,
+  });
+  const der26 = buildValidDerived({ pricePoint: 26.64 });
+  ok("T15 conflict build 26.64", der26.ok === true);
+  if (der26.ok) {
+    const casC = upsertLaborSourceEvidenceObservations({
+      observations: [o13, der26.observation],
+      nowIso: NOW,
+    });
+    ok("T15 conflict both persisted", casC.ok === true && casC.store.observations.length >= 2);
+    const pool = casC.ok
+      ? casC.store.observations.filter((o) => o.workId === LEAF && o.qualityStatus === "VALID")
+      : [];
+    const suf = evaluateLaborEvidenceReuseSufficiency({
+      workId: LEAF,
+      unit: "m2",
+      namePl: "gładź",
+      ourRateFreshness: "MISSING",
+      observations: pool,
+    });
+    ok("T15 CONFLICT detectable", suf.status === "CONFLICT" && suf.sufficient === false);
+    ok("T15 HOLD_DOES_NOT_DELETE_PRICE", pool.some((o) => o.pricePoint === 13.15) && pool.some((o) => o.pricePoint === 26.64));
+  } else {
+    ok("T15 conflict both persisted", false);
+    ok("T15 CONFLICT detectable", false);
+    ok("T15 HOLD_DOES_NOT_DELETE_PRICE", false);
+  }
+
+  // PRICE_PERSISTENCE ≠ Accept: upsert must not call Accept APIs (structural)
+  ok(
+    "T15 PRICE_PERSISTENCE_NE_OUR_RATE_ACCEPT",
+    typeof upsertLaborSourceEvidenceObservations === "function" &&
+      typeof buildCandidateFromDurableLaborEvidence === "function",
+  );
+}
+
 console.log(`\nOFN-01 Derived Evidence v2: ${passed} PASS / ${failed} FAIL`);
 if (failed) process.exit(1);

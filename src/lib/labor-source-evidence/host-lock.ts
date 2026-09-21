@@ -24,6 +24,7 @@ import {
   resolveOwnerAuthorizedLaborEvidenceRouteByUrl,
 } from "@/lib/labor-source-evidence/owner-authorized-routes";
 import {
+  assertOwnerDerivedLaborInputLeafBind,
   isDerivedLaborCompositeSourceId,
   isOwnerDerivedLaborInputSourceId,
   resolveOwnerDerivedLaborInputRoute,
@@ -159,11 +160,12 @@ export function assertLaborSourceEvidenceHostLock(input: {
 /**
  * Multi-input host lock for derived observations.
  * EVERY derivation input must PASS; composite top-level also checked.
+ * Bound routes (PRICE PERSISTENCE) must match observation workId + unit.
  */
 export function assertDerivedLaborEvidenceHostLock(
   observation: Pick<
     LaborSourceEvidenceObservation,
-    "priceKind" | "sourceId" | "sourceUrl" | "derivation"
+    "priceKind" | "sourceId" | "sourceUrl" | "derivation" | "workId" | "unit"
   >,
 ): { ok: true } | { ok: false; messagePl: string } {
   if (observation.priceKind !== "derived") {
@@ -188,6 +190,17 @@ export function assertDerivedLaborEvidenceHostLock(
       return {
         ok: false,
         messagePl: `Derived input „${inp.inputId}”: ${one.messagePl}`,
+      };
+    }
+    const bind = assertOwnerDerivedLaborInputLeafBind({
+      sourceId: inp.sourceId,
+      workId: observation.workId,
+      unit: observation.unit,
+    });
+    if (!bind.ok) {
+      return {
+        ok: false,
+        messagePl: `Derived input „${inp.inputId}”: ${bind.messagePl}`,
       };
     }
   }

@@ -90,6 +90,7 @@ export {
   DERIVED_LABOR_COMPOSITE_SOURCE_ID,
   OWNER_DERIVED_LABOR_INPUT_ROUTES,
   OWNER_DERIVED_LABOR_INPUT_STATUS_AUTHORIZED,
+  assertOwnerDerivedLaborInputLeafBind,
   extractHostFromUrl,
   isDerivedLaborCompositeSourceId,
   isOwnerDerivedLaborInputSourceId,

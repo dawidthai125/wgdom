@@ -12,6 +12,22 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-21",
+    version: "2.66.232",
+    label: "IK — OFN-01 Price Persistence (Evidence derived · exact leaf)",
+    items: [
+      {
+        type: "new",
+        text: "Owner GO PRICE PERSISTENCE: autoryzowane derived input routes BIP Kobylin (1118-09 · 1.0664 r-g/m²) oraz SR Zielona Góra (2003-03 · 2.27 r-g/m²) z bindem exact leaf+unit. Cena zapisana jako Evidence priceKind=derived (LABOR_NORM_X_RATE × Cr 52.30) — bez Accept / bez OUR RATE. HOLD ≠ utrata ceny. Test: test-ofn01-derived-evidence-v2.mjs (T15) · ops-ofn01-price-persistence-implement.mjs.",
+      },
+      {
+        type: "improve",
+        text: "Host lock derived: gdy route ma boundWorkId/boundUnit, odrzuca lookalike KNR na innym liściu. Evidence persistence ≠ OUR RATE Accept.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-18",
     version: "2.66.231",
     label: "Przetargi — magazyn pipeline Tier-1 (IDB FULL · LS INDEX · Cloud LEAN)",
