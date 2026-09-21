@@ -21,10 +21,12 @@ import {
   upsertKnrDiscoveryEvidenceOffline,
   isDestructiveKnrDiscoveryReplace,
   clampDiscoveryStatusForSources,
+  isValidOwnerHardAuthority,
 } from "../src/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-store.ts";
 import {
   mergeKnrDiscoveryEvidenceStoreDetailed,
   shouldPushKnrDiscoveryEvidenceToCloud,
+  KNR_DISCOVERY_DECISION_C_AUTHORITY_MERGE,
 } from "../src/lib/intelligent-estimator/knr-knowledge/knr-discovery-evidence-merge.ts";
 import {
   lookupKnrKnowledgeWithDiscoveryEvidence,
@@ -226,7 +228,7 @@ function catalogStoreWith(entry) {
   );
 }
 
-// --- T8: content conflict fail-safe local ---
+// --- T8: content conflict → Decision C HOLD (INTENTIONAL: was NEXT_LOCAL_WINS local keep) ---
 {
   const a = buildP2aSingleIndustryFixture();
   const local = normalizeKnrDiscoveryEvidenceStore({
@@ -245,8 +247,15 @@ function catalogStoreWith(entry) {
     ...rebuildKnrDiscoveryIndexes({ [a.evidenceKeyV1]: cloudEntry }),
   });
   const merged = mergeKnrDiscoveryEvidenceStoreDetailed(local, cloud);
-  ok("T8 conflict keep local hash", merged.store.entries[a.evidenceKeyV1].contentHash === a.contentHash);
-  ok("T8 conflict recorded", merged.conflicts.some((c) => c.reason === "CONTENT_HASH_MISMATCH"));
+  const held = merged.store.entries[a.evidenceKeyV1];
+  ok("T8 Decision C HOLD status CONFLICT", held.discoveryStatus === "CONFLICT");
+  ok(
+    "T8 Decision C durable authorityHold",
+    held.authorityHold?.reason === "CONTENT_HASH_MISMATCH"
+      && held.authorityHold?.resolution === "HOLD",
+  );
+  ok("T8 conflict recorded", merged.conflicts.some((c) => c.reason === "CONTENT_HASH_MISMATCH" && c.keptSide === "hold"));
+  ok("T8 no silent local business win", held.contentHash === a.contentHash && held.discoveryStatus === "CONFLICT");
 }
 
 // --- T9: CATALOG_HIT short-circuit · HTTP 0 · no evidence consult needed ---
@@ -393,4 +402,154 @@ function catalogStoreWith(entry) {
   ok("T16 not VERIFIED field", !("verificationStatus" in (n ?? {})));
 }
 
-console.log(`\nOK ${passed} assertions — KL-7-P2A offline`);
+// =============================================================================
+// Decision C — OWNER_HARD_WINS (SEAM-DC-1/2/3) · INTENTIONAL T8 semantic change documented above
+// =============================================================================
+ok("DC marker", KNR_DISCOVERY_DECISION_C_AUTHORITY_MERGE === true);
+
+function withHard(rec, overrides = {}) {
+  const contentHash = overrides.contentHash ?? rec.contentHash;
+  return {
+    ...rec,
+    ...overrides,
+    contentHash,
+    ownerHardAuthority: {
+      kind: "OWNER_HARD",
+      actorId: overrides.actorId ?? "dawid",
+      decidedAt: overrides.decidedAt ?? NOW,
+      decisionId: overrides.decisionId ?? `dec-${rec.evidenceKeyV1}`,
+      coveredContentHash: overrides.coveredContentHash ?? contentHash,
+      source: "OWNER_EXPLICIT",
+      reasonPl: "Decision C test",
+    },
+  };
+}
+
+function storeOf(entry) {
+  return normalizeKnrDiscoveryEvidenceStore({
+    schemaVersion: 1,
+    updatedAt: NOW,
+    etag: "",
+    entries: { [entry.evidenceKeyV1]: entry },
+    ...rebuildKnrDiscoveryIndexes({ [entry.evidenceKeyV1]: entry }),
+  });
+}
+
+// --- DC-N1: local-only / cloud-only / disjoint / same-hash / lifecycle ---
+{
+  const a = buildP2aSingleIndustryFixture();
+  const localOnly = storeOf(a);
+  const empty = emptyKnrDiscoveryEvidenceStore(NOW);
+  ok("DC-N1 local-only", mergeKnrDiscoveryEvidenceStoreDetailed(localOnly, empty).store.entries[a.evidenceKeyV1]?.contentHash === a.contentHash);
+  ok("DC-N1 cloud-only", mergeKnrDiscoveryEvidenceStoreDetailed(empty, localOnly).store.entries[a.evidenceKeyV1]?.contentHash === a.contentHash);
+
+  const b = { ...buildP2aCorroboratedFixture(), evidenceKeyV1: "KNR|9-99|0001-01", contentHash: "disjoint-b" };
+  const left = storeOf(a);
+  const right = storeOf(b);
+  const disjoint = mergeKnrDiscoveryEvidenceStoreDetailed(left, right);
+  ok("DC-N1 disjoint both keys", Boolean(disjoint.store.entries[a.evidenceKeyV1]) && Boolean(disjoint.store.entries[b.evidenceKeyV1]));
+
+  const cor = buildP2aCorroboratedFixture();
+  const sameLocal = { ...cor, discoveryStatus: "DISCOVERED", updatedAt: "2026-08-21T12:00:00.000Z" };
+  const sameCloud = { ...cor, discoveryStatus: "CORROBORATED", updatedAt: "2026-08-23T12:00:00.000Z" };
+  const same = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(sameLocal), storeOf(sameCloud));
+  ok("DC-N1 same-hash prefers richer status", same.store.entries[cor.evidenceKeyV1]?.discoveryStatus === "CORROBORATED");
+
+  const active = { ...a, lifecycleState: "ACTIVE", contentHash: "life-a" };
+  const superseded = { ...a, lifecycleState: "SUPERSEDED", contentHash: "life-b", description: "old" };
+  const life = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(active), storeOf(superseded));
+  ok("DC-N1 ACTIVE vs SUPERSEDED → ACTIVE (L1)", life.store.entries[a.evidenceKeyV1]?.lifecycleState === "ACTIVE");
+  ok("DC-N1 not HOLD when not both ACTIVE", life.store.entries[a.evidenceKeyV1]?.discoveryStatus !== "CONFLICT");
+}
+
+// --- DC-C1: ACTIVE/ACTIVE content + family → HOLD; legacy → HOLD ---
+{
+  const a = buildP2aSingleIndustryFixture();
+  const cloud = { ...a, contentHash: "cloud-x", description: "cloud" };
+  const hold = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(a), storeOf(cloud));
+  const h = hold.store.entries[a.evidenceKeyV1];
+  ok("DC-C1 content HOLD", h.discoveryStatus === "CONFLICT" && h.authorityHold?.reason === "CONTENT_HASH_MISMATCH");
+
+  const famL = { ...a, family: "KNR" };
+  const famC = { ...a, family: "KNR-W", contentHash: a.contentHash };
+  const famHold = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(famL), storeOf(famC));
+  ok("DC-C1 family HOLD", famHold.store.entries[a.evidenceKeyV1]?.authorityHold?.reason === "FAMILY_MISMATCH");
+
+  ok("DC-C1 legacy not HARD", !isValidOwnerHardAuthority(a));
+  ok("DC-C1 legacy conflict HOLD (no invent)", hold.conflicts.some((c) => c.keptSide === "hold"));
+}
+
+// --- DC-H: Owner HARD wins / dual HARD HOLD / malformed / covered mismatch / ATH ---
+{
+  const base = buildP2aSingleIndustryFixture();
+  const hardLocal = withHard(base);
+  const ordinaryCloud = { ...base, contentHash: "ath-or-cloud", description: "ordinary", sources: [{ sourceId: "ath_l1_aux_x", urlHash: "u", contentHash: "c", fetchedAt: NOW, priority: "OTHER" }] };
+  ok("DC-H valid HARD", isValidOwnerHardAuthority(normalizeKnrDiscoveryEvidenceRecord(hardLocal)));
+
+  const hl = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(hardLocal), storeOf(ordinaryCloud));
+  ok("DC-H HARD local vs ordinary cloud", hl.store.entries[base.evidenceKeyV1]?.contentHash === hardLocal.contentHash);
+  ok("DC-H HARD local keptSide", hl.conflicts.some((c) => c.keptSide === "hard_local" && c.resolution === "OWNER_HARD_WINS"));
+
+  const hardCloud = withHard({ ...base, contentHash: "hard-cloud-hash", description: "cloud-hard" });
+  const ordinaryLocal = { ...base, contentHash: "local-ordinary" };
+  const hc = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(ordinaryLocal), storeOf(hardCloud));
+  ok("DC-H HARD cloud vs ordinary local", hc.store.entries[base.evidenceKeyV1]?.contentHash === hardCloud.contentHash);
+  ok("DC-H HARD cloud keptSide", hc.conflicts.some((c) => c.keptSide === "hard_cloud"));
+
+  const hardSameDevice = withHard({ ...base, contentHash: "same-device-hard" });
+  const ordinarySame = { ...base, contentHash: "same-device-local" };
+  const hs = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(ordinarySame), storeOf(hardSameDevice));
+  ok("DC-H HARD same-device vs ordinary", hs.store.entries[base.evidenceKeyV1]?.contentHash === hardSameDevice.contentHash);
+
+  const hardA = withHard({ ...base, contentHash: "hard-a" });
+  const hardB = withHard({ ...base, contentHash: "hard-b", decisionId: "other-dec" });
+  const dual = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(hardA), storeOf(hardB));
+  ok("DC-H two HARD different hashes → OWNER_EXCEPTION", dual.store.entries[base.evidenceKeyV1]?.authorityHold?.reason === "OWNER_HARD_CONFLICT");
+  ok("DC-H dual resolution", dual.store.entries[base.evidenceKeyV1]?.authorityHold?.resolution === "OWNER_EXCEPTION");
+
+  const malformed = {
+    ...base,
+    contentHash: "mal-hash",
+    ownerHardAuthority: { kind: "OWNER_HARD", actorId: "", decidedAt: NOW, decisionId: "x", coveredContentHash: "mal-hash", source: "OWNER_EXPLICIT" },
+  };
+  const malNorm = normalizeKnrDiscoveryEvidenceRecord(malformed);
+  ok("DC-H malformed stripped/invalid", !isValidOwnerHardAuthority(malNorm));
+  const malMerge = mergeKnrDiscoveryEvidenceStoreDetailed(
+    storeOf({ ...base, contentHash: "mal-hash", ownerHardAuthority: malformed.ownerHardAuthority }),
+    storeOf({ ...base, contentHash: "other" }),
+  );
+  ok("DC-H malformed → HOLD not invent", malMerge.store.entries[base.evidenceKeyV1]?.discoveryStatus === "CONFLICT");
+
+  const coveredMismatch = withHard(base, { coveredContentHash: "NOT-THE-CONTENT-HASH" });
+  ok("DC-H coveredHash mismatch not valid", !isValidOwnerHardAuthority(normalizeKnrDiscoveryEvidenceRecord(coveredMismatch)));
+  const covMerge = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(coveredMismatch), storeOf({ ...base, contentHash: "cloud-y" }));
+  ok("DC-H covered mismatch → HOLD", covMerge.store.entries[base.evidenceKeyV1]?.discoveryStatus === "CONFLICT");
+
+  const hardAth = withHard(base);
+  const ath = { ...base, contentHash: "ath-wire-hash", sources: [{ sourceId: "ath_l1_aux_pub", urlHash: "ath", contentHash: "athc", fetchedAt: NOW, priority: "OTHER" }] };
+  const athMerge = mergeKnrDiscoveryEvidenceStoreDetailed(storeOf(hardAth), storeOf(ath));
+  ok("DC-H HARD + ATH mismatch → HARD wins", athMerge.store.entries[base.evidenceKeyV1]?.contentHash === hardAth.contentHash);
+  ok("DC-H ATH does not mint HARD", !isValidOwnerHardAuthority(normalizeKnrDiscoveryEvidenceRecord(ath)));
+}
+
+// --- DC-S: anti-wipe / CONFLICT pushable ---
+{
+  const local = buildP2aOfflineDiscoveryStore();
+  const cloud = emptyKnrDiscoveryEvidenceStore(NOW);
+  ok("DC-S empty over non-empty destructive", isDestructiveKnrDiscoveryReplace(cloud, local) === true);
+  ok("DC-S shouldPush empty blocked", shouldPushKnrDiscoveryEvidenceToCloud(cloud, local) === false);
+
+  const a = buildP2aSingleIndustryFixture();
+  const heldStore = mergeKnrDiscoveryEvidenceStoreDetailed(
+    storeOf(a),
+    storeOf({ ...a, contentHash: "diff" }),
+  ).store;
+  ok("DC-S CONFLICT not empty", Object.keys(heldStore.entries).length === 1);
+  ok("DC-S CONFLICT pushable vs empty cloud", shouldPushKnrDiscoveryEvidenceToCloud(heldStore, emptyKnrDiscoveryEvidenceStore(NOW)) === true);
+  ok(
+    "DC-S HOLD changes etag vs pre-conflict local",
+    heldStore.etag !== storeOf(a).etag,
+  );
+}
+
+console.log(`\nOK ${passed} assertions — KL-7-P2A offline + Decision C`);

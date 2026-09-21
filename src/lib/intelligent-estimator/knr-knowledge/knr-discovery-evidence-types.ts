@@ -60,6 +60,42 @@ export type KnrDiscoverySourceRef = {
   priority: KnrDiscoverySourcePriority;
 };
 
+/**
+ * Decision C — explicit Owner HARD provenance (OPTIONAL).
+ * Absent / malformed ≠ HARD. Never invent from local origin / session / NO_MATERIAL_NORM.
+ */
+export type KnrDiscoveryOwnerHardAuthority = {
+  kind: "OWNER_HARD";
+  actorId: string;
+  decidedAt: string;
+  decisionId: string;
+  /** Must equal record.contentHash for validity. */
+  coveredContentHash: string;
+  reasonPl?: string;
+  source: "OWNER_EXPLICIT";
+};
+
+export type KnrDiscoveryAuthorityHoldReason =
+  | "CONTENT_HASH_MISMATCH"
+  | "FAMILY_MISMATCH"
+  | "OWNER_HARD_CONFLICT"
+  | "MALFORMED_HARD"
+  | "AMBIGUOUS";
+
+export type KnrDiscoveryAuthorityHoldResolution = "HOLD" | "OWNER_EXCEPTION";
+
+/**
+ * Decision C — durable HOLD / Owner Exception on unsafe conflict (same store · no second KV).
+ * Ephemeral merge `conflicts[]` is diagnostic only.
+ */
+export type KnrDiscoveryAuthorityHold = {
+  reason: KnrDiscoveryAuthorityHoldReason;
+  localContentHash?: string;
+  otherContentHash?: string;
+  sinceIso: string;
+  resolution: KnrDiscoveryAuthorityHoldResolution;
+};
+
 export type KnrDiscoveryEvidenceRecord = {
   schemaVersion: typeof KNR_DISCOVERY_EVIDENCE_SCHEMA_VERSION;
   evidenceKeyV1: string;
@@ -82,6 +118,10 @@ export type KnrDiscoveryEvidenceRecord = {
   updatedAt: string;
   /** Always null until KL-6 VERIFY creates catalog authority. */
   catalogRevisionLink?: number | null;
+  /** Decision C — explicit Owner HARD (optional · legacy absent = not HARD). */
+  ownerHardAuthority?: KnrDiscoveryOwnerHardAuthority | null;
+  /** Decision C — durable conflict hold (only meaningful with discoveryStatus=CONFLICT). */
+  authorityHold?: KnrDiscoveryAuthorityHold | null;
 };
 
 export type KnrDiscoveryEvidenceStore = {

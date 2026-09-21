@@ -9,11 +9,15 @@ import {
   KNR_DISCOVERY_EVIDENCE_STORAGE_KEY,
   KNR_DISCOVERY_OPS_FRESHNESS_DAYS,
   KNR_DISCOVERY_PRICING_FIELD_DENY,
+  type KnrDiscoveryAuthorityHold,
+  type KnrDiscoveryAuthorityHoldReason,
+  type KnrDiscoveryAuthorityHoldResolution,
   type KnrDiscoveryEvidenceRecord,
   type KnrDiscoveryEvidenceStore,
   type KnrDiscoveryNormBundle,
   type KnrDiscoveryNormLine,
   type KnrDiscoveryOpsFreshness,
+  type KnrDiscoveryOwnerHardAuthority,
   type KnrDiscoverySourcePriority,
   type KnrDiscoverySourceRef,
   type KnrDiscoveryStatus,
@@ -56,8 +60,38 @@ function denyPricingKeys(obj: Record<string, unknown>): boolean {
 
 function buildStoreEtag(store: Pick<KnrDiscoveryEvidenceStore, "entries">): string {
   const keys = Object.keys(store.entries).sort();
-  const hashes = keys.map((k) => store.entries[k]?.contentHash ?? "").join("|");
-  return fnv1aHex(`${keys.join(",")}|${hashes}`);
+  // Decision C: etag must fingerprint durable authority state (CONFLICT / authorityHold /
+  // ownerHardAuthority), not only contentHash — otherwise HOLD is NO-OP'd and never persists.
+  const parts = keys.map((k) => {
+    const e = store.entries[k];
+    if (!e) return "";
+    const hold = e.authorityHold
+      ? [
+          e.authorityHold.reason,
+          e.authorityHold.resolution,
+          e.authorityHold.sinceIso,
+          e.authorityHold.localContentHash ?? "",
+          e.authorityHold.otherContentHash ?? "",
+        ].join("~")
+      : "";
+    const hard = e.ownerHardAuthority
+      ? [
+          e.ownerHardAuthority.kind,
+          e.ownerHardAuthority.decisionId,
+          e.ownerHardAuthority.coveredContentHash,
+          e.ownerHardAuthority.actorId,
+        ].join("~")
+      : "";
+    return [
+      e.contentHash,
+      e.discoveryStatus,
+      e.lifecycleState,
+      String(e.family ?? "").trim().toUpperCase(),
+      hold,
+      hard,
+    ].join("|");
+  });
+  return fnv1aHex(`${keys.join(",")}|${parts.join(";")}`);
 }
 
 export function computeKnrDiscoveryOpsFreshness(
@@ -139,6 +173,87 @@ function normalizeSource(raw: unknown): KnrDiscoverySourceRef | null {
     fetchedAt,
     priority,
   };
+}
+
+const VALID_HOLD_REASONS: readonly KnrDiscoveryAuthorityHoldReason[] = [
+  "CONTENT_HASH_MISMATCH",
+  "FAMILY_MISMATCH",
+  "OWNER_HARD_CONFLICT",
+  "MALFORMED_HARD",
+  "AMBIGUOUS",
+];
+
+/**
+ * Decision C — structural parse of ownerHardAuthority (may still fail coveredContentHash check).
+ * Returns null when absent or structurally invalid (do not invent HARD).
+ */
+export function parseOwnerHardAuthorityRaw(
+  raw: unknown,
+): KnrDiscoveryOwnerHardAuthority | null {
+  if (raw == null) return null;
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  if (o.kind !== "OWNER_HARD") return null;
+  if (o.source !== "OWNER_EXPLICIT") return null;
+  const actorId = typeof o.actorId === "string" ? o.actorId.trim() : "";
+  const decidedAt = typeof o.decidedAt === "string" ? o.decidedAt.trim() : "";
+  const decisionId = typeof o.decisionId === "string" ? o.decisionId.trim() : "";
+  const coveredContentHash =
+    typeof o.coveredContentHash === "string" ? o.coveredContentHash.trim() : "";
+  if (!actorId || !decidedAt || !decisionId || !coveredContentHash) return null;
+  if (!Number.isFinite(Date.parse(decidedAt))) return null;
+  const out: KnrDiscoveryOwnerHardAuthority = {
+    kind: "OWNER_HARD",
+    actorId,
+    decidedAt,
+    decisionId,
+    coveredContentHash,
+    source: "OWNER_EXPLICIT",
+  };
+  if (typeof o.reasonPl === "string" && o.reasonPl.trim()) {
+    out.reasonPl = o.reasonPl.trim();
+  }
+  return out;
+}
+
+/**
+ * Decision C — valid HARD iff provenance present AND coveredContentHash === record.contentHash.
+ * Legacy / absent / malformed ⇒ false (never invent).
+ */
+export function isValidOwnerHardAuthority(
+  record: KnrDiscoveryEvidenceRecord | null | undefined,
+): boolean {
+  if (!record) return false;
+  const auth = record.ownerHardAuthority;
+  if (!auth || auth.kind !== "OWNER_HARD" || auth.source !== "OWNER_EXPLICIT") return false;
+  if (!auth.actorId?.trim() || !auth.decidedAt?.trim() || !auth.decisionId?.trim()) return false;
+  if (!Number.isFinite(Date.parse(auth.decidedAt))) return false;
+  return auth.coveredContentHash === record.contentHash;
+}
+
+function normalizeAuthorityHold(
+  raw: unknown,
+  discoveryStatus: KnrDiscoveryStatus,
+): KnrDiscoveryAuthorityHold | null {
+  if (discoveryStatus !== "CONFLICT") return null;
+  if (raw == null || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const reason =
+    typeof o.reason === "string" && (VALID_HOLD_REASONS as readonly string[]).includes(o.reason)
+      ? (o.reason as KnrDiscoveryAuthorityHoldReason)
+      : null;
+  const resolution: KnrDiscoveryAuthorityHoldResolution | null =
+    o.resolution === "HOLD" || o.resolution === "OWNER_EXCEPTION" ? o.resolution : null;
+  const sinceIso = typeof o.sinceIso === "string" ? o.sinceIso.trim() : "";
+  if (!reason || !resolution || !sinceIso || !Number.isFinite(Date.parse(sinceIso))) return null;
+  const hold: KnrDiscoveryAuthorityHold = { reason, sinceIso, resolution };
+  if (typeof o.localContentHash === "string" && o.localContentHash.trim()) {
+    hold.localContentHash = o.localContentHash.trim();
+  }
+  if (typeof o.otherContentHash === "string" && o.otherContentHash.trim()) {
+    hold.otherContentHash = o.otherContentHash.trim();
+  }
+  return hold;
 }
 
 /**
@@ -226,6 +341,9 @@ export function normalizeKnrDiscoveryEvidenceRecord(
 
   const freshness = computeKnrDiscoveryOpsFreshness(lastFetchedAt, updatedAt, nowMs);
 
+  const ownerHardAuthority = parseOwnerHardAuthorityRaw(row.ownerHardAuthority);
+  const authorityHold = normalizeAuthorityHold(row.authorityHold, discoveryStatus);
+
   return {
     schemaVersion: KNR_DISCOVERY_EVIDENCE_SCHEMA_VERSION,
     evidenceKeyV1,
@@ -259,6 +377,8 @@ export function normalizeKnrDiscoveryEvidenceRecord(
     createdAt,
     updatedAt,
     catalogRevisionLink: null,
+    ownerHardAuthority: ownerHardAuthority ?? null,
+    authorityHold: authorityHold ?? null,
   };
 }
 

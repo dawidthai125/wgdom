@@ -79,10 +79,11 @@ async function realAthWire(tenderId = "t-persist") {
   return out.athRmsWire;
 }
 
-/** Owner HARD-like record (mirrors prod shape: owner_hard source, ACTIVE). */
+/** Explicit Owner HARD record (Decision C provenance — not inferred from sourceId). */
 function ownerHardRecord(evidenceKeyV1, family, opts = {}) {
   const [, table, pos] = evidenceKeyV1.split("|");
-  return {
+  const contentHash = opts.contentHash ?? `owner-hard-${pos || table}`;
+  const record = {
     schemaVersion: 1,
     evidenceKeyV1,
     family,
@@ -101,10 +102,21 @@ function ownerHardRecord(evidenceKeyV1, family, opts = {}) {
     ],
     norms: opts.norms ?? { laborNorms: [{ kind: "R", unit: "r-g", quantity: 1.23 }], materialNorms: [] },
     queryHashes: [],
-    contentHash: opts.contentHash ?? `owner-hard-${pos || table}`,
+    contentHash,
     createdAt: "2026-09-12T15:18:40.257Z",
     updatedAt: "2026-09-12T15:18:40.257Z",
   };
+  if (opts.omitHardAuthority) return record;
+  record.ownerHardAuthority = {
+    kind: "OWNER_HARD",
+    actorId: "dawid",
+    decidedAt: "2026-09-12T15:18:40.257Z",
+    decisionId: `oh-dec-${evidenceKeyV1}`,
+    coveredContentHash: contentHash,
+    source: "OWNER_EXPLICIT",
+    reasonPl: "test Owner HARD",
+  };
+  return record;
 }
 
 const PROD_LIKE_KEYS = [
@@ -194,7 +206,7 @@ ok(wire.adaptedCount === 1 && Boolean(wire.discoveryStore?.entries[EVIDENCE_KEY]
   ok(Boolean(after.entries["KNR|4-01|0920-14"]), "B ATH new key added (local ∪ ATH)");
 }
 
-// ——— C. local ACTIVE Owner HARD + ATH conflict (same key, different hash) → local wins ———
+// ——— C. local ACTIVE Owner HARD + ATH conflict → OWNER_HARD_WINS (Decision C) ———
 {
   ls.clear();
   const local = buildProdLikeLocal();
@@ -203,15 +215,16 @@ ok(wire.adaptedCount === 1 && Boolean(wire.discoveryStore?.entries[EVIDENCE_KEY]
   ok(wire.discoveryStore.entries[EVIDENCE_KEY].contentHash !== ownerHash, "C fixture: ATH hash ≠ Owner HARD hash");
   const calls = [];
   const out = await persistKl3DiscoveryEvidence({ athRmsWire: wire, nowIso: TS }, localIo(calls));
-  // Only colliding key in ATH store → merged == local → NO-OP (no write at all).
+  // Only colliding key in ATH store → HARD wins → merged == local → NO-OP (no write at all).
   ok(out.status === "NOOP_ETAG", `C conflict-only → NOOP_ETAG (${out.status})`);
   ok(calls.length === 0, "C no write on conflict-only run");
   const after = loadKnrDiscoveryEvidenceStoreLocal();
   ok(after.entries[EVIDENCE_KEY]?.contentHash === ownerHash, "C Owner HARD record intact");
   ok(after.entries[EVIDENCE_KEY]?.sources.every((s) => !s.sourceId.startsWith("ath_l1_aux_")), "C no ATH override of Owner HARD");
+  ok(after.entries[EVIDENCE_KEY]?.ownerHardAuthority?.kind === "OWNER_HARD", "C HARD provenance retained");
 }
 
-// ——— C2. conflict + new key in same store → SAVED, local wins on conflict, new key added ———
+// ——— C2. conflict + new key in same store → SAVED, OWNER_HARD_WINS on conflict, new key added ———
 {
   ls.clear();
   const local = buildProdLikeLocal();
@@ -228,10 +241,31 @@ ok(wire.adaptedCount === 1 && Boolean(wire.discoveryStore?.entries[EVIDENCE_KEY]
   ok(out.status === "SAVED" && out.mergedCount === 13, `C2 SAVED with conflict+new (${out.status} ${out.mergedCount})`);
   const after = loadKnrDiscoveryEvidenceStoreLocal();
   ok(after.entries[EVIDENCE_KEY]?.contentHash === ownerHash, "C2 Owner HARD wins on contentHash conflict");
+  ok(after.entries[EVIDENCE_KEY]?.discoveryStatus !== "CONFLICT", "C2 HARD win is not HOLD");
   ok(Boolean(after.entries["KNR|4-01|0920-14"]), "C2 new ATH key added alongside");
 }
 
-// ——— D. family mismatch → existing merge/conflict contract preserved (local kept, no ATH override) ———
+// ——— C3. legacy local (no HARD) + ATH conflict → Decision C HOLD ———
+{
+  ls.clear();
+  const legacy = ownerHardRecord(EVIDENCE_KEY, "KNR", { omitHardAuthority: true });
+  const local = normalizeKnrDiscoveryEvidenceStore(
+    upsertKnrDiscoveryEvidenceOffline({
+      record: legacy,
+      nowIso: "2026-09-12T15:18:40.257Z",
+      storeOverride: emptyKnrDiscoveryEvidenceStore(TS),
+    }).store,
+  );
+  saveKnrDiscoveryEvidenceStoreLocal(local, local.updatedAt);
+  const calls = [];
+  const out = await persistKl3DiscoveryEvidence({ athRmsWire: wire, nowIso: TS }, localIo(calls));
+  ok(out.status === "SAVED", `C3 legacy conflict → SAVED HOLD (${out.status})`);
+  const after = loadKnrDiscoveryEvidenceStoreLocal();
+  ok(after.entries[EVIDENCE_KEY]?.discoveryStatus === "CONFLICT", "C3 legacy conflict → CONFLICT HOLD");
+  ok(after.entries[EVIDENCE_KEY]?.authorityHold?.reason === "CONTENT_HASH_MISMATCH", "C3 durable authorityHold");
+}
+
+// ——— D. family mismatch + Owner HARD → HARD wins (family preserved, no ATH override) ———
 {
   ls.clear();
   const local = normalizeKnrDiscoveryEvidenceStore(
@@ -244,11 +278,12 @@ ok(wire.adaptedCount === 1 && Boolean(wire.discoveryStore?.entries[EVIDENCE_KEY]
   saveKnrDiscoveryEvidenceStoreLocal(local, local.updatedAt);
   const calls = [];
   const out = await persistKl3DiscoveryEvidence({ athRmsWire: wire, nowIso: TS }, localIo(calls));
-  // Existing contract: FAMILY_MISMATCH → kept local entry (+CONFLICT status), contentHash unchanged → etag equal → NO-OP.
-  ok(out.status === "NOOP_ETAG", `D family mismatch → local kept, NO-OP (${out.status})`);
+  // HARD wins → content/family unchanged vs local → etag equal → NO-OP.
+  ok(out.status === "NOOP_ETAG", `D family mismatch + HARD → NO-OP (${out.status})`);
   const after = loadKnrDiscoveryEvidenceStoreLocal();
   ok(after.entries[EVIDENCE_KEY]?.family === "KNR-W", "D local family preserved");
   ok(after.entries[EVIDENCE_KEY]?.contentHash === local.entries[EVIDENCE_KEY].contentHash, "D local record not overwritten by ATH");
+  ok(after.entries[EVIDENCE_KEY]?.discoveryStatus !== "CONFLICT", "D HARD win is not HOLD");
 }
 
 // ——— E. second identical run → NO-OP ———

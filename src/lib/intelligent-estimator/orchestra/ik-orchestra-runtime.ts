@@ -139,8 +139,9 @@ export type Kl3DiscoveryEvidencePersistOutcome =
 /**
  * Host KL-3 ATH RMS wire → canonical Discovery Evidence persist (CONNECT).
  * Pre-merge `merge(local, athRmsWire.discoveryStore)` so the canonical writer
- * (which merges only with cloud) never overwrites local Owner HARD entries;
- * existing/local wins on contentHash conflict; equal etag → NO-OP.
+ * (which merges only with cloud) never overwrites valid Owner HARD entries
+ * (Decision C OWNER_HARD_WINS); unsafe legacy conflicts become durable HOLD.
+ * Equal etag → NO-OP (etag fingerprints contentHash + authority state).
  * MIXED scope by design: store may also carry public on-demand evidence from the same run.
  */
 export async function persistKl3DiscoveryEvidence(
