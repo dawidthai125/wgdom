@@ -10,6 +10,7 @@ import {
   WORK_RATE_REGION_FALLBACK_CHAIN,
   type WorkRateRegionScope,
 } from "@/lib/work-catalog/work-rate-types";
+import { ownerWorkRateResearchUnitEquivAllows } from "@/lib/work-catalog/work-rate-owner-research-unit-equiv";
 
 export type WorkRateQualifyRejectReason =
   | "invalid_rate"
@@ -38,7 +39,7 @@ export type WorkRateQualifiedObservation = {
   netGross: "netto" | "brutto" | "unknown";
   sourceMinPln?: number | null;
   sourceMaxPln?: number | null;
-  marketBaseKind?: "point" | "range_midpoint";
+  marketBaseKind?: "point" | "range_midpoint" | "derived_point";
 };
 
 export type QualifyWorkRateObservationResult =
@@ -66,14 +67,28 @@ export function normalizeWorkRateUnitToken(raw: string): string {
   return s;
 }
 
+/**
+ * Exact unit match by default.
+ * Optional workId enables Owner research unit equivalence (LP30 kpl↔szt only).
+ * Never global szt↔kpl.
+ */
 export function workRateUnitsCompatible(
   expected: WgdomCostUnit,
   observedUnitRaw: string,
+  opts?: { workId?: string | null },
 ): boolean {
   const a = normalizeWorkRateUnitToken(expected);
   const b = normalizeWorkRateUnitToken(observedUnitRaw);
   if (!a || !b) return false;
-  return a === b;
+  if (a === b) return true;
+  if (opts?.workId) {
+    return ownerWorkRateResearchUnitEquivAllows({
+      workId: opts.workId,
+      catalogUnit: expected,
+      observedUnit: observedUnitRaw,
+    });
+  }
+  return false;
 }
 
 /**
@@ -104,7 +119,11 @@ export function qualifyWorkRateObservation(input: {
       messagePl: "Nazwa/zakres nie pasuje do roboty.",
     };
   }
-  if (!workRateUnitsCompatible(expectedUnit, offer.unit)) {
+  if (
+    !workRateUnitsCompatible(expectedUnit, offer.unit, {
+      workId: input.expectedWorkId,
+    })
+  ) {
     return {
       ok: false,
       reason: "unit_mismatch",

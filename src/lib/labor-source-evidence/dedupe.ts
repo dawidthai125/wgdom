@@ -1,6 +1,10 @@
 /**
  * WR-SOURCE-EVIDENCE-DB-01 — deterministic dedupeKey (not price-only).
+ * OFN-01: derived observations include formula + input fingerprint
+ * so same result with different inputs does NOT collide.
  */
+
+import type { LaborSourceEvidenceDerivation } from "@/lib/labor-source-evidence/types";
 
 function normToken(s: string): string {
   return String(s || "")
@@ -28,6 +32,36 @@ function pricePart(v: number | null | undefined): string {
   return String(Math.round(Number(v) * 100) / 100);
 }
 
+/** Fingerprint of derivation inputs — order-independent by role+sourceId. */
+export function buildDerivedLaborDerivationFingerprint(
+  derivation: LaborSourceEvidenceDerivation | null | undefined,
+): string {
+  if (!derivation || !Array.isArray(derivation.inputs)) return "";
+  const parts = derivation.inputs
+    .map((i) =>
+      [
+        normToken(i.role),
+        normToken(i.sourceId),
+        normalizeUrl(i.sourceUrl),
+        pricePart(i.inputValue),
+        normToken(i.inputUnit),
+        asIsoDay(i.observedAt),
+      ].join(":"),
+    )
+    .sort();
+  return [
+    normToken(derivation.formulaId),
+    normToken(derivation.formulaVersion),
+    ...parts,
+  ].join("|");
+}
+
+function asIsoDay(iso: string): string {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return normToken(iso);
+  return new Date(t).toISOString().slice(0, 10);
+}
+
 export function buildLaborSourceEvidenceDedupeKey(input: {
   workId: string | null;
   sourceId: string;
@@ -39,13 +73,14 @@ export function buildLaborSourceEvidenceDedupeKey(input: {
   priceMin: number | null;
   priceMax: number | null;
   pricePoint: number | null;
+  derivation?: LaborSourceEvidenceDerivation | null;
 }): string {
   const work = input.workId?.trim() ? normToken(input.workId) : "unmatched";
   const sourceId = String(input.sourceId || "")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9_-]+/g, "");
-  return [
+  const base = [
     work,
     sourceId,
     normalizeUrl(input.sourceUrl),
@@ -56,5 +91,10 @@ export function buildLaborSourceEvidenceDedupeKey(input: {
     pricePart(input.priceMin),
     pricePart(input.priceMax),
     pricePart(input.pricePoint),
-  ].join("|");
+  ];
+  if (input.priceKind === "derived") {
+    const fp = buildDerivedLaborDerivationFingerprint(input.derivation);
+    base.push(fp || "missing-derivation");
+  }
+  return base.join("|");
 }

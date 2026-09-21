@@ -10,6 +10,8 @@
 
 import type { OfferBoqMatchMethod } from "@/lib/tender-offer-boq";
 import type { LaborSourceEvidenceObservation } from "@/lib/labor-source-evidence";
+import { validateDerivedLaborObservation } from "@/lib/labor-source-evidence/derived-labor-validate";
+import { assertDerivedLaborEvidenceHostLock } from "@/lib/labor-source-evidence/host-lock";
 import {
   evaluateLaborEvidenceReuseSufficiency,
   type EvaluateLaborEvidenceReuseSufficiencyResult,
@@ -45,7 +47,8 @@ export type AutR1ExceptionReason =
   | "OVERWRITE_BLOCKED_OWNER"
   | "OVERWRITE_BLOCKED_STRONGER_OR_FRESHER"
   | "COMPANY_PRICE_FORBIDDEN"
-  | "IDEMPOTENT_NOOP";
+  | "IDEMPOTENT_NOOP"
+  | "DERIVED_EVIDENCE_INVALID";
 
 export type AutR1ContractResult = {
   decisionId: typeof AUT_R1_DECISION_ID;
@@ -202,6 +205,27 @@ export function evaluateAutR1LaborAcceptContract(
       unit,
       marketBaseRatePln: roundRate(marketBase),
     });
+  }
+
+  // OFN-01: derived Evidence must pass derivation + multi-input host lock
+  for (const eo of evidenceObs) {
+    if (eo.priceKind !== "derived") continue;
+    const host = assertDerivedLaborEvidenceHostLock(eo);
+    if (!host.ok) {
+      return exception(["DERIVED_EVIDENCE_INVALID"], nowMs, {
+        workId,
+        unit,
+        marketBaseRatePln: roundRate(marketBase),
+      });
+    }
+    const der = validateDerivedLaborObservation(eo);
+    if (!der.ok) {
+      return exception(["DERIVED_EVIDENCE_INVALID"], nowMs, {
+        workId,
+        unit,
+        marketBaseRatePln: roundRate(marketBase),
+      });
+    }
   }
 
   const lookup = lookupWorkRate(input.store, workId, unit, nowMs);

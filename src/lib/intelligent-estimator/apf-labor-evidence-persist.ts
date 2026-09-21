@@ -382,10 +382,18 @@ export function buildCandidateFromDurableLaborEvidence(input: {
       netGross: "unknown",
       sourceMinPln: o.priceMin,
       sourceMaxPln: o.priceMax,
-      marketBaseKind: o.priceKind === "range" ? "range_midpoint" : "point",
+      marketBaseKind:
+        o.priceKind === "range"
+          ? "range_midpoint"
+          : o.priceKind === "derived"
+            ? "derived_point"
+            : "point",
     });
   }
   if (!qualified.length) return null;
+  // CONFLICT: multiple distinct rates — do not median-aggregate; fail Candidate (fail-closed)
+  const rateKeys = new Set(qualified.map((q) => String(Math.round(q.ratePln * 100) / 100)));
+  if (rateKeys.size > 1) return null;
   const rep = calculateRepresentativeWorkRate(qualified);
   if (rep.status !== "ok" || rep.medianPln == null) return null;
   const proposed = computeProposedWorkRatePln(rep.medianPln, marginPct);

@@ -1,5 +1,6 @@
 /**
  * WR-SOURCE-EVIDENCE-DB-01 — public API.
+ * OFN-01 Schema v2: derived labor evidence exports.
  */
 
 export {
@@ -8,10 +9,14 @@ export {
   LABOR_SOURCE_EVIDENCE_CAP_PER_SOURCE,
   LABOR_SOURCE_EVIDENCE_CAP_PER_WORK,
   LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION,
+  LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION_V1,
   LABOR_SOURCE_EVIDENCE_STORAGE_KEY,
   deriveLaborSourceEvidenceMidpoint,
+  type DerivedLaborEvidenceInput,
+  type DerivedLaborInputRole,
   type LaborSourceEvidenceCapReport,
   type LaborSourceEvidenceCasResult,
+  type LaborSourceEvidenceDerivation,
   type LaborSourceEvidenceIdentityMethod,
   type LaborSourceEvidenceObservation,
   type LaborSourceEvidencePriceKind,
@@ -21,7 +26,10 @@ export {
   type LaborSourceEvidenceStore,
 } from "@/lib/labor-source-evidence/types";
 
-export { buildLaborSourceEvidenceDedupeKey } from "@/lib/labor-source-evidence/dedupe";
+export {
+  buildDerivedLaborDerivationFingerprint,
+  buildLaborSourceEvidenceDedupeKey,
+} from "@/lib/labor-source-evidence/dedupe";
 
 export {
   computeLaborSourceEvidenceEtag,
@@ -54,6 +62,7 @@ export {
 } from "@/lib/labor-source-evidence/store";
 
 export {
+  assertDerivedLaborEvidenceHostLock,
   assertLaborSourceEvidenceHostLock,
   isLaborSourceEvidenceKeep5SourceId,
   isLaborSourceEvidenceRuntimeSourceId,
@@ -77,11 +86,54 @@ export {
   type OwnerAuthorizedLaborEvidenceSourceId,
 } from "@/lib/labor-source-evidence/owner-authorized-routes";
 
+export {
+  DERIVED_LABOR_COMPOSITE_SOURCE_ID,
+  OWNER_DERIVED_LABOR_INPUT_ROUTES,
+  OWNER_DERIVED_LABOR_INPUT_STATUS_AUTHORIZED,
+  extractHostFromUrl,
+  isDerivedLaborCompositeSourceId,
+  isOwnerDerivedLaborInputSourceId,
+  listOwnerDerivedLaborInputSourceIds,
+  resolveOwnerDerivedLaborInputRoute,
+  resolveOwnerDerivedLaborInputRouteByUrl,
+  type OwnerDerivedLaborInputRoute,
+  type OwnerDerivedLaborInputSourceId,
+} from "@/lib/labor-source-evidence/derived-labor-input-routes";
+
+export {
+  DERIVED_LABOR_CALCULATOR_VERSION,
+  DERIVED_LABOR_FORMULA_REGISTRY,
+  FORMULA_LABOR_NORM_X_RATE,
+  FORMULA_LABOR_NORM_X_RATE_VERSION,
+  evalDerivedLaborFormula,
+  evalLaborNormXRate,
+  isRegisteredDerivedLaborFormulaId,
+  normalizeDerivedLaborUnitToken,
+  resolveDerivedLaborFormula,
+  type DerivedLaborFormulaDefinition,
+  type DerivedLaborFormulaId,
+  type LaborNormXRateEvalInput,
+  type LaborNormXRateEvalResult,
+} from "@/lib/labor-source-evidence/derived-labor-formulas";
+
+export {
+  DERIVED_LABOR_FRESHNESS_MAX_SPAN_MS,
+  isDerivedLaborEvidenceIdentityEligible,
+  validateDerivedLaborEvidence,
+  validateDerivedLaborFreshness,
+  validateDerivedLaborObservation,
+  type DerivedLaborValidateRejectReason,
+  type DerivedLaborValidateResult,
+} from "@/lib/labor-source-evidence/derived-labor-validate";
+
 export { resolveLaborSourceEvidenceSourceRole } from "@/lib/labor-source-evidence/source-roles";
 
 export {
+  buildDerivedLaborSourceEvidenceObservation,
   buildLaborSourceEvidenceObservation,
   filterLaborSourceEvidenceForAggregation,
+  type BuildDerivedLaborSourceEvidenceInput,
+  type BuildDerivedLaborSourceEvidenceResult,
   type BuildLaborSourceEvidenceInput,
 } from "@/lib/labor-source-evidence/ingest";
 

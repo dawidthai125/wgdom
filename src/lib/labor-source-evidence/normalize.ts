@@ -1,11 +1,16 @@
 /**
  * WR-SOURCE-EVIDENCE-DB-01 — normalize + empty store + etag fingerprint.
+ * OFN-01 Schema v2: priceKind=derived + derivation (backward-compatible read of v1).
  */
 
 import { buildLaborSourceEvidenceDedupeKey } from "@/lib/labor-source-evidence/dedupe";
 import { resolveLaborSourceEvidenceSourceRole } from "@/lib/labor-source-evidence/source-roles";
 import {
   LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION,
+  LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION_V1,
+  type DerivedLaborEvidenceInput,
+  type DerivedLaborInputRole,
+  type LaborSourceEvidenceDerivation,
   type LaborSourceEvidenceIdentityMethod,
   type LaborSourceEvidenceObservation,
   type LaborSourceEvidencePriceKind,
@@ -24,6 +29,7 @@ const QUALITY: readonly LaborSourceEvidenceQualityStatus[] = [
   "REJECTED_UNIT",
   "REJECTED_PACKAGE",
   "REJECTED_OUTLIER",
+  "REJECTED_DERIVATION",
   "STALE",
   "UNMATCHED",
 ];
@@ -32,6 +38,7 @@ const PRICE_KINDS: readonly LaborSourceEvidencePriceKind[] = [
   "point",
   "range",
   "from_floor",
+  "derived",
   "unknown",
 ];
 
@@ -49,6 +56,8 @@ const SCOPES: readonly WorkRateEvidenceScopeTag[] = [
   "artistic",
   "unscoped",
 ];
+
+const INPUT_ROLES: readonly DerivedLaborInputRole[] = ["labor_norm", "labor_cost_rate"];
 
 function asIso(v: unknown, fallback: string): string {
   if (typeof v === "string" && v.trim() && !Number.isNaN(Date.parse(v))) return v.trim();
@@ -103,6 +112,80 @@ export function emptyLaborSourceEvidenceStore(nowIso = "1970-01-01T00:00:00.000Z
   };
 }
 
+function normalizeDerivedInput(
+  raw: unknown,
+  fallbackIso: string,
+): DerivedLaborEvidenceInput | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const inputId = typeof r.inputId === "string" ? r.inputId.trim() : "";
+  const role = INPUT_ROLES.includes(r.role as DerivedLaborInputRole)
+    ? (r.role as DerivedLaborInputRole)
+    : null;
+  const sourceId = typeof r.sourceId === "string" ? r.sourceId.trim() : "";
+  const sourceUrl = typeof r.sourceUrl === "string" ? r.sourceUrl.trim() : "";
+  const host = typeof r.host === "string" ? r.host.trim() : "";
+  const inputUnit = typeof r.inputUnit === "string" ? r.inputUnit.trim() : "";
+  const inputValue = asNum(r.inputValue);
+  if (!inputId || !role || !sourceId || !sourceUrl || !host || !inputUnit || inputValue == null) {
+    return null;
+  }
+  return {
+    inputId,
+    role,
+    inputValue,
+    inputUnit,
+    sourceId,
+    sourceUrl,
+    host,
+    observedAt: asIso(r.observedAt, fallbackIso),
+    retrievedAt: asIso(r.retrievedAt, fallbackIso),
+    identityRef:
+      typeof r.identityRef === "string" && r.identityRef.trim() ? r.identityRef.trim() : null,
+    periodLabel:
+      typeof r.periodLabel === "string" && r.periodLabel.trim() ? r.periodLabel.trim() : null,
+    publisher: typeof r.publisher === "string" && r.publisher.trim() ? r.publisher.trim() : null,
+    provenanceRef:
+      typeof r.provenanceRef === "string" && r.provenanceRef.trim()
+        ? r.provenanceRef.trim()
+        : null,
+  };
+}
+
+function normalizeDerivation(
+  raw: unknown,
+  fallbackIso: string,
+): LaborSourceEvidenceDerivation | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const formulaId = typeof r.formulaId === "string" ? r.formulaId.trim() : "";
+  const formulaVersion =
+    typeof r.formulaVersion === "string" && r.formulaVersion.trim()
+      ? r.formulaVersion.trim()
+      : "";
+  const calculatorVersion =
+    typeof r.calculatorVersion === "string" && r.calculatorVersion.trim()
+      ? r.calculatorVersion.trim()
+      : "";
+  if (!formulaId || !formulaVersion || !calculatorVersion) return null;
+  const list = Array.isArray(r.inputs) ? r.inputs : [];
+  const inputs: DerivedLaborEvidenceInput[] = [];
+  for (const row of list) {
+    const inp = normalizeDerivedInput(row, fallbackIso);
+    if (inp) inputs.push(inp);
+  }
+  if (inputs.length === 0) return null;
+  return {
+    formulaId,
+    formulaExpression:
+      typeof r.formulaExpression === "string" ? r.formulaExpression : null,
+    formulaVersion,
+    inputs,
+    calculatedAt: asIso(r.calculatedAt, fallbackIso),
+    calculatorVersion,
+  };
+}
+
 export function normalizeLaborSourceEvidenceObservation(
   raw: unknown,
   nowIso = new Date().toISOString(),
@@ -144,6 +227,16 @@ export function normalizeLaborSourceEvidenceObservation(
   const includesMaterial = asBool(r.includesMaterial, false);
   const identityMatched = asBool(r.identityMatched, identityMethod !== "unmatched");
 
+  const derivation =
+    priceKind === "derived" ? normalizeDerivation(r.derivation, retrievedAt) : null;
+
+  // Fail-closed: derived without parseable derivation → REJECTED_DERIVATION (keep row for audit)
+  let finalPriceKind = priceKind;
+  let finalQuality = qualityStatus;
+  if (priceKind === "derived" && !derivation) {
+    finalQuality = "REJECTED_DERIVATION";
+  }
+
   const dedupeKey =
     typeof r.dedupeKey === "string" && r.dedupeKey.trim()
       ? r.dedupeKey.trim()
@@ -154,10 +247,11 @@ export function normalizeLaborSourceEvidenceObservation(
           observedName,
           unit,
           region,
-          priceKind,
+          priceKind: finalPriceKind,
           priceMin,
           priceMax,
           pricePoint,
+          derivation,
         });
 
   const provenanceRaw =
@@ -175,7 +269,7 @@ export function normalizeLaborSourceEvidenceObservation(
     unit: typeof provenanceRaw.unit === "string" ? provenanceRaw.unit : unit,
     priceKind: PRICE_KINDS.includes(provenanceRaw.priceKind as LaborSourceEvidencePriceKind)
       ? (provenanceRaw.priceKind as LaborSourceEvidencePriceKind)
-      : priceKind,
+      : finalPriceKind,
     priceMin: asNum(provenanceRaw.priceMin) ?? priceMin,
     priceMax: asNum(provenanceRaw.priceMax) ?? priceMax,
     pricePoint: asNum(provenanceRaw.pricePoint) ?? pricePoint,
@@ -196,12 +290,26 @@ export function normalizeLaborSourceEvidenceObservation(
     sectionHint: typeof provenanceRaw.sectionHint === "string" ? provenanceRaw.sectionHint : null,
     fetchTraceId:
       typeof provenanceRaw.fetchTraceId === "string" ? provenanceRaw.fetchTraceId : null,
+    derivationSummary: derivation
+      ? {
+          formulaId: derivation.formulaId,
+          formulaVersion: derivation.formulaVersion,
+          calculatedAt: derivation.calculatedAt,
+          inputCount: derivation.inputs.length,
+        }
+      : null,
   };
 
   // UNMATCHED must not invent workId
-  const finalWorkId = qualityStatus === "UNMATCHED" ? null : workId;
-  const finalQuality =
-    finalWorkId == null && qualityStatus === "VALID" ? "UNMATCHED" : qualityStatus;
+  const finalWorkId = finalQuality === "UNMATCHED" ? null : workId;
+  if (finalWorkId == null && finalQuality === "VALID") {
+    finalQuality = "UNMATCHED";
+  }
+
+  const obsSchema: 1 | 2 =
+    finalPriceKind === "derived" || derivation
+      ? LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION
+      : LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION_V1;
 
   return {
     evidenceId:
@@ -216,7 +324,7 @@ export function normalizeLaborSourceEvidenceObservation(
     priceMin,
     priceMax,
     pricePoint,
-    priceKind,
+    priceKind: finalPriceKind,
     currency: "PLN",
     region,
     country: "POLSKA",
@@ -234,7 +342,8 @@ export function normalizeLaborSourceEvidenceObservation(
     sourceRole: resolveLaborSourceEvidenceSourceRole(sourceId),
     parserVersion: typeof r.parserVersion === "string" ? r.parserVersion : null,
     staleAt: typeof r.staleAt === "string" ? r.staleAt : null,
-    schemaVersion: LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION,
+    schemaVersion: obsSchema,
+    derivation: finalPriceKind === "derived" ? derivation : null,
   };
 }
 

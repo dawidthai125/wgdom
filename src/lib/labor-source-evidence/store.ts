@@ -1,9 +1,10 @@
 /**
  * WR-SOURCE-EVIDENCE-DB-01 — local store + etag/CAS (MVP).
  * NEVER writes Work Catalog / OUR RATE / Accept / margin.
+ * OFN-01: derived observations — multi-input host lock + derivation validate.
  */
 
-import { assertLaborSourceEvidenceHostLock } from "@/lib/labor-source-evidence/host-lock";
+import { assertDerivedLaborEvidenceHostLock } from "@/lib/labor-source-evidence/host-lock";
 import {
   applyLaborSourceEvidenceDelta,
   mergeLaborSourceEvidenceStore,
@@ -13,6 +14,7 @@ import {
   normalizeLaborSourceEvidenceObservation,
   normalizeLaborSourceEvidenceStore,
 } from "@/lib/labor-source-evidence/normalize";
+import { validateDerivedLaborObservation } from "@/lib/labor-source-evidence/derived-labor-validate";
 import {
   LABOR_SOURCE_EVIDENCE_STORAGE_KEY,
   type LaborSourceEvidenceCasResult,
@@ -73,6 +75,7 @@ export function casWriteLaborSourceEvidenceStore(input: {
 
 /**
  * Append/upsert observations with host lock + caps + CAS retry loop (local).
+ * OFN-01: derived observations require multi-input host lock + derivation validate.
  */
 export function upsertLaborSourceEvidenceObservations(input: {
   observations: LaborSourceEvidenceObservation[];
@@ -84,10 +87,8 @@ export function upsertLaborSourceEvidenceObservations(input: {
   for (const raw of input.observations) {
     const o = normalizeLaborSourceEvidenceObservation(raw, nowIso);
     if (!o) continue;
-    const host = assertLaborSourceEvidenceHostLock({
-      sourceId: o.sourceId,
-      sourceUrl: o.sourceUrl,
-    });
+
+    const host = assertDerivedLaborEvidenceHostLock(o);
     if (!host.ok) {
       return {
         ok: false,
@@ -95,6 +96,26 @@ export function upsertLaborSourceEvidenceObservations(input: {
         store: loadLaborSourceEvidenceStoreLocal(),
         messagePl: host.messagePl,
       };
+    }
+
+    if (o.priceKind === "derived") {
+      const der = validateDerivedLaborObservation(o);
+      if (!der.ok) {
+        return {
+          ok: false,
+          reason: "derivation_rejected",
+          store: loadLaborSourceEvidenceStoreLocal(),
+          messagePl: der.messagePl,
+        };
+      }
+      if (o.qualityStatus === "REJECTED_DERIVATION") {
+        return {
+          ok: false,
+          reason: "derivation_rejected",
+          store: loadLaborSourceEvidenceStoreLocal(),
+          messagePl: "Derived observation REJECTED_DERIVATION — not upserted as VALID.",
+        };
+      }
     }
     normalizedIncoming.push(o);
   }
@@ -118,7 +139,6 @@ export function upsertLaborSourceEvidenceObservations(input: {
     });
     if (cas.ok) return cas;
     if (cas.reason !== "etag_mismatch") return cas;
-    // conflict → retry
   }
   return {
     ok: false,

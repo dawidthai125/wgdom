@@ -14,6 +14,7 @@ import {
   resolveOwnerAuthorizedLaborEvidenceRoute,
 } from "@/lib/labor-source-evidence/owner-authorized-routes";
 import { resolvePromotedTrustedEvidenceRoute } from "@/lib/labor-source-discovery";
+import { isDerivedLaborCompositeSourceId } from "@/lib/labor-source-evidence/derived-labor-input-routes";
 
 export function resolveLaborSourceEvidenceSourceRole(
   sourceId: string,
@@ -22,6 +23,7 @@ export function resolveLaborSourceEvidenceSourceRole(
   if (id === "kb_pl" || id === "cennikremontow_pl" || id === "extradom") return "PRIMARY";
   if (id === "sccot" || id === "remonty_apm") return "SECONDARY";
   if (id === "zleca") return "REFERENCE";
+  if (isDerivedLaborCompositeSourceId(id)) return "REFERENCE";
   if (isOwnerAuthorizedLaborEvidenceSourceId(id)) {
     return resolveOwnerAuthorizedLaborEvidenceRoute(id)?.role ?? "REFERENCE";
   }

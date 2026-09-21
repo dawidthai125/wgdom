@@ -1,18 +1,34 @@
 /**
  * WR-SOURCE-EVIDENCE-DB-01 — build observation from parse/identity/scope outcomes.
  * REUSE D1 classify + Owner synonyms outcomes — does NOT reimplement matching.
+ * OFN-01: buildDerivedLaborSourceEvidenceObservation (priceKind=derived).
  * Does NOT write Catalog / OUR RATE / Accept.
  */
 
 import { buildLaborSourceEvidenceDedupeKey } from "@/lib/labor-source-evidence/dedupe";
+import {
+  DERIVED_LABOR_CALCULATOR_VERSION,
+  evalDerivedLaborFormula,
+  resolveDerivedLaborFormula,
+} from "@/lib/labor-source-evidence/derived-labor-formulas";
+import {
+  DERIVED_LABOR_COMPOSITE_SOURCE_ID,
+  extractHostFromUrl,
+} from "@/lib/labor-source-evidence/derived-labor-input-routes";
+import { validateDerivedLaborEvidence } from "@/lib/labor-source-evidence/derived-labor-validate";
 import { resolveLaborSourceEvidenceSourceRole } from "@/lib/labor-source-evidence/source-roles";
 import type {
+  DerivedLaborEvidenceInput,
+  LaborSourceEvidenceDerivation,
   LaborSourceEvidenceIdentityMethod,
   LaborSourceEvidenceObservation,
   LaborSourceEvidencePriceKind,
   LaborSourceEvidenceQualityStatus,
 } from "@/lib/labor-source-evidence/types";
-import { LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION } from "@/lib/labor-source-evidence/types";
+import {
+  LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION,
+  LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION_V1,
+} from "@/lib/labor-source-evidence/types";
 import type { WorkRateEvidenceScopeTag } from "@/lib/work-catalog/work-rate-evidence-scope";
 import {
   classifyWorkRateEvidenceScopeTag,
@@ -67,7 +83,10 @@ export function buildLaborSourceEvidenceObservation(
   const priceMin = input.priceMin ?? null;
   const priceMax = input.priceMax ?? null;
   const pricePoint = input.pricePoint ?? null;
-  if (!input.priceKind) {
+  // Never auto-promote / smuggle derived via direct builder
+  if (input.priceKind === "derived") {
+    priceKind = "unknown";
+  } else if (!input.priceKind) {
     if (
       priceMin != null &&
       priceMax != null &&
@@ -159,8 +178,201 @@ export function buildLaborSourceEvidenceObservation(
     sourceRole: resolveLaborSourceEvidenceSourceRole(input.sourceId),
     parserVersion: null,
     staleAt: null,
-    schemaVersion: LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION,
+    schemaVersion: LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION_V1,
+    derivation: null,
   };
+}
+
+export type BuildDerivedLaborSourceEvidenceInput = {
+  workId: string;
+  workNamePl?: string | null;
+  observedName: string;
+  unit: string;
+  region: WorkRateRegionScope;
+  identityMatched: boolean;
+  identityMethod: LaborSourceEvidenceIdentityMethod;
+  synonymUsed?: string | null;
+  laborOnly: boolean;
+  includesMaterial: boolean;
+  formulaId: string;
+  formulaVersion?: string | null;
+  inputs: DerivedLaborEvidenceInput[];
+  calculatedAt?: string;
+  retrievedAt?: string;
+  /** Optional override; default = eval(formula). */
+  pricePoint?: number | null;
+  /** Top-level URL — defaults to first input URL (primary). */
+  sourceUrl?: string | null;
+  categoryKey?: string | null;
+};
+
+export type BuildDerivedLaborSourceEvidenceResult =
+  | { ok: true; observation: LaborSourceEvidenceObservation }
+  | { ok: false; reason: string; messagePl: string };
+
+/**
+ * Build priceKind=derived observation with mandatory derivation block.
+ * Does NOT persist · Does NOT Accept · Does NOT write OUR RATE.
+ */
+export function buildDerivedLaborSourceEvidenceObservation(
+  input: BuildDerivedLaborSourceEvidenceInput,
+): BuildDerivedLaborSourceEvidenceResult {
+  const retrievedAt = input.retrievedAt || new Date().toISOString();
+  const calculatedAt = input.calculatedAt || retrievedAt;
+  const formulaDef = resolveDerivedLaborFormula(input.formulaId, input.formulaVersion);
+  if (!formulaDef) {
+    return {
+      ok: false,
+      reason: "UNKNOWN_FORMULA",
+      messagePl: `formulaId „${input.formulaId}” not in closed registry — HOLD.`,
+    };
+  }
+
+  const inputs: DerivedLaborEvidenceInput[] = (input.inputs || []).map((i) => ({
+    ...i,
+    host: i.host || extractHostFromUrl(i.sourceUrl),
+    retrievedAt: i.retrievedAt || retrievedAt,
+    observedAt: i.observedAt || retrievedAt,
+  }));
+
+  const norm = inputs.find((i) => i.role === "labor_norm");
+  const rate = inputs.find((i) => i.role === "labor_cost_rate");
+  if (!norm || !rate) {
+    return {
+      ok: false,
+      reason: "MISSING_INPUT",
+      messagePl: "LABOR_NORM_X_RATE requires labor_norm + labor_cost_rate — HOLD.",
+    };
+  }
+
+  const evalResult = evalDerivedLaborFormula({
+    formulaId: formulaDef.formulaId,
+    formulaVersion: formulaDef.formulaVersion,
+    normRgPerUnit: norm.inputValue,
+    normUnit: norm.inputUnit,
+    costRatePlnPerRg: rate.inputValue,
+    costRateUnit: rate.inputUnit,
+    resultUnit: input.unit,
+  });
+  if (!evalResult.ok) {
+    return { ok: false, reason: evalResult.reason, messagePl: evalResult.messagePl };
+  }
+
+  const pricePoint =
+    input.pricePoint != null && Number.isFinite(input.pricePoint)
+      ? Math.round(Number(input.pricePoint) * 100) / 100
+      : evalResult.resultPln;
+
+  const derivation: LaborSourceEvidenceDerivation = {
+    formulaId: formulaDef.formulaId,
+    formulaExpression: formulaDef.formulaExpression,
+    formulaVersion: formulaDef.formulaVersion,
+    inputs,
+    calculatedAt,
+    calculatorVersion: DERIVED_LABOR_CALCULATOR_VERSION,
+  };
+
+  const validation = validateDerivedLaborEvidence({
+    workId: input.workId,
+    unit: input.unit,
+    pricePoint,
+    priceKind: "derived",
+    derivation,
+  });
+  if (!validation.ok) {
+    return { ok: false, reason: validation.reason, messagePl: validation.messagePl };
+  }
+
+  const sourceUrl = String(input.sourceUrl || norm.sourceUrl).trim();
+  const sourceId = DERIVED_LABOR_COMPOSITE_SOURCE_ID;
+  const scopeTag: WorkRateEvidenceScopeTag = classifyWorkRateEvidenceScopeTag(
+    input.observedName,
+  );
+  const synonymUsed = input.synonymUsed ?? null;
+
+  let qualityStatus: LaborSourceEvidenceQualityStatus = "VALID";
+  if (!input.identityMatched || input.identityMethod === "unmatched") {
+    qualityStatus = "REJECTED_IDENTITY";
+  } else if (input.includesMaterial || !input.laborOnly) {
+    qualityStatus = "REJECTED_OUTLIER";
+  } else {
+    const allowed = listAllowedWorkRateEvidenceScopeTags({
+      workId: input.workId,
+      namePl: input.workNamePl || "",
+    });
+    if (!isWorkRateEvidenceScopeAllowed(scopeTag, allowed)) {
+      qualityStatus = "REJECTED_SCOPE";
+    }
+  }
+
+  const dedupeKey = buildLaborSourceEvidenceDedupeKey({
+    workId: input.workId,
+    sourceId,
+    sourceUrl,
+    observedName: input.observedName,
+    unit: input.unit,
+    region: input.region,
+    priceKind: "derived",
+    priceMin: null,
+    priceMax: null,
+    pricePoint,
+    derivation,
+  });
+
+  const observation: LaborSourceEvidenceObservation = {
+    evidenceId: newId(),
+    workId: input.workId,
+    sourceId,
+    sourceUrl,
+    categoryKey: input.categoryKey ?? null,
+    observedName: input.observedName,
+    unit: input.unit,
+    priceMin: null,
+    priceMax: null,
+    pricePoint,
+    priceKind: "derived",
+    currency: "PLN",
+    region: input.region,
+    country: "POLSKA",
+    scopeTag,
+    identityMethod: input.identityMethod,
+    synonymUsed,
+    identityMatched: input.identityMatched,
+    laborOnly: input.laborOnly,
+    includesMaterial: input.includesMaterial,
+    observedAt: calculatedAt,
+    retrievedAt,
+    provenance: {
+      sourceId,
+      sourceUrl,
+      observedName: input.observedName,
+      region: input.region,
+      unit: input.unit,
+      priceKind: "derived",
+      priceMin: null,
+      priceMax: null,
+      pricePoint,
+      retrievedAt,
+      identityMethod: input.identityMethod,
+      synonymUsed,
+      scopeTag,
+      derivationSummary: {
+        formulaId: derivation.formulaId,
+        formulaVersion: derivation.formulaVersion,
+        calculatedAt: derivation.calculatedAt,
+        inputCount: derivation.inputs.length,
+      },
+    },
+    qualityStatus,
+    dedupeKey,
+    sourceRole: resolveLaborSourceEvidenceSourceRole(sourceId) ?? "REFERENCE",
+    parserVersion: null,
+    staleAt: null,
+    schemaVersion: LABOR_SOURCE_EVIDENCE_SCHEMA_VERSION,
+    derivation,
+  };
+
+  return { ok: true, observation };
 }
 
 /** Pool filter for aggregation: VALID + scope allowed for work. */
