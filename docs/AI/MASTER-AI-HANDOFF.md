@@ -3,14 +3,14 @@
 > **ID:** MASTER-AI-HANDOFF
 > **STATUS:** **ACTIVE** · **★★ GŁÓWNY SSOT cold-start** (ChatGPT · Cursor)
 > **MODE:** DOCUMENTATION ONLY
-> **Data:** 2026-09-05 (Master SSOT continuity · TPI HYDRATION DESIGN-C) · prior 2026-09-05 (LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-25 (IK-KNR KL-6)
+> **Data:** 2026-09-21 (Decision C PRODUCTION CLOSEOUT · LIVE expected `50bce20`) · prior M6 tip hygiene · prior 2026-09-05 (Master SSOT continuity · TPI HYDRATION DESIGN-C) · prior 2026-09-05 (LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-09-03 (A0.2) · prior 2026-08-25 (IK-KNR KL-6)
 > **★★ Cold-start 1. plik:** [`WGDOM-COLD-START-HANDOFF.md`](WGDOM-COLD-START-HANDOFF.md)
 > **★★ IK Master (NO REBUILD · PRIMARY):** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md)
 > **★★ CURRENT NODE:** **ŚRODA A0.2** — Master §10.0 · KV **rev 57 LIVE** · frontend PV **VERIFIED (OD-OCR-37)**
-> **★★ CURRENT PRODUCTION:** APP **2.66.165** · LIVE = **FETCH** `/version.json` · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 **HISTORY** · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **no** SSOT≡live equality
+> **★★ CURRENT PRODUCTION:** APP **2.66.231** · LIVE = **FETCH** `/version.json` · expected **`50bce20`** · HISTORY Tender Freeze **`cc210d9`** · HISTORY LAST VERIFIED SOURCE **`32a90fef` / 2.66.165** · HYDRATION VERIFY **`75d0f09`** · **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** · LINE-TOLERANT HISTORY · OD-OCR-47 **HISTORY** · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO** · **MODEL C FROZEN** · **DECISION C CLOSED / RUNTIME COMPLETE / PV** @ **`50bce20d`** · **Full Autonomy = NO** · **OPEN NODE (bid) `OWNER_FINANCE_NOT_OK`** · **no** SSOT≡live equality
 > **★★ Track B:** **CLOSED / VERIFIED / UNCHANGED** (Cloud LEAN)
-> **★★ STORAGE-TIER1-PIPELINE-CONTRACT-01 (2026-09-19):** **EPIC CLOSED / PRODUCTION VERIFIED** · tip **2.66.231 / `16bfb9f3`** · **IDB FULL → LS INDEX → Cloud LEAN** · flag **`pipelineLocalIndexV1=true`** · min **`2.66.231`** · downgrade after INDEX **UNSUPPORTED** · ingest **OUT** · Phase 22 = documentation only · **NO** runtime/prod mutation · epic [`../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · tip [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
-> **★★ FORM-FIELD-A11Y-01 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED · GREEN** · final **`110aec71`** · live **`110aec7`** · UI **2.66.231 bez bumpu** · S1–S5 = **0** · CORS/BIP ≠ A11Y · [`CLOSEOUT`](../architecture/FORM-FIELD-A11Y-01-CLOSEOUT.md) · **NIE** reopen RCA · **NIE** Payroll/IK/Storage
+> **★★ STORAGE-TIER1-PIPELINE-CONTRACT-01 (2026-09-19):** **EPIC CLOSED / PRODUCTION VERIFIED** · HISTORY epic tip **2.66.231 / `16bfb9f3`** (≠ CURRENT LIVE **`50bce20`** · HISTORY mid-chain Tender Freeze **`cc210d9`**) · **IDB FULL → LS INDEX → Cloud LEAN** · flag **`pipelineLocalIndexV1=true`** · min **`2.66.231`** · downgrade after INDEX **UNSUPPORTED** · ingest **OUT** · Phase 22 = documentation only · **NO** runtime/prod mutation · epic [`../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · tip [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
+> **★★ FORM-FIELD-A11Y-01 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED · GREEN** · final **`110aec71`** · **HISTORY live-at-PV** **`110aec7`** (CURRENT LIVE **`50bce20`** · HISTORY mid-chain **`cc210d9`**) · UI **2.66.231 bez bumpu** · S1–S5 = **0** · CORS/BIP ≠ A11Y · [`CLOSEOUT`](../architecture/FORM-FIELD-A11Y-01-CLOSEOUT.md) · **NIE** reopen RCA · **NIE** Payroll/IK/Storage
 > **★★ PRZETARGI_CLEANUP-01 WAVE 4 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED** · source **`3de1262a`** · UI **2.66.231 bez bumpu** · [`WAVE-4-CLOSEOUT`](../architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) · **NIE** przywracać `TenderQualificationSection` · hub **CONDITIONAL**
 > **★★ CHROBREGO:** **CLOSED CASE** 56/0 · Final Bid 159000/195570 — **NIE reopen**
 > **★★ IK-KNR KL-6 (2026-08-25):** deploy tip **`85a1ad7`** · **PRODUCTION_VERIFIED_CLOSED** · UI **`ce192b1e`** — szczegóły w [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) §1 · continuity [`../AGENT-CONTINUITY-GUIDE.md`](../AGENT-CONTINUITY-GUIDE.md)
@@ -29,23 +29,23 @@ Nie czytaj historii czatu. Nie zgaduj tipu. Nie buduj Przetargów od nowa.
 START = WGDOM-COLD-START-HANDOFF → IK MASTER-SSOT (§10.0 CURRENT NODE) → TEN plik → 09 + version.json
 Tip = wyłącznie 09 + version.json
 CURRENT = ŚRODA A0.2 · TPI HYDRATION DESIGN-C CLOSED/PV · LINE-TOLERANT HISTORY · CHROBREGO CLOSED · OD-OCR-47 HISTORY capability · TPI Full IK E2E OPEN / NOT VERIFIED · AUTONOMY-08 OPEN · Phase 5 NOT AUTHORIZED · W3–W6 NOT auto-authorized
-ACTIVE IMPLEMENT = NONE bez Owner GO · APP 2.66.165 · LIVE=fetch /version.json · LAST VERIFIED SOURCE 32a90fef · HYDRATION VERIFY 75d0f09 · GLOBAL IK PV = NO · docs-only tip lag EXPECTED
+ACTIVE IMPLEMENT = NONE bez Owner GO · APP 2.66.231 · LIVE=fetch /version.json · expected 50bce20 · HISTORY LAST VERIFIED 32a90fef · HYDRATION VERIFY 75d0f09 · GLOBAL IK PV = NO · MODEL C FROZEN · DECISION C CLOSED / PV · Full Autonomy = NO · HARD minting UI OPEN
 ```
 
 ---
 
 ## Executive Summary
 
-W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + **FETCH** live `version.json` — **APP 2.66.165 · LAST VERIFIED SOURCE `32a90fef` · HYDRATION VERIFY `75d0f09`** · LIVE commit = tylko z `/version.json` · **brak** exact-equality SSOT↔live. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** (Master §10.0.2 · ≠ TPI Full IK E2E · ≠ Global IK PV). **LINE-TOLERANT** = HISTORY feature tip **`a5d19047`**. **OD-OCR-47 PASS** = HISTORY capability tip. **TPI Full IK E2E = OPEN / NOT VERIFIED**. **CHROBREGO CLOSED**. **Track B CLOSED / VERIFIED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
+W&G DOM jest w trybie **UTRZYMANIE**. Tip: czytaj [`09`](09_PRODUCTION_BASELINE.md) + **FETCH** live `version.json` — **APP 2.66.231 · expected LIVE `50bce20` · HISTORY Tender Freeze `cc210d9` · HISTORY LAST VERIFIED `32a90fef` / 2.66.165 · HYDRATION VERIFY `75d0f09`** · LIVE commit = tylko z `/version.json` · **brak** exact-equality SSOT↔live. **CURRENT CASE = ŚRODA A0.2** (frontend PV **VERIFIED**). **DECISION C CLOSED / RUNTIME COMPLETE / PRODUCTION VERIFIED** @ **`50bce20d`**. **TPI FULL SNAPSHOT HYDRATION DESIGN-C CLOSED/PV** (Master §10.0.2 · ≠ TPI Full IK E2E · ≠ Global IK PV). **LINE-TOLERANT** = HISTORY feature tip **`a5d19047`**. **OD-OCR-47 PASS** = HISTORY capability tip. **TPI Full IK E2E = OPEN / NOT VERIFIED**. **CHROBREGO CLOSED**. **Track B CLOSED / VERIFIED**. **AUTONOMY-08 epic NOT CLOSED**. Experience Phase **5 NOT AUTHORIZED**. **GLOBAL IK PRODUCTION VERIFIED = NO**.
 
 **NEXT rekomendacja:** Owner GO na **jedną** gałąź z Master §9 (np. TPI IK E2E · Phase 5 · AUTONOMY-08 epic closeout · inny REAL SOURCE) → **AUDIT** · **NIE** invent S10 · **NIE** reopen CHROBREGO · **NIE** reopen Środa L+T+U (**CLOSED / VERIFY PASS @ `bce0ba23`**) · **NIE** start G1/G2/G3 na TPI bez GO.
 Backlog bez Owner GO = **zakaz IMPLEMENT**.
 
 Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = priorytet #1 · **PAYROLL GREEN / HARDENED / CLOSED · AKORD V1 CLOSED** (prod tip **2.66.226 / `892e04c4`** — verify live `version.json` · SSOT [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) · AKORD [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md)).
 
-**STORAGE-TIER1 (pipeline local):** **EPIC CLOSED** @ **2.66.231 / `16bfb9f3`** — IDB FULL → LS INDEX → Cloud LEAN · [`EPIC-CLOSEOUT`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · **NIE** reopen Track B · **NIE** downgrade · **NIE** traktuj INDEX jako FULL.
+**STORAGE-TIER1 (pipeline local):** **EPIC CLOSED** @ HISTORY epic tip **2.66.231 / `16bfb9f3`** (CURRENT LIVE **`50bce20`** · HISTORY mid-chain Tender Freeze **`cc210d9`**) — IDB FULL → LS INDEX → Cloud LEAN · [`EPIC-CLOSEOUT`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · **NIE** reopen Track B · **NIE** downgrade · **NIE** traktuj INDEX jako FULL.
 
-**FORM-FIELD-A11Y-01 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED · GREEN** · **`110aec71`** / live **`110aec7`** · UI **2.66.231 bez bumpu** · OV FAIL→Delta→PASS · prod smoke S1–S5 = **0** · CORS/BIP/409/500 = nie regresja A11Y · [`CLOSEOUT`](../architecture/FORM-FIELD-A11Y-01-CLOSEOUT.md) · **NIE** reopen · **NIE** Payroll/IK/Storage/WRITE_AUDIT.
+**FORM-FIELD-A11Y-01 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED · GREEN** · **`110aec71`** / **HISTORY live-at-PV** **`110aec7`** (CURRENT LIVE **`50bce20`** · HISTORY mid-chain **`cc210d9`**) · UI **2.66.231 bez bumpu** · OV FAIL→Delta→PASS · prod smoke S1–S5 = **0** · CORS/BIP/409/500 = nie regresja A11Y · [`CLOSEOUT`](../architecture/FORM-FIELD-A11Y-01-CLOSEOUT.md) · **NIE** reopen · **NIE** Payroll/IK/Storage/WRITE_AUDIT.
 
 **PRZETARGI_CLEANUP-01 WAVE 4 (2026-09-20):** **CLOSED / PRODUCTION VERIFIED** · source **`3de1262a`** · UI **2.66.231 bez bumpu** · orphan `TenderQualificationSection` usunięty · żywa ścieżka `TenderQualificationWorkspace` · hub **CONDITIONAL** · Edge 546 = platform WARN · [`CLOSEOUT`](../architecture/PRZETARGI-CLEANUP-01-WAVE-4-CLOSEOUT.md) · **NIE** przywracać sekcji · **NIE** zmieniać montowania huba bez Owner GO.
 
@@ -59,7 +59,8 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **Branch** | `main` |
 | **UI version** | **czytaj [`09`](09_PRODUCTION_BASELINE.md)** + live `version.json` (**nie** hardcoduj tutaj) |
 | **LIVE PRODUCTION** | **FETCH** `/version.json` · runtime authority · **nie** SSOT mirror |
-| **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** / APP **2.66.165** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) · HYDRATION VERIFY **`75d0f09`** · TPI HYDRATION DESIGN-C CLOSED/PV · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · TPI Full IK E2E OPEN / NOT VERIFIED · docs-only lag EXPECTED |
+| **LIVE tip (CURRENT)** | **FETCH** `/version.json` · expected **2.66.231 / `50bce20`** · SOURCE OF TRUTH [`09`](09_PRODUCTION_BASELINE.md) |
+| **HISTORY LAST VERIFIED PRODUCTION SOURCE CHECKPOINT** | **`32a90fef`** / APP **2.66.165** · HYDRATION VERIFY **`75d0f09`** · TPI HYDRATION DESIGN-C CLOSED/PV · LINE-TOLERANT HISTORY · OD-OCR-47 HISTORY · TPI Full IK E2E OPEN / NOT VERIFIED · **≠** CURRENT LIVE · docs-only lag EXPECTED |
 | **A08-P3 FEATURE TIP** | **`3822acb`** · **IMPLEMENTED · OPEN** · harness **27/0** · G2 PV **WAIT** |
 | **S6/P4 FEATURE TIP** | **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · see [`09`](09_PRODUCTION_BASELINE.md) |
 | **Feature tip** | A08-P3 @ **`3822acb`** · S6/P4 @ **`2fce3caf`** · Phase 2E targeted @ **`1a9c5484`** (FULL 2E OPEN) · APF **FROZEN** · validation = harness GREEN · interactive UI = Owner residual · **≠** global IK FINAL |
@@ -81,7 +82,7 @@ Protected Core **GREEN**. Stabilization Window **ACTIVE**. Lista Płac = prioryt
 | **App** | React/Vite · monolit UI `src/app/` · Przetargi = TendersModule |
 | **Sync** | `cloud-sync.ts` · Edge `make-server-0afb8820` — **nie** ruszaj CORE bez Owner GO |
 | **Payroll** | **CRITICAL PROTECTED** · **GREEN / HARDENED / CLOSED · AKORD V1 CLOSED** @ **2.66.226 / `892e04c4`** — SSOT [`PAYROLL_CRITICAL_PROTECTED_MODULE.md`](PAYROLL_CRITICAL_PROTECTED_MODULE.md) · AKORD [`../PAYROLL-AKORD-PAYABLE-SSOT-4B.md`](../PAYROLL-AKORD-PAYABLE-SSOT-4B.md) · Gate G1–G9 przed IMPLEMENT · **nie** reopen Phase 3 / F1 / P1 remove / Soft Restore / remaining-as-payout bez RCA+Owner GO |
-| **STORAGE-TIER1 pipeline** | **EPIC CLOSED / PRODUCTION VERIFIED** @ **2.66.231 / `16bfb9f3`** — IDB FULL → LS INDEX → Cloud LEAN · flag ON · min 2.66.231 · downgrade **UNSUPPORTED** · [`EPIC-CLOSEOUT`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · Track B Cloud LEAN **UNCHANGED** |
+| **STORAGE-TIER1 pipeline** | **EPIC CLOSED / PRODUCTION VERIFIED** @ HISTORY epic tip **2.66.231 / `16bfb9f3`** (CURRENT LIVE **`50bce20`** · HISTORY mid-chain Tender Freeze **`cc210d9`**) — IDB FULL → LS INDEX → Cloud LEAN · flag ON · min 2.66.231 · downgrade **UNSUPPORTED** · [`EPIC-CLOSEOUT`](../architecture/STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · Track B Cloud LEAN **UNCHANGED** |
 | **AI-COST-01** | **EPIC COMPLETE · FROZEN · FIELD READY** — Bid Proposal = jedyny generator oferty |
 | **AI-COST-02** | COST-02-A · 02-B · **I3 FULLY CLOSED** · dalsze slice = backlog |
 | **Doc detection** | `src/lib/doc-detection/` · Doc.D1/D2/D3 · bez rename KV `dossier.kosztorys` |

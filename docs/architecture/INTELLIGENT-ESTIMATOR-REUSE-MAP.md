@@ -2,11 +2,16 @@
 
 > **ID:** `INTELLIGENT-ESTIMATOR-REUSE-MAP`  
 > **STATUS:** ACTIVE · DOCUMENTATION ONLY  
-> **Data:** 2026-09-14 · AUT-MAT session reconcile + cold-start  
-> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) §15 · §27 · §31–§33  
-> **Session:** [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md)  
+> **Data:** **2026-09-21** · **Decision C PRODUCTION CLOSEOUT** · prior M3 docs reconcile · prior 2026-09-16 RMS/ATH→KL3 + MODEL C · prior 2026-09-15 Gap Job freeze · prior 2026-09-14 AUT-MAT  
+> **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) **§6A** · **§13.4–13.6** · §15 · §24 · §27 · §31–§33  
+> **Continuity (latest pointer):** [`IK-MASTER-CONTINUITY-HANDOFF-2026-09-20.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-09-20.md) — return-to-IK · Tender Freeze **CLOSED / OUTSIDE IK**  
+> **Session seams (09-16):** [`IK-MASTER-CONTINUITY-HANDOFF-2026-09-16.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-09-16.md) · [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) · `.tmp/IK_MODEL_C_ARCHITECTURE_FREEZE_REPORT.md`  
+> **Tender Freeze closeout:** [`TENDER-DETAIL-FREEZE-INCIDENT-CLOSEOUT.md`](./TENDER-DETAIL-FREEZE-INCIDENT-CLOSEOUT.md)  
+> **LIVE tip:** **FETCH** `/version.json` · expected **2.66.231 / `50bce20`** · documentary [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md)  
 > **Rule:** If it is listed here → **DO NOT DUPLICATE**. Extend only with Owner GO.  
-> **Law:** ★★ IK IS ITS FUNCTION TREE ★★ — Tree → Orchestra → Experts → Catalogs → Persist → Reuse
+> **Law:** ★★ IK IS ITS FUNCTION TREE ★★ — DECISION TREE → ORCHESTRA → EXPERTS → CATALOGS / KNOWLEDGE / EVIDENCE / RESEARCH → PERSISTENCE → REUSE  
+> **HARD:** `DISPATCH_CONTRACT = PARTIAL` ≠ missing feature · **IkGapJob ≠ Accept Engine** (Master §6A) · **ATH = auxiliary normative source ≠ tender input** · **RMS ≠ OUR RATE** · tests touching canonical discovery writer → **`discoveryPersistIo` only** · **DECISION C ARCH CLOSED + RUNTIME COMPLETE + PV @ `50bce20d` (`OWNER_HARD_WINS`)** · HARD minting UI/API still OPEN · **MODEL C FROZEN** · **OPEN NODE (bid) = `OWNER_FINANCE_NOT_OK`** · **GLOBAL IK PV = NO** · **Full Autonomy = NO**  
+> **Git truth:** status `PRODUCTION` = confirmed by `git ls-files` on `main`; **WIP_LOCAL** = working tree only (see §5 · Master §6A note)
 
 ---
 
@@ -59,9 +64,13 @@ Default: **NO REBUILD**.
 | **Work Catalog** | `src/lib/work-catalog/*` · KV `kw-wgdom-work-catalog` | Canonical work identity · OUR RATE · hosts · durable work knowledge | Expert · Orchestra · research quote |
 | **Price / material catalog** | `price-intelligence/our-price-catalog.ts` | Material commercial + margin helpers | OUR RATE labor |
 | **Price Memory** | `price-intelligence/price-memory.ts` · `CatalogWork.marketQuotes` | Material commercial CURRENT after Accept | Research quote · TechnologyPack PLN |
-| **Technology Pack** | `technology-foundation/*` · pack registry | BOM qtyFactor / steps · technology | Price Memory / OUR RATE |
+| **Technology Pack** | `technology-foundation/*` · pack registry · KV `kw-technology-packs` (`packId@@packVersion`) | BOM qtyFactor / steps · technology · Catalog First `hydratePackRegistryFromDurable` | Price Memory / OUR RATE |
 | **Labor Evidence** | `labor-source-evidence/*` · `kw-wgdom-labor-source-evidence` | Durable labor observations | OUR RATE (until AUT-R1/Accept) |
 | **Material Evidence** | MEK / material-source-evidence (plane) | Durable material observations | PM CURRENT (until AUT-MAT) |
+| **KNR Catalog** | `kw-knr-catalog` · KL / P4 | KNR knowledge (PENDING_VERIFY / VERIFY) | Work Catalog identity · OUR RATE |
+| **KNR Discovery Evidence** | `knr-knowledge/knr-discovery-evidence-{store,merge,sync}.ts` · KV `kw-knr-discovery-evidence` | Norms evidence for V1-HARD (Owner HARD · public on-demand · ATH `ath_l1_aux_*`) · canonical writer `saveKnrDiscoveryEvidenceStore` | OUR RATE · KNR Catalog · Work Catalog · **Decision C LIVE `OWNER_HARD_WINS` @ `50bce20d`** · durable `authorityHold` · ATH cannot mint HARD |
+
+**Canonical catalogs (cold-start):** LABOR → Work Catalog / OUR RATE · MATERIAL → Price Memory / Material Knowledge · KNR → KNR Catalog / KNR Discovery Evidence · LABOR+MATERIAL / COMPOUND → TechnologyPack / BOM. Always **Catalog First**; on MISS → `RESEARCH → EVIDENCE → VALIDATE → ACCEPT → CANONICAL CATALOG → REUSE` (never one-shot research).
 
 ---
 
@@ -108,7 +117,13 @@ Default: **NO REBUILD**.
 | Ingest | `src/lib/tender-ingest/*` | Lossless docs → artifact pool | registry · contentHash | Multi-BOQ | LS ingest | PRODUCTION | Upstream only |
 | Bid PDF | `src/lib/tender-bid-package-pdf.ts` | Oferta PDF | `exportTenderBidPackagePdf` | DetailPanel | — | PRODUCTION | no new PDF engine |
 | ATH parse / preview PDF | `src/lib/ath-parser.ts` · `ath-kosztorys-pdf.ts` | NORMA input + preview | `parseKosztorysBytes` | Kosztorys UI | — | PRODUCTION | **No ATH writer in repo** |
-| IK orchestrator W2 | `src/lib/ik-pricing-orchestrator/*` | Gaps + labor bridge above F5 | `inventoryIkGapsFromShadow` · `runIkLaborGapResearch` | Hub panel | none | PRODUCTION | **≠** replace Orchestra |
+| IK Gap Job (MODEL C) | `src/lib/ik-pricing-orchestrator/*` | Typed gap inventory + optional dispatch to research bridges | `inventoryIkGapsFromShadow` · `IkGapJob` · `labor-research-bridge` (**main**) · `dispatchIkGapJob` · material/technology bridges (**WIP_LOCAL**) | Shadow / Hub | none | PRODUCTION (inventory + labor bridge) · **WIP_LOCAL** (typed dispatch `dispatch-gap-job.ts`) | **≠** Accept · **≠** Orchestra · **≠** Catalog · PARTIAL dispatch = OK · **inventory / dispatch carrier only** |
+| ATESD / ATA / Pack | `ik-atesd-technology-phase` · `autonomous-technology-*` · `pack-registry` | Technology Accept → durable pack | ATA → `persistAcceptedTechnologyPackViaRegisterSeam` → `registerPack` → `upsertTechnologyPackDurable` | Orchestra ATESD | `kw-technology-packs` | PRODUCTION (ATA · registry · store) · **WIP_LOCAL** (ATA ACCEPT → durable CONNECT · `persisted` real boolean; HEAD = `persisted: false` literal) | **≠** OUR RATE · **≠** qtyFactor invent · **no second pack persistence path** |
+| **Normative RMS → V1-HARD adapter** | `knr-knowledge/normative-rms-to-discovery-v1-adapter.ts` · `knr-host-kl3-adapter.ts` (MISS wire) | RMS (ATH AUX / public PARTIAL) → discovery evidence V1-HARD | `adaptAthRmsToDiscoveryV1Hard` | KL3 host on Catalog First MISS | `athRmsWire.discoveryStore` → §5 persist | PRODUCTION (`ca0e9545`) | **thin adapter** · RMS ≠ OUR RATE · r-g ≠ PLN · M=0 → NO_MATERIAL_NORM only per frozen contract |
+| **Historical ATH → KL3 mapper** | `historical-executed/historical-ath-kl3-files.ts` · `historical-executed-host-hydrate.ts` · `use-ik-orchestra.ts` | completed jobs `historicalIndex` + real ATH bytes → `KnrKl3bAthFile[]` per line | mapper + hydrate | `executeKl3KnowledgeLookup(athFiles)` | none (mapper) | PRODUCTION (`b037c8c9`) | **thin mapper** · fail-closed (no bytes / no index / mismatch) · CONFLICT on multi-candidate · **no fuzzy first/last** · per-line filter (`MAX_L1_FILES=1`) · ATH = AUX ≠ tender input |
+| **KL3 canonical persistence seam** | `orchestra/ik-orchestra-runtime.ts` | `executeKl3KnowledgeLookup` → `persistKl3DiscoveryEvidence` → `merge(local, ath)` → etag gate → `saveKnrDiscoveryEvidenceStore` | `persistKl3DiscoveryEvidence(store, io)` | KL3 host complete (async) | `kw-knr-discovery-evidence` | PRODUCTION (`a07ab4be` · **HISTORY tip** 2.66.230 · ≠ CURRENT LIVE **`50bce20`** · HISTORY mid-chain Tender Freeze **`cc210d9`**) | REUSE canonical writer · **`merged ⊇ local`** · no new store/writer · no ATH-only filter (`MIXED` accepted) |
+| **`discoveryPersistIo` test seam** | `orchestra/ik-orchestra-runtime.ts` (`Kl3DiscoveryEvidencePersistIo`) | Inject `loadLocal` / `save` in tests → **zero production I/O** | `executeKl3KnowledgeLookup({ discoveryPersistIo })` | `scripts/test-*kl3*.mjs` (incl. `test-historical-ath-kl3-wire.mjs` J · `test-kl3-discovery-evidence-persist.mjs`) | mock | PRODUCTION (`3bfecc7f`) | **MANDATORY** in every KL3 test · add `globalThis.fetch` guard · do not invent a second seam |
+| **Canonical discovery writer** | `knr-discovery-evidence-sync.ts` (`saveKnrDiscoveryEvidenceStore`) · `knr-discovery-evidence-merge.ts` (`mergeKnrDiscoveryEvidenceStoreDetailed` · authority-aware resolver · `pickConflictLayer1`) · `knr-discovery-evidence-store.ts` (`isValidOwnerHardAuthority` · `isDestructiveKnrDiscoveryReplace` · `upsertKnrDiscoveryEvidenceOffline`) | Only writer for `kw-knr-discovery-evidence` | save / merge / guard | KL3 persist · ops scripts · CloudLoader bootstrap | `kw-knr-discovery-evidence` | PRODUCTION · **Decision C COMPLETE @ `50bce20d`** | REUSE only · **do not** invent second conflict engine · HARD minting UI/API = separate Owner GO |
 
 ---
 
@@ -135,6 +150,22 @@ Verified capability (`e43acb19`):
 
 ---
 
+## 5. Session 2026-09-16 seams — REUSE THIS (Master §13.4–13.6 · closeout [`2026-09-16`](./IK-MASTER-CONTINUITY-HANDOFF-2026-09-16.md))
+
+| Seam | Existing implementation | Role | Reuse rule | Forbidden duplicate |
+|------|-------------------------|------|------------|---------------------|
+| `IkGapJob` inventory / dispatch carrier | `ik-pricing-orchestrator/inventory-gaps.ts` (`inventoryIkGapsFromShadow`, main) · `dispatch-gap-job.ts` + bridges (**WIP_LOCAL**) | Typed inventory of ShadowGapCodes → optional dispatch → existing bridges → STOP | Every gap gets explicit outcome (`RESEARCHABLE \| HOLD \| OWNER_EXCEPTION \| SYSTEM_ERROR \| RESOLVED`) · `DISPATCH_CONTRACT = PARTIAL` is correct | Universal Orchestra / Research / Accept / Catalog · `IkGapJob → Identity` (cycle) · `IkGapJob → runIkKnrExpert` without Owner GO |
+| Model C domain boundaries | Master §6A | LABOR → AUT-R1 · MATERIAL → AUT-MAT · TECHNOLOGY → ATA · BOM → existing path · KNR → Orchestra/KL/P4 · IDENTITY → G1 upstream · EQUIPMENT/TRANSPORT/WASTE → HOLD / Owner policy | Accept stays in domain Experts / ATESD | Universal Adapter „for 100% dispatch” |
+| Historical ATH mapper | `historical-executed/historical-ath-kl3-files.ts` | historicalIndex + real bytes → `KnrKl3bAthFile[]` per line (fail-closed) | Feed `executeKl3KnowledgeLookup(athFiles)` only · ATH = AUX | Second ATH parser · fuzzy match · Historical `authority=true` |
+| RMS → V1-HARD adapter | `knr-knowledge/normative-rms-to-discovery-v1-adapter.ts` (`adaptAthRmsToDiscoveryV1Hard`) | R → labor norm r-g evidence · M=0 → NO_MATERIAL_NORM (frozen contract) → `upsertKnrDiscoveryEvidenceOffline` → `evaluateLaborOnlyAutoBomV1Contract` | Thin adapter · RMS ≠ OUR RATE · r-g ≠ PLN | RMS engine 2 · `r-g → PLN` · RMS → Work Catalog |
+| KL3 canonical persistence seam | `orchestra/ik-orchestra-runtime.ts` `persistKl3DiscoveryEvidence` | `merge(local, athRmsWire.discoveryStore)` → etag gate → `saveKnrDiscoveryEvidenceStore` | `merged ⊇ local` · async · V1 eventual consistency accepted | Direct cloud write from KL3 · new discovery store · ATH-only filter |
+| `discoveryPersistIo` test safety seam | `Kl3DiscoveryEvidencePersistIo` in `ik-orchestra-runtime.ts` | Test injection of `loadLocal` / `save` → zero production I/O | **Mandatory** in all `executeKl3KnowledgeLookup` tests + `globalThis.fetch` guard | Running KL3 tests against real `KL3_DISCOVERY_PERSIST_IO` (incident `0909-04`) |
+| TechnologyPack durable persistence seam | `work-catalog/autonomous-technology-evidence-discovery.ts` `persistAcceptedTechnologyPackViaRegisterSeam` → `registerPack` → `upsertTechnologyPackDurable` (**WIP_LOCAL**) · `hydratePackRegistryFromDurable` (main) | ATA ACCEPT → `kw-technology-packs` → Catalog First reuse next tender | Built in memory ≠ persisted · `persisted` must be real boolean | Second pack persistence path · KB-03 router minting packs |
+
+**Decision C:** **ARCH CLOSED** · **RUNTIME COMPLETE** · **PRODUCTION VERIFIED** @ **`50bce20d` / 2.66.231** · **`OWNER_HARD_WINS`** → [`ADR-DECISION-C-KNR-DISCOVERY-EVIDENCE-WRITER-PRECEDENCE.md`](./ADR-DECISION-C-KNR-DISCOVERY-EVIDENCE-WRITER-PRECEDENCE.md). L1 safe deterministic · L2 unsafe ACTIVE/ACTIVE → CONFLICT + durable `authorityHold` · L3 exactly one valid HARD wins · L3b two HARD different hashes → OWNER_EXCEPTION · legacy ≠ HARD · ATH/public cannot mint HARD · `conflicts[]` diagnostic only · CONFLICT consumers fail closed. **HARD minting UI/API still OPEN** (separate Owner GO).
+
+---
+
 ## Forbidden duplicates (explicit)
 
 ```text
@@ -150,6 +181,18 @@ Verified capability (`e43acb19`):
 ❌ New P31 Rate Engine / Transport Rate Engine / Technology Engine 2
 ❌ New external source registry parallel to Evidence/Knowledge
 ❌ Chat-only architecture (must persist to Master / this map / code)
+❌ Universal Accept Engine / IkGapJobAcceptEngine / CentralAcceptEngine
+❌ Treat DISPATCH_CONTRACT=PARTIAL as mandate to connect KNR/IDENTITY/BOM/Accept into IkGapJob
+❌ IkGapJob → runIkIdentityPhase (cycle risk) · IkGapJob → runIkKnrExpert without new Owner architecture GO
+❌ Second TechnologyPack persistence path bypassing registerPack / upsertTechnologyPackDurable
+❌ Mandatory MaterialSourceEvidence store gate before AUT-MAT without Owner GO
+❌ Second KNR discovery evidence store / writer parallel to saveKnrDiscoveryEvidenceStore
+❌ Second ATH parser / Historical ATH mapper with fuzzy matching · ATH treated as tender input
+❌ RMS engine 2 · RMS → OUR RATE · r-g → PLN without canonical rate contract
+❌ KL3 test invoking executeKl3KnowledgeLookup without discoveryPersistIo (production write)
+❌ Second conflict engine / second discovery KV parallel to Decision C authority-aware merge
+❌ Claiming WIP_LOCAL (dispatch-gap-job · pack durable CONNECT) as PRODUCTION / PV
+❌ Owner HARD minting UI/API without separate Owner GO (OD-DC-DF-4)
 ```
 
 ---
@@ -157,10 +200,13 @@ Verified capability (`e43acb19`):
 ## How to extend safely
 
 1. Grep / Glob existing symbol.  
-2. Read Master §8 / §15 / §27 / §31–§36 + DF / closeout.  
+2. Read Master §6A / §8 / §13 / §15 / §27 / §31–§36 + DF / latest closeout.  
 3. AUDIT → Owner GO → thin DF → IMPLEMENT.  
+3a. Cursor blocked (unknown source / function / norm / price / plane)? → **STOP · do not guess · escalate to ChatGPT/Owner** (Master §27.3).  
 4. Prefer adapter / allowlist row / Owner mapping / Evidence reuse over new module.  
 5. Classify: **REUSE | CONNECT | VERIFY | EXTEND EXISTING | NEW** — `NEW` is exception.  
 6. Classify residual **ENGINE vs DATA/RESEARCH** before claiming “missing engine”.
 
 **STOP.**
+
+*Decision C PRODUCTION CLOSEOUT 2026-09-21 · ARCH CLOSED · RUNTIME COMPLETE · PV @ 50bce20d / 2.66.231 · MODEL C FROZEN · HARD minting OPEN · tip FETCH 2.66.231/`50bce20` · docs only · NO runtime commit in this GO*

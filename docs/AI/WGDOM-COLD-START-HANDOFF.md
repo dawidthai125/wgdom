@@ -2,14 +2,15 @@
 
 > **★★ NAJWAŻNIEJSZY plik dla nowego ChatGPT / Cursor bez historii**  
 > **STATUS:** **ACTIVE** · DOCUMENTATION ONLY  
-> **Data:** 2026-09-05 (pointer sync · TPI HYDRATION DESIGN-C) · prior 2026-09-05 (LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-08-26 / 2026-08-24 / 2026-08-18
+> **Data:** 2026-09-21 (Decision C PRODUCTION CLOSEOUT · LIVE expected `50bce20`) · prior M6 tip hygiene · prior 2026-09-05 (pointer sync · TPI HYDRATION DESIGN-C) · prior 2026-09-05 (LINE-TOLERANT) · prior 2026-09-04 (OD-OCR-47) · prior 2026-08-26 / 2026-08-24 / 2026-08-18
 > **Tip numeryczny SSOT:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) · live `https://www.wgdom.fun/version.json`
 > **LIVE PRODUCTION:** **FETCH** [`/version.json`](https://www.wgdom.fun/version.json) · runtime authority · see [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
-> **LAST VERIFIED PRODUCTION SOURCE CHECKPOINT:** APP **2.66.165** · **`32a90fef`** · documentary · may lag live
+> **LIVE tip (CURRENT):** **FETCH** `/version.json` · expected **2.66.231 / `50bce20`** · see [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)
+> **HISTORY LAST VERIFIED SOURCE CHECKPOINT:** APP **2.66.165** · **`32a90fef`** · documentary · may lag live · **≠** CURRENT LIVE
 > **★★ IK CURRENT NODE:** **ŚRODA A0.2** · Master §10.0 · **TPI HYDRATION DESIGN-C CLOSED/PV** · **LINE-TOLERANT** HISTORY (§2A.9) · **TPI Full IK E2E OPEN / NOT VERIFIED** · **GLOBAL IK PRODUCTION VERIFIED = NO**
 > **S6/P4 FEATURE TIP:** **`2fce3caf`** · S6-A / S6-B / P4 **CLOSED** · P4 flag **ON** · **≠** cały IK E2E GREEN  
 > **Phase 2E:** targeted discovery **LANDED** **`1a9c5484`** · **FULL PHASE 2E OPEN** · **OUT OF SCOPE A08** · **≠** Phase 2E CLOSED  
-> **Identity (czytaj 09):** APP **2.66.165** · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · LIVE = fetch · HISTORY line-tolerant **`a5d19047`** · HISTORY OD-OCR-47 **2.66.147/`2f3d1847`** · **≠** cały IK E2E GREEN · **no** SSOT≡live equality
+> **Identity (czytaj 09):** LIVE expected **2.66.231 / `50bce20`** · HISTORY Tender Freeze **`cc210d9`** · HISTORY LAST VERIFIED **`32a90fef` / 2.66.165** · HYDRATION VERIFY **`75d0f09`** · LIVE = fetch · HISTORY line-tolerant **`a5d19047`** · HISTORY OD-OCR-47 **2.66.147/`2f3d1847`** · **≠** cały IK E2E GREEN · **GLOBAL IK PV = NO** · **Full Autonomy = NO** · **MODEL C FROZEN** · **DECISION C CLOSED / RUNTIME COMPLETE / PV** · **no** SSOT≡live equality
 > **TPI FULL SNAPSHOT HYDRATION:** **DESIGN-C / PRODUCTION VERIFIED** @ VERIFY **`75d0f09`** · **≠** LIVE · **≠** LAST VERIFIED SOURCE · **TPI Full IK E2E: OPEN / NOT VERIFIED**
 > **Track B:** **CLOSED / VERIFIED / UNCHANGED**
 > **★★ IK / costing NO REBUILD:** [`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · [`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md) · [`../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](../architecture/INTELLIGENT-ESTIMATOR-REUSE-MAP.md)  
@@ -33,8 +34,8 @@ SEARCH BEFORE CREATE.
 
 | | |
 |--|--|
-| **Version** | **czytaj 09 + FETCH version.json** (APP **2.66.165** · LIVE commit = fetch only) |
-| **Commit** | **czytaj 09** · LAST VERIFIED SOURCE **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · LINE-TOLERANT HISTORY **`a5d19047`** · OD-OCR-47 HISTORY **`2f3d1847`** · S6/P4 FEATURE **`2fce3caf`** · Phase 2E targeted **`1a9c5484`** (FULL 2E OPEN) · **no** SSOT≡live equality |
+| **Version** | **czytaj 09 + FETCH version.json** (expected APP **2.66.231** · LIVE commit = fetch only · expected **`50bce20`**) |
+| **Commit** | **czytaj 09** · CURRENT LIVE expected **`50bce20`** · HISTORY Tender Freeze **`cc210d9`** · HISTORY LAST VERIFIED **`32a90fef`** · HYDRATION VERIFY **`75d0f09`** · LINE-TOLERANT HISTORY **`a5d19047`** · OD-OCR-47 HISTORY **`2f3d1847`** · S6/P4 FEATURE **`2fce3caf`** · Phase 2E targeted **`1a9c5484`** (FULL 2E OPEN) · **no** SSOT≡live equality |
 | **URL** | https://www.wgdom.fun |
 | **Branch** | `main` |
 | **IK SSOT** | [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) |
