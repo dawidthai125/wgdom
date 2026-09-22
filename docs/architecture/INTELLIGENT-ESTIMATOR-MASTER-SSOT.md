@@ -194,6 +194,19 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | **GO86–GO90** | Provisional/finance cutover separation · commit/push/PV · **CLOSED** |
 | **GO-SSOT-AUTONOMY** | **THIS AMENDMENT** — Product North Star + autonomy reconciliation · **docs only** · no runtime |
 
+### 1.1c Status delta 2026-09-22 (MOPS ELEC RC1 identity apply · additive)
+
+| Pole | Wartość |
+|------|---------|
+| **EPIC** | **IK-IDENTITY-APPLY-MOPS-ELEC-RC1** — **CLOSED** |
+| **Source seam** | **`b64a5d8a`** — `OWNER_RC1_VERIFY_CONNECT_LEAF_UPGRADE_v1` (exactly **2** CONNECT leaves + paired mappingIds) |
+| **Cloud** | MOPS `08def932-…` · **6/6** identity durable · **6/6** `positionComplete` · FTO `POSITION_COMPLETE` |
+| **RCA closed** | `LOCAL_NOT_CANONICAL_LEAF` (+ attestation) — **not** generic `p2b` canonicalization |
+| **Remaining** | **12** lines still on `legacy-elektryka-szt` (klamki / 0501-03 / 0504-07 / 0402-03) |
+| **GLOBAL IK PV / FULL AUTONOMY / Finance** | **NO / NO / UNCHANGED** |
+| **Closeout** | [`IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md`](./IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md) |
+| **NEXT** | Identify next knowledge/identity cluster — **DO NOT AUTO-EXECUTE** |
+
 ### 1.2 Vocabulary (nie mieszać)
 
 | Status | Znaczenie |

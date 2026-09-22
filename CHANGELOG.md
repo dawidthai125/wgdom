@@ -1,5 +1,13 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## docs — IK-IDENTITY-APPLY-MOPS-ELEC-RC1 CLOSEOUT (2026-09-22)
+
+- EPIC **CLOSED**: MOPS `08def932` · 6 Owner RC1 VERIFY_CONNECT lines (0407-01×3 + 0504-03×3) · identity durable + 6/6 `positionComplete`
+- Source seam **`b64a5d8a`**: `OWNER_RC1_VERIFY_CONNECT_LEAF_UPGRADE_v1` (exactly 2 CONNECT leaves — **≠** global `p2b`)
+- RCA: `LOCAL_NOT_CANONICAL_LEAF` closed via Safe Merge allowlist + attestation — no merge bypass
+- SSOT: [`docs/architecture/IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md`](docs/architecture/IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md)
+- Remaining: **12** `legacy-elektryka-szt` · Finance/READY_TO_BID/Full Autonomy **UNCHANGED**
+
 ## 2.66.234 — IK-FTO-01 Full Tender Walk (Land + Orchestra CONNECT) (2026-09-22)
 
 - Land `full-tender-walk/**` — coordination/audit/completeness ledger (≠ Cost / Finance / Research SSOT)

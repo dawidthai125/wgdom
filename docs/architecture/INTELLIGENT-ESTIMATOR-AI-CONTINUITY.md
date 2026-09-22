@@ -6,6 +6,7 @@
 > **Master:** [`INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](./INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) — **JEDYNY Master SSOT IK** · §0 · §9 · §15 · §24 · §27
 > **Reuse:** [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
 > **Latest IK session:** [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) — AUT-MAT Accept paint+Atlas · **≠** Global IK PV
+> **★★ IK-IDENTITY-APPLY-MOPS-ELEC-RC1 (2026-09-22):** **EPIC CLOSED** · source seam **`b64a5d8a`** · 6/6 CONNECT identity + 6/6 `positionComplete` · **≠** Full Autonomy · **≠** MOPS full tender · [`CLOSEOUT`](./IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md)
 > **CURRENT NODE:** **ŚRODA A0.2** · OPEN NODE (bid) **`OWNER_FINANCE_NOT_OK`** · GLOBAL IK PV **NO**
 > **CURRENT PRODUCTION:** LIVE = **FETCH** `/version.json` · tip documentary [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · AUT-MAT capability **`e43acb19`** / **2.66.212**
 > **★★ STORAGE-TIER1 (2026-09-19):** **EPIC CLOSED / PV** @ **2.66.231 / `16bfb9f3`** · IDB FULL → LS INDEX → Cloud LEAN · flag ON · min 2.66.231 · downgrade **UNSUPPORTED** · Phase 22 docs-only · [`EPIC-CLOSEOUT`](./STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · Master §10.5.1
