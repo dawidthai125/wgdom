@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.233 — IK GO-AUTO-IDENTITY-01 (writeback · continuation · pack persist) (2026-09-22)
+
+- AID/AIR `mayPersistTrustedIdentity` → OfferBoq writeback via `runGatedIdentityPersist` (`auto_contract`) · CONFLICT/wrong unit = OWNER_EXCEPTION (bez auto-rozstrzygania konfliktu)
+- Durable `TenderPackage.ikContinuation` sidecar (SCHEDULED→…→RESOLVED/EXHAUSTED) · Orchestra CONNECT: writeback → `catalog_accept` · labor settle continuation · refresh only on `canonical_mutation_persisted`
+- TechnologyPack `persistStatus` · AUTO_BOM only after `persisted` · ATESD → `material_accept` · TEK durable `kw-technology-evidence-knowledge`
+- Test: `scripts/test-go-auto-identity-01-e2e.mjs` · Equipment/Transport/Waste untouched · Finance/`isIkReadyToBid` unchanged
+
 ## 2.66.232 — IK OFN-01 Price Persistence (Evidence derived · exact leaf) (2026-09-21)
 
 - Owner GO: derived input routes BIP Kobylin (`1118-09` · 1.0664) + SR Zielona Góra (`2003-03` · 2.27) z `boundWorkId`/`boundUnit`

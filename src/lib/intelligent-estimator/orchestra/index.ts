@@ -139,6 +139,35 @@ export type {
   RunIkCompoundIdentityPhaseInput,
 } from "./ik-compound-identity-phase";
 export {
+  runAutonomousIdentityWritebackFromCompoundPhase,
+  applyAutonomousIdentityLeafToLine,
+  IK_AUTONOMOUS_IDENTITY_WRITEBACK_VERSION,
+} from "./ik-autonomous-identity-writeback";
+export type {
+  AutonomousIdentityWritebackResult,
+  IdentityAutonomyState,
+} from "./ik-autonomous-identity-writeback";
+export {
+  scheduleIkContinuation,
+  scheduleManyIkContinuations,
+  applyIkContinuationExecutorOutcome,
+  resolveContinuationRefreshPhase,
+  planIkContinuationResearchArm,
+  buildIkContinuationRecordKey,
+  emptyIkContinuationSidecar,
+  normalizeIkContinuationSidecar,
+  mergeIkContinuationSidecar,
+  isIkContinuationDue,
+  IK_RESEARCH_CONTINUATION_SCHEMA_VERSION,
+} from "./ik-research-continuation";
+export type {
+  IkContinuationSidecar,
+  IkResearchContinuationRecord,
+  IkContinuationExecutorOutcome,
+  IkContinuationDomain,
+  IkContinuationStatus,
+} from "./ik-research-continuation";
+export {
   buildKnrReanalysisSignalFromHostResult,
   buildKnrReanalysisDiag,
   planKnrReanalysisOrchestraInvalidation,

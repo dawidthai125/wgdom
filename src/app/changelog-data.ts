@@ -12,6 +12,22 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-22",
+    version: "2.66.233",
+    label: "IK — GO-AUTO-IDENTITY-01 (writeback · research continuation · pack persist)",
+    items: [
+      {
+        type: "new",
+        text: "GO-AUTO-IDENTITY-01: AID/AIR TRUSTED → OfferBoq writeback przez runGatedIdentityPersist (auto_contract) · CONFLICT/wrong unit = OWNER_EXCEPTION (bez auto-rozstrzygania). Durable continuation sidecar TenderPackage.ikContinuation (SCHEDULED→…→RESOLVED/EXHAUSTED). TechnologyPack persistStatus (persisted|failed|pending) — AUTO_BOM tylko po persisted · ATESD → refreshPhase material_accept. TEK durable kw-technology-evidence-knowledge. Test: test-go-auto-identity-01-e2e.mjs.",
+      },
+      {
+        type: "improve",
+        text: "Orchestra CONNECT: identity writeback → catalog_accept · labor settle → continuation outcomes · refresh tylko przy canonical_mutation_persisted (bez Research Engine 2). HOLD ≠ koniec — retry/resume gdy ścieżka autonomiczna istnieje. Finance/isIkReadyToBid bez zmian. Equipment/Transport/Waste nietknięte.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-21",
     version: "2.66.232",
     label: "IK — OFN-01 Price Persistence (Evidence derived · exact leaf)",

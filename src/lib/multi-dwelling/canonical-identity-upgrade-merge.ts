@@ -406,10 +406,39 @@ export function mergeTenderPackageOnScoreTie(
     return mergeDwellingUnitOnScoreTie(localUnit, cloudUnit);
   });
 
+  // Prefer non-empty continuation; merge records when both present (union by key).
+  let ikContinuation = cloudPkg.ikContinuation ?? localPkg.ikContinuation ?? null;
+  if (localPkg.ikContinuation && cloudPkg.ikContinuation) {
+    const map = new Map<string, (typeof localPkg.ikContinuation.records)[number]>();
+    for (const r of [
+      ...cloudPkg.ikContinuation.records,
+      ...localPkg.ikContinuation.records,
+    ]) {
+      const prev = map.get(r.key);
+      if (
+        !prev
+        || r.attempts > prev.attempts
+        || (r.attempts === prev.attempts && r.updatedAt > prev.updatedAt)
+      ) {
+        map.set(r.key, r);
+      }
+    }
+    const updatedAt =
+      localPkg.ikContinuation.updatedAt > cloudPkg.ikContinuation.updatedAt
+        ? localPkg.ikContinuation.updatedAt
+        : cloudPkg.ikContinuation.updatedAt;
+    ikContinuation = {
+      schemaVersion: 1,
+      records: [...map.values()],
+      updatedAt,
+    };
+  }
+
   return {
     ...cloudPkg,
     dwellings,
     // documentToDwelling / mode / expected count stay cloud (structural ownership)
     documentToDwelling: { ...(cloudPkg.documentToDwelling ?? {}) },
+    ...(ikContinuation ? { ikContinuation } : {}),
   };
 }

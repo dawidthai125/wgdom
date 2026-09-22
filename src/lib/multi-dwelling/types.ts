@@ -48,6 +48,43 @@ export type DwellingCostUnit = {
   subtotals: DwellingSubtotals | null;
 };
 
+/**
+ * GO-AUTO-IDENTITY-01 — research/identity continuation sidecar on package wrapper.
+ * OfferBoq schema untouched · audit/retry only (≠ rates / BOM / finance).
+ */
+export type TenderPackageIkContinuation = {
+  schemaVersion: 1;
+  records: Array<{
+    key: string;
+    tenderId: string;
+    dwellingId: string;
+    lineId: string;
+    domain: "identity" | "labor" | "material" | "technology";
+    reasonFingerprint: string;
+    status:
+      | "SCHEDULED"
+      | "EXECUTING"
+      | "EVIDENCE_PERSISTED"
+      | "RESOLVED"
+      | "RETRY_DUE"
+      | "OWNER_EXCEPTION"
+      | "EXHAUSTED";
+    attempts: number;
+    maxAttempts: number;
+    lastOutcome:
+      | "no_change"
+      | "evidence_persisted"
+      | "canonical_mutation_persisted"
+      | "retry_due"
+      | "owner_exception"
+      | null;
+    updatedAt: string;
+    cooldownUntilIso: string | null;
+    notes: string[];
+  }>;
+  updatedAt: string;
+};
+
 export type TenderPackage = {
   tenderId: string;
   expectedDwellingCount: number;
@@ -60,6 +97,8 @@ export type TenderPackage = {
    * Filename / AI = HINT only — never write SSOT dwellingId from filename alone.
    */
   documentToDwelling: Record<string, string>;
+  /** GO-AUTO-IDENTITY-01 — durable continuation sidecar (optional). */
+  ikContinuation?: TenderPackageIkContinuation | null;
 };
 
 export type PackageGateFailReason =

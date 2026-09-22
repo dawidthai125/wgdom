@@ -2,9 +2,10 @@
  * Orchestra ATESD / ATHED technology phase (CONNECT + LIVE FETCH).
  *
  * REUSE: runAutonomousTechnologyEvidenceDiscoveryBatchAsync
- *   → ATHED → ATSS → ATA → in-memory TechnologyPack → AUTO_BOM → AMPED/AUT-MAT probe
+ *   → ATHED → ATSS → ATA → TechnologyPack → registerPack (durable) → AUTO_BOM → AMPED/AUT-MAT probe
  *
- * ZERO second Orchestra · ZERO invent · ZERO cloud TechnologyPack persist · ZERO Finance.
+ * ZERO second Orchestra · ZERO invent · ZERO Finance.
+ * ATA ACCEPT → existing registerPack → upsertTechnologyPackDurable (Catalog First reuse).
  * Input: trusted identity · valid unit · not noise.
  * ATA_BOM_ONLY (ATA-v1.1): ATHED→ATSS→ATA→Pack without OUR RATE.
  * Optional research enrichment still gates on ourRateEligible; financeReady still requires OUR RATE.
@@ -67,8 +68,10 @@ export type IkAtesdTechnologyPhaseResult = {
   liveFetchEnabled: boolean;
   ownerRuntimeDependency: 0;
   microSequencing: false;
+  /** Always false here — no Finance/Payroll/SEED mutation (pack durable is Catalog store). */
   productionMutation: false;
-  technologyPackPersisted: false;
+  /** True when any ATA-accepted pack was written via existing durable TechnologyPack store. */
+  technologyPackPersisted: boolean;
 };
 
 function isNoiseLine(line: OfferBoqLine): boolean {
@@ -304,6 +307,10 @@ export async function runIkAtesdTechnologyPhase(input: {
     else athedNoEvidence += 1;
   }
 
+  const technologyPackPersisted = batch.items.some(
+    (it) => it.technologyPack.persisted === true,
+  );
+
   return {
     schemaVersion: IK_ATESD_TECHNOLOGY_PHASE_SCHEMA_VERSION,
     seamId: IK_ATESD_TECHNOLOGY_PHASE_SEAM_ID,
@@ -333,6 +340,6 @@ export async function runIkAtesdTechnologyPhase(input: {
     ownerRuntimeDependency: 0,
     microSequencing: false,
     productionMutation: false,
-    technologyPackPersisted: false,
+    technologyPackPersisted,
   };
 }

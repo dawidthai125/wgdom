@@ -41,12 +41,59 @@ import {
 import { isOwnerRuntimeDependencyCode } from "@/lib/work-catalog/autonomous-identity-resolution-v2";
 import { registerCapability, seedBaselineCapabilities } from "@/lib/technology-foundation/definition-registry";
 import { registerDefinition } from "@/lib/technology-foundation/technology-definition";
-import { getPack, registerPack } from "@/lib/technology-foundation/pack-registry";
+import { registerPack } from "@/lib/technology-foundation/pack-registry";
+import {
+  loadTechnologyPackDurableStoreLocal,
+} from "@/lib/technology-foundation/technology-pack-store";
 import type { TechnologyPack } from "@/lib/technology-foundation/types";
 import type { KnrCatalogStore } from "@/lib/intelligent-estimator/knr-knowledge/knr-catalog-store";
 import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 
 export const AUTONOMOUS_TECHNOLOGY_EVIDENCE_DISCOVERY_VERSION = "ATESD-v1.1" as const;
+
+/** True when packId@@packVersion is present in the existing durable TechnologyPack store. */
+export function isTechnologyPackInDurableStore(
+  packId: string,
+  packVersion: string,
+): boolean {
+  const id = String(packId || "").trim();
+  const ver = String(packVersion || "").trim();
+  if (!id || !ver) return false;
+  return loadTechnologyPackDurableStoreLocal().packs.some(
+    (p) => p.packId === id && p.packVersion === ver,
+  );
+}
+
+/**
+ * ATA ACCEPT → existing registerPack seam (memory + upsertTechnologyPackDurable).
+ * Dry-run callers pass persist=false (registerAcceptedPackInMemory=false).
+ *
+ * GO-AUTO-IDENTITY-01: explicit status — AUTO_BOM may use pack only when `persisted`.
+ */
+export type TechnologyPackPersistStatus = "persisted" | "failed" | "pending";
+
+export function persistAcceptedTechnologyPackViaRegisterSeam(
+  pack: TechnologyPack,
+): {
+  status: TechnologyPackPersistStatus;
+  persisted: boolean;
+  pack: TechnologyPack;
+} {
+  try {
+    const registered = registerPack(pack);
+    const ok = isTechnologyPackInDurableStore(
+      registered.packId,
+      registered.packVersion,
+    );
+    return {
+      status: ok ? "persisted" : "failed",
+      persisted: ok,
+      pack: registered,
+    };
+  } catch {
+    return { status: "failed", persisted: false, pack };
+  }
+}
 
 export type AtesdLeafInput = {
   catalogWorkId: string;
@@ -98,7 +145,10 @@ export type AtesdItemResult = {
     built: boolean;
     packId: string | null;
     packVersion: string | null;
-    persisted: false;
+    /** True after ATA ACCEPT + existing registerPack → durable upsert confirmed. */
+    persisted: boolean;
+    /** GO-AUTO-IDENTITY-01 — explicit writer status (AUTO_BOM requires persisted). */
+    persistStatus: "persisted" | "failed" | "pending" | "skipped";
   };
   autoBom: {
     decision: string;
@@ -177,7 +227,11 @@ export function runAutonomousTechnologyEvidenceDiscoveryItem(input: {
   knrCatalogStore?: KnrCatalogStore | null;
   nowMs?: number;
   tenderId?: string;
-  /** Dry-run: register accepted pack into in-memory registry for AUTO_BOM probe. */
+  /**
+   * When true (default for Orchestra), ATA ACCEPT → registerPack
+   * (in-memory + existing durable upsertTechnologyPackDurable).
+   * Dry-run / BOM-resolution probes may set false (no durable write).
+   */
   registerAcceptedPackInMemory?: boolean;
   /** Optional ATHED result (from async path) — injects HARD materials into ATSS. */
   athedResult?: RunAthedResult | null;
@@ -313,10 +367,13 @@ export function runAutonomousTechnologyEvidenceDiscoveryItem(input: {
 
   let accept: AutonomousTechnologyAcceptResult | null = null;
   let packBuilt = false;
+  let packPersisted = false;
+  let packPersistStatus: "persisted" | "failed" | "pending" | "skipped" = "skipped";
   let packId: string | null = null;
   let packVersion: string | null = null;
 
   // ATA_BOM_ONLY (ATA-v1.1): OUR RATE must NOT gate technology accept / pack build.
+  // Canonical persist only after ATA ACCEPT + mayBuildActivePack (never raw research).
   if (candidate && packsHit.length === 0 && !laborOnly) {
     accept = evaluateAutonomousTechnologyAcceptContract({
       candidate,
@@ -335,13 +392,27 @@ export function runAutonomousTechnologyEvidenceDiscoveryItem(input: {
         packId = pack.packId;
         packVersion = pack.packVersion;
         packs = [...packs.filter((p) => !(p.packId === pack.packId && p.packVersion === pack.packVersion)), pack];
-        if (input.registerAcceptedPackInMemory) {
-          if (!getPack(pack.packId, pack.packVersion)) {
-            try {
-              registerPack(pack);
-            } catch {
-              /* immutable clash — keep run-scoped */
-            }
+        // Default true when flag omitted (Orchestra CONNECT); false = dry-run only.
+        if (input.registerAcceptedPackInMemory !== false) {
+          packPersistStatus = "pending";
+          try {
+            const seam = persistAcceptedTechnologyPackViaRegisterSeam(pack);
+            packId = seam.pack.packId;
+            packVersion = seam.pack.packVersion;
+            packPersisted = seam.persisted;
+            packPersistStatus = seam.status;
+            packs = [
+              ...packs.filter(
+                (p) =>
+                  !(p.packId === seam.pack.packId
+                    && p.packVersion === seam.pack.packVersion),
+              ),
+              seam.pack,
+            ];
+          } catch {
+            /* keep run-scoped pack; persisted stays false */
+            packPersisted = false;
+            packPersistStatus = "failed";
           }
         }
         upsertTechnologyEvidenceKnowledge({
@@ -361,6 +432,8 @@ export function runAutonomousTechnologyEvidenceDiscoveryItem(input: {
             packId: pack.packId,
             packVersion: pack.packVersion,
             materials: candidate.materials,
+            durablePersisted: packPersisted,
+            persistStatus: packPersistStatus,
           },
           invent: false,
         });
@@ -377,9 +450,17 @@ export function runAutonomousTechnologyEvidenceDiscoveryItem(input: {
     isNoise: false,
     description: it.description,
   };
+  // GO-AUTO-IDENTITY-01: AUTO_BOM may consume a newly built pack ONLY after durable persist.
+  // Catalog First packsHit (already durable) remain eligible. Failed persist → exclude ephemeral pack.
+  let packsForBom = packs;
+  if (packBuilt && packId && packVersion && !packPersisted) {
+    packsForBom = packs.filter(
+      (p) => !(p.packId === packId && p.packVersion === packVersion),
+    );
+  }
   const bom = evaluateAutoBomContract({
     line: line as never,
-    packs,
+    packs: packsForBom,
     nowMs,
     requireTrustedIdentity: true,
     discoveryStore,
@@ -538,7 +619,22 @@ export function runAutonomousTechnologyEvidenceDiscoveryItem(input: {
         built: packBuilt,
         packId: packId || packsHit[0]?.packId || null,
         packVersion: packVersion || packsHit[0]?.packVersion || null,
-        persisted: false,
+        // Existing ACTIVE Catalog First hit is already durable knowledge (reuse).
+        persisted:
+          packPersisted
+          || (packsHit.length === 1
+            && isTechnologyPackInDurableStore(
+              packsHit[0]!.packId,
+              packsHit[0]!.packVersion,
+            )),
+        persistStatus:
+          packsHit.length === 1
+          && isTechnologyPackInDurableStore(
+            packsHit[0]!.packId,
+            packsHit[0]!.packVersion,
+          )
+            ? "persisted"
+            : packPersistStatus,
       },
       autoBom: {
         decision: bom.decision,

@@ -113,6 +113,17 @@ import {
 } from "./ik-owner-gate-actions";
 import { acceptIkMaterialResearchCandidate } from "@/lib/intelligent-estimator/ik-material-expert";
 import { acceptIkLaborResearchAndNotifyIdempotent } from "@/lib/ik-pricing-orchestrator/labor-research-bridge";
+import { runAutonomousIdentityWritebackFromCompoundPhase } from "./ik-autonomous-identity-writeback";
+import {
+  scheduleManyIkContinuations,
+  planIkContinuationResearchArm,
+  loadIkContinuationFromPackage,
+  applyIkContinuationExecutorOutcome,
+  upsertIkContinuationRecord,
+  persistIkContinuationOnPackage,
+  resolveContinuationRefreshPhase,
+  type IkContinuationExecutorOutcome,
+} from "./ik-research-continuation";
 
 export function useIkOrchestra({
   item,
@@ -199,6 +210,12 @@ export function useIkOrchestra({
   const persistAttemptKeyRef = useRef<string | null>(null);
   const f5EvalAttemptKeyRef = useRef<string | null>(null);
   const f5OiRefreshKeyRef = useRef<string | null>(null);
+  /** GO-AUTO-IDENTITY-01 — AID writeback attempt latch (per compound fingerprint). */
+  const autonomousIdentityWritebackKeyRef = useRef<string | null>(null);
+  /** GO-AUTO-IDENTITY-01 — ATESD pack persist → material refresh latch. */
+  const atesdPackRefreshKeyRef = useRef<string | null>(null);
+  /** GO-AUTO-IDENTITY-01 — research continuation arm latch. */
+  const researchContinuationArmKeyRef = useRef<string | null>(null);
 
   const p2RunGenerationRef = useRef(0);
   const p2BusyOwnerGenRef = useRef<number | null>(null);
@@ -407,6 +424,7 @@ export function useIkOrchestra({
     postIdentityExpert,
     identityContext,
     classification,
+    compoundIdentityPhase,
     identityCoverage,
     positionCostBid: syncPositionCostBid,
     riskDecision: syncRiskDecision,
@@ -996,6 +1014,121 @@ export function useIkOrchestra({
     },
     [bumpOrchestraAfterPricingAccept],
   );
+
+  /**
+   * GO-AUTO-IDENTITY-01 — AID/AIR trusted → OfferBoq writeback → catalog_accept refresh.
+   * CONFLICT / wrong unit → OWNER_EXCEPTION (no write). NEED_RESEARCH → continuation sidecar.
+   */
+  useEffect(() => {
+    if (!compoundIdentityPhase) return;
+    if (compoundIdentityPhase.status !== "ready" && compoundIdentityPhase.status !== "partial") {
+      return;
+    }
+    const tid = String(effectiveItem.id || effectiveItem.tenderId || "").trim();
+    if (!tid || !pkg) return;
+    const fp = [
+      tid,
+      compoundIdentityPhase.parentCount,
+      compoundIdentityPhase.trustedCount,
+      compoundIdentityPhase.unresolvedCount,
+      compoundIdentityPhase.reasons.slice(0, 8).join("|"),
+    ].join("::");
+    if (autonomousIdentityWritebackKeyRef.current === fp) return;
+    autonomousIdentityWritebackKeyRef.current = fp;
+
+    const wb = runAutonomousIdentityWritebackFromCompoundPhase({
+      tenderId: tid,
+      package: pkg,
+      compoundIdentity: compoundIdentityPhase,
+    });
+
+    if (wb.researchContinuationLineIds.length > 0) {
+      scheduleManyIkContinuations({
+        tenderId: tid,
+        package: pkg,
+        lineIds: wb.researchContinuationLineIds,
+        domain: "identity",
+        reasonFingerprint: "aid_need_research",
+      });
+      setPkgEpoch((n) => n + 1);
+    }
+
+    if (wb.canonicalMutationPersisted) {
+      setIdentityPersistOutcome(wb.persistOutcome);
+      setPkgEpoch((n) => n + 1);
+      refreshPhase("catalog_accept");
+    }
+  }, [compoundIdentityPhase, effectiveItem, pkg, refreshPhase]);
+
+  /**
+   * GO-AUTO-IDENTITY-01 — TechnologyPack durable persist → material_accept refresh (G2/P7).
+   * Only when technologyPackPersisted === true (explicit durable confirm).
+   */
+  useEffect(() => {
+    if (!atesdTechnology || atesdTechnology.status !== "ok") return;
+    if (atesdTechnology.technologyPackPersisted !== true) return;
+    const key = [
+      effectiveItem.id,
+      atesdTechnology.evaluatedAtIso,
+      atesdTechnology.counts.technologyPackBuilt,
+      "pack_persisted",
+    ].join("|");
+    if (atesdPackRefreshKeyRef.current === key) return;
+    atesdPackRefreshKeyRef.current = key;
+    refreshPhase("material_accept");
+  }, [atesdTechnology, effectiveItem.id, refreshPhase]);
+
+  /**
+   * GO-AUTO-IDENTITY-01 — after labor settles with candidate/evidence, advance continuation.
+   * Refresh ONLY on canonical_mutation_persisted (AUT-R1 already uses ownerGate refresh).
+   */
+  useEffect(() => {
+    if (!labor || labor.status !== "ready") return;
+    const tid = String(effectiveItem.id || "").trim();
+    if (!tid) return;
+    const pkgNow = getTenderPackage(tid);
+    if (!pkgNow) return;
+    let sidecar = loadIkContinuationFromPackage(pkgNow);
+    let changed = false;
+    let refreshKind: ReturnType<typeof resolveContinuationRefreshPhase> = null;
+
+    for (const line of labor.lines ?? []) {
+      const rec = sidecar.records.find(
+        (r) => r.lineId === line.lineId && r.domain === "labor" && r.tenderId === tid,
+      );
+      if (!rec) continue;
+      if (rec.status === "RESOLVED" || rec.status === "OWNER_EXCEPTION" || rec.status === "EXHAUSTED") {
+        continue;
+      }
+      let outcome: IkContinuationExecutorOutcome = "no_change";
+      if (line.rateStatus === "CURRENT_HIT" || line.rateStatus === "INTERNAL_EXACT_HIT") {
+        outcome = "canonical_mutation_persisted";
+      } else if (line.candidate != null) {
+        outcome = "evidence_persisted";
+      } else if (
+        line.rateStatus === "MISS"
+        || line.rateStatus === "STALE_TREATED_AS_MISS"
+        || line.rateStatus === "RESEARCH_PENDING"
+      ) {
+        outcome = "retry_due";
+      }
+      const advanced = applyIkContinuationExecutorOutcome(rec, outcome);
+      if (advanced.status !== rec.status || advanced.attempts !== rec.attempts) {
+        sidecar = upsertIkContinuationRecord(sidecar, advanced);
+        changed = true;
+        const kind = resolveContinuationRefreshPhase("labor", outcome);
+        if (kind) refreshKind = kind;
+      }
+    }
+
+    if (changed) {
+      persistIkContinuationOnPackage({ tenderId: tid, package: pkgNow, sidecar });
+      setPkgEpoch((n) => n + 1);
+    }
+    if (refreshKind) {
+      refreshPhase(refreshKind);
+    }
+  }, [labor, effectiveItem.id, refreshPhase]);
 
   const chiefMaterialAvailable = chiefSession != null;
 

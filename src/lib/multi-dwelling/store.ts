@@ -83,6 +83,10 @@ function normalizePackage(raw: unknown): TenderPackage | null {
       if (d) documentToDwelling[d] = v;
     }
   }
+  const ikContinuation =
+    p.ikContinuation && typeof p.ikContinuation === "object"
+      ? (p.ikContinuation as TenderPackage["ikContinuation"])
+      : null;
   return {
     tenderId,
     expectedDwellingCount: expected,
@@ -92,6 +96,7 @@ function normalizePackage(raw: unknown): TenderPackage | null {
       ? { labelPl: p.labelPl.trim() }
       : {}),
     documentToDwelling,
+    ...(ikContinuation ? { ikContinuation } : {}),
   };
 }
 

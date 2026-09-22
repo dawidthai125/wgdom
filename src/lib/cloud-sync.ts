@@ -220,6 +220,12 @@ import {
   normalizeTechnologyPackDurableStore,
 } from "@/lib/technology-foundation";
 import {
+  TECHNOLOGY_EVIDENCE_KNOWLEDGE_STORAGE_KEY,
+  emptyTechnologyEvidenceKnowledgeStore,
+  mergeTechnologyEvidenceKnowledgeStore,
+  normalizeTechnologyEvidenceKnowledgeStore,
+} from "@/lib/intelligent-estimator/technology-evidence-knowledge";
+import {
   LABOR_SOURCE_DISCOVERY_STORAGE_KEY,
   emptyLaborSourceDiscoveryStore,
   mergeLaborSourceDiscoveryDataKey,
@@ -340,6 +346,8 @@ export const DATA_KEYS = [
   "kw-work-rate-research-cooldown",
   /** IK Full Autonomy GO#1 — TechnologyPack durable (≠ prices). */
   "kw-technology-packs",
+  /** GO-AUTO-IDENTITY-01 — Technology Evidence Knowledge durable (≠ pack/BOM invent). */
+  "kw-technology-evidence-knowledge",
   /** IK Full Autonomy GO#3 — IdentityCandidate durable OWNER_REVIEW+ (≠ CatalogWork). */
   "kw-identity-candidates",
   /** IK Full Autonomy GO#4 — multi-dwelling package + OfferBoq attestations. */
@@ -382,6 +390,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-wgdom-material-source-evidence",
   "kw-work-rate-research-cooldown",
   "kw-technology-packs",
+  "kw-technology-evidence-knowledge",
   "kw-identity-candidates",
   "kw-multi-dwelling-package-v1",
   "kw-offer-boq-company-knowledge",
@@ -3159,6 +3168,8 @@ export function mergeDataKey(
       return mergeWorkRateResearchCooldownDataKey(local, cloud);
     case "kw-technology-packs":
       return mergeTechnologyPackDataKey(local, cloud);
+    case "kw-technology-evidence-knowledge":
+      return mergeTechnologyEvidenceKnowledgeStore(local, cloud);
     case "kw-identity-candidates":
       return mergeIdentityCandidateDataKey(local, cloud);
     case "kw-multi-dwelling-package-v1":
@@ -3720,6 +3731,12 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return emptyTechnologyPackDurableStore();
   }
+  if (
+    key === TECHNOLOGY_EVIDENCE_KNOWLEDGE_STORAGE_KEY
+    || key === "kw-technology-evidence-knowledge"
+  ) {
+    return emptyTechnologyEvidenceKnowledgeStore();
+  }
   if (key === IDENTITY_CANDIDATE_STORAGE_KEY || key === "kw-identity-candidates") {
     return emptyIdentityCandidateDurableStore();
   }
@@ -3781,6 +3798,12 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   }
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return normalizeTechnologyPackDurableStore(coerced);
+  }
+  if (
+    key === TECHNOLOGY_EVIDENCE_KNOWLEDGE_STORAGE_KEY
+    || key === "kw-technology-evidence-knowledge"
+  ) {
+    return normalizeTechnologyEvidenceKnowledgeStore(coerced);
   }
   if (key === IDENTITY_CANDIDATE_STORAGE_KEY || key === "kw-identity-candidates") {
     return normalizeIdentityCandidateDurableStore(coerced);
