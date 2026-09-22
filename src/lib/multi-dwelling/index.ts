@@ -56,6 +56,7 @@ export {
   mergeTenderPackageOnScoreTie,
   scoreTenderPackageRichness,
   isCanonicalLaborLeafWorkId,
+  isIdentityUpgradeEligibleLeafWorkId,
   isLegacyOrNonCanonicalWorkId,
 } from "@/lib/multi-dwelling/canonical-identity-upgrade-merge";
 

@@ -4,11 +4,18 @@
  * Pure · no storage · no network · no mutation of inputs.
  * Recognizes IdentityPhase persistence deltas (auto_contract + cw.knr.*) —
  * does NOT re-run CLLR / canonical rebind evaluation.
+ *
+ * OWNER_RC1_VERIFY_CONNECT_LEAF_UPGRADE_v1 — additive fail-closed class for
+ * exactly two Owner-approved RC1 VERIFY_CONNECT leaves (≠ generic p2b).
  */
 
 import type { OfferBoqDocument, OfferBoqLine } from "@/lib/tender-offer-boq";
 import type { DwellingCostUnit, TenderPackage } from "@/lib/multi-dwelling/types";
 import { normalizeDwellingId } from "@/lib/multi-dwelling/constants";
+import {
+  hasOwnerRc1VerifyConnectAttestation,
+  isOwnerRc1VerifyConnectLeafWorkId,
+} from "@/lib/work-catalog/owner-rc1-verify-connect-contract";
 
 export type CanonicalIdentityUpgradeDecision =
   | "ACCEPT_CANONICAL_IDENTITY_UPGRADE"
@@ -102,11 +109,24 @@ export function isCanonicalLaborLeafWorkId(workId: string | null | undefined): b
   return /^cw\.knr\./i.test(id);
 }
 
+/**
+ * Leaves eligible for score-tie identity upgrade ACCEPT:
+ * existing cw.knr.* OR Owner RC1 VERIFY_CONNECT allowlist (exactly 2 workIds).
+ */
+export function isIdentityUpgradeEligibleLeafWorkId(
+  workId: string | null | undefined,
+): boolean {
+  return (
+    isCanonicalLaborLeafWorkId(workId)
+    || isOwnerRc1VerifyConnectLeafWorkId(workId)
+  );
+}
+
 export function isLegacyOrNonCanonicalWorkId(workId: string | null | undefined): boolean {
   const id = String(workId ?? "").trim();
   if (!id) return true;
   if (/^legacy-/i.test(id)) return true;
-  return !isCanonicalLaborLeafWorkId(id);
+  return !isIdentityUpgradeEligibleLeafWorkId(id);
 }
 
 function hasCanonicalRebindAttestation(line: OfferBoqLine): boolean {
@@ -196,7 +216,10 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
   const localWid = String(local.catalogWorkId || "").trim();
   const cloudWid = String(cloud.catalogWorkId || "").trim();
 
-  if (!isCanonicalLaborLeafWorkId(localWid)) {
+  const localIsCwKnr = isCanonicalLaborLeafWorkId(localWid);
+  const localIsRc1Connect = isOwnerRc1VerifyConnectLeafWorkId(localWid);
+
+  if (!localIsCwKnr && !localIsRc1Connect) {
     return {
       decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
       reasons: ["LOCAL_NOT_CANONICAL_LEAF"],
@@ -207,13 +230,6 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
     return {
       decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
       reasons: ["LOCAL_MATCH_METHOD_NOT_AUTO_CONTRACT"],
-    };
-  }
-
-  if (!hasCanonicalRebindAttestation(local)) {
-    return {
-      decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
-      reasons: ["MISSING_CANONICAL_REBIND_ATTESTATION"],
     };
   }
 
@@ -231,8 +247,29 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
     };
   }
 
-  // Never downgrade an already-canonical cloud identity to a different leaf
-  if (isCanonicalLaborLeafWorkId(cloudWid) && cloudWid !== localWid) {
+  if (localIsRc1Connect) {
+    if (
+      !hasOwnerRc1VerifyConnectAttestation({
+        leafWorkId: localWid,
+        matchMethod: local.matchMethod,
+        matchedBy: local.matchedBy,
+        aiRationale: local.aiRationale,
+      })
+    ) {
+      return {
+        decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
+        reasons: ["MISSING_OWNER_RC1_VERIFY_CONNECT_ATTESTATION"],
+      };
+    }
+  } else if (!hasCanonicalRebindAttestation(local)) {
+    return {
+      decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
+      reasons: ["MISSING_CANONICAL_REBIND_ATTESTATION"],
+    };
+  }
+
+  // Never downgrade / overwrite an already-eligible cloud leaf to a different leaf
+  if (isIdentityUpgradeEligibleLeafWorkId(cloudWid) && cloudWid !== localWid) {
     return {
       decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
       reasons: ["NO_DOWNGRADE_OR_OVERWRITE_CANONICAL_CLOUD"],
@@ -247,7 +284,7 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
     };
   }
 
-  // Already canonical identical — KEEP
+  // Already eligible identical — KEEP
   if (cloudWid === localWid && String(cloud.matchMethod) === AUTO_CONTRACT) {
     return {
       decision: "KEEP_CLOUD",
@@ -257,9 +294,14 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
 
   reasons.push("SAME_LOGICAL_LINE");
   reasons.push("NON_IDENTITY_FIELDS_IDENTICAL");
-  reasons.push("LOCAL_CANONICAL_LEAF");
+  if (localIsRc1Connect) {
+    reasons.push("LOCAL_OWNER_RC1_VERIFY_CONNECT_LEAF");
+    reasons.push("OWNER_RC1_VERIFY_CONNECT_ATTESTATION");
+  } else {
+    reasons.push("LOCAL_CANONICAL_LEAF");
+    reasons.push("CANONICAL_REBIND_ATTESTATION");
+  }
   reasons.push("LOCAL_AUTO_CONTRACT");
-  reasons.push("CANONICAL_REBIND_ATTESTATION");
   reasons.push("MONOTONIC_LEGACY_TO_CANONICAL");
   reasons.push("0815_05_SAFE");
   reasons.push("NO_RATE_OR_BOM_MUTATION");

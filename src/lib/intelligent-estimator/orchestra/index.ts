@@ -148,6 +148,14 @@ export type {
   IdentityAutonomyState,
 } from "./ik-autonomous-identity-writeback";
 export {
+  applyOwnerRc1VerifyConnectIdentityToLine,
+  OWNER_RC1_VERIFY_CONNECT_APPLY_VERSION,
+} from "./owner-rc1-verify-connect-apply";
+export type {
+  OwnerRc1VerifyConnectApplyDecision,
+  OwnerRc1VerifyConnectApplyResult,
+} from "./owner-rc1-verify-connect-apply";
+export {
   scheduleIkContinuation,
   scheduleManyIkContinuations,
   applyIkContinuationExecutorOutcome,
