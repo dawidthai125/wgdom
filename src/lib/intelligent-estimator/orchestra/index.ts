@@ -156,6 +156,14 @@ export type {
   OwnerRc1VerifyConnectApplyResult,
 } from "./owner-rc1-verify-connect-apply";
 export {
+  applyOwnerRc1CreateCandidateIdentityToLine,
+  OWNER_RC1_CREATE_CANDIDATE_APPLY_VERSION,
+} from "./owner-rc1-create-candidate-apply";
+export type {
+  OwnerRc1CreateCandidateApplyDecision,
+  OwnerRc1CreateCandidateApplyResult,
+} from "./owner-rc1-create-candidate-apply";
+export {
   scheduleIkContinuation,
   scheduleManyIkContinuations,
   applyIkContinuationExecutorOutcome,

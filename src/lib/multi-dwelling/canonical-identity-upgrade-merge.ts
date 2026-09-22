@@ -7,6 +7,9 @@
  *
  * OWNER_RC1_VERIFY_CONNECT_LEAF_UPGRADE_v1 — additive fail-closed class for
  * exactly two Owner-approved RC1 VERIFY_CONNECT leaves (≠ generic p2b).
+ *
+ * OWNER_RC1_CREATE_CANDIDATE_LEAF_UPGRADE_v1 — additive fail-closed class for
+ * exactly one Owner-approved RC1 CREATE_CANDIDATE leaf (≠ generic knr-wc / ≠ CONNECT).
  */
 
 import type { OfferBoqDocument, OfferBoqLine } from "@/lib/tender-offer-boq";
@@ -16,6 +19,10 @@ import {
   hasOwnerRc1VerifyConnectAttestation,
   isOwnerRc1VerifyConnectLeafWorkId,
 } from "@/lib/work-catalog/owner-rc1-verify-connect-contract";
+import {
+  hasOwnerRc1CreateCandidateAttestation,
+  isOwnerRc1CreateCandidateLeafWorkId,
+} from "@/lib/work-catalog/owner-rc1-create-candidate-contract";
 
 export type CanonicalIdentityUpgradeDecision =
   | "ACCEPT_CANONICAL_IDENTITY_UPGRADE"
@@ -111,7 +118,10 @@ export function isCanonicalLaborLeafWorkId(workId: string | null | undefined): b
 
 /**
  * Leaves eligible for score-tie identity upgrade ACCEPT:
- * existing cw.knr.* OR Owner RC1 VERIFY_CONNECT allowlist (exactly 2 workIds).
+ * existing cw.knr.*
+ * OR Owner RC1 VERIFY_CONNECT allowlist (exactly 2 workIds)
+ * OR Owner RC1 CREATE_CANDIDATE allowlist (exactly 1 workId — 0504-07).
+ * Does NOT widen /^knr-wc-/ · does NOT invent global CREATE class.
  */
 export function isIdentityUpgradeEligibleLeafWorkId(
   workId: string | null | undefined,
@@ -119,6 +129,7 @@ export function isIdentityUpgradeEligibleLeafWorkId(
   return (
     isCanonicalLaborLeafWorkId(workId)
     || isOwnerRc1VerifyConnectLeafWorkId(workId)
+    || isOwnerRc1CreateCandidateLeafWorkId(workId)
   );
 }
 
@@ -218,8 +229,9 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
 
   const localIsCwKnr = isCanonicalLaborLeafWorkId(localWid);
   const localIsRc1Connect = isOwnerRc1VerifyConnectLeafWorkId(localWid);
+  const localIsRc1Create = isOwnerRc1CreateCandidateLeafWorkId(localWid);
 
-  if (!localIsCwKnr && !localIsRc1Connect) {
+  if (!localIsCwKnr && !localIsRc1Connect && !localIsRc1Create) {
     return {
       decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
       reasons: ["LOCAL_NOT_CANONICAL_LEAF"],
@@ -247,7 +259,21 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
     };
   }
 
-  if (localIsRc1Connect) {
+  if (localIsRc1Create) {
+    if (
+      !hasOwnerRc1CreateCandidateAttestation({
+        leafWorkId: localWid,
+        matchMethod: local.matchMethod,
+        matchedBy: local.matchedBy,
+        aiRationale: local.aiRationale,
+      })
+    ) {
+      return {
+        decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
+        reasons: ["MISSING_OWNER_RC1_CREATE_CANDIDATE_ATTESTATION"],
+      };
+    }
+  } else if (localIsRc1Connect) {
     if (
       !hasOwnerRc1VerifyConnectAttestation({
         leafWorkId: localWid,
@@ -294,7 +320,10 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
 
   reasons.push("SAME_LOGICAL_LINE");
   reasons.push("NON_IDENTITY_FIELDS_IDENTICAL");
-  if (localIsRc1Connect) {
+  if (localIsRc1Create) {
+    reasons.push("LOCAL_OWNER_RC1_CREATE_CANDIDATE_LEAF");
+    reasons.push("OWNER_RC1_CREATE_CANDIDATE_ATTESTATION");
+  } else if (localIsRc1Connect) {
     reasons.push("LOCAL_OWNER_RC1_VERIFY_CONNECT_LEAF");
     reasons.push("OWNER_RC1_VERIFY_CONNECT_ATTESTATION");
   } else {

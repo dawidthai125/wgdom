@@ -296,9 +296,26 @@ for (const [field, value, label] of [
   );
 }
 
-// ── NEGATIVE 14–16: CREATE leaves ────────────────────────────────
+// ── NEGATIVE 14–16: other CREATE / OPEN leaves (0504-07 → CREATE class; CONNECT attest still REJECT) ──
+{
+  const cloud = baseLine();
+  const local = applyAutonomousIdentityLeafToLine(cloud, {
+    leafWorkId: MOPS_ELEC_RC1_0504_07_WORK_ID,
+    parentWorkId: PARENT,
+    reasons: [
+      OWNER_RC1_VERIFY_CONNECT_ATTESTATION,
+      formatOwnerRc1VerifyConnectMappingIdToken(MAP_0407),
+    ],
+  });
+  const r = evaluateCanonicalIdentityUpgradeMerge({ cloudLine: cloud, localLine: local });
+  assert(r.decision === "REJECT_UNSAFE_IDENTITY_UPGRADE", "N CREATE 0504-07 with CONNECT attest REJECT");
+  assert(
+    (r.reasons || []).includes("MISSING_OWNER_RC1_CREATE_CANDIDATE_ATTESTATION")
+      || (r.reasons || []).includes("LOCAL_NOT_CANONICAL_LEAF"),
+    "N 0504-07 requires CREATE attestation (not CONNECT)",
+  );
+}
 for (const [leaf, label] of [
-  [MOPS_ELEC_RC1_0504_07_WORK_ID, "0504-07"],
   [MOPS_ELEC_RC1_0501_03_WORK_ID, "0501-03"],
   ["p2b-demontaz-baterii-armatury-szt", "OPEN/other p2b"],
 ]) {
