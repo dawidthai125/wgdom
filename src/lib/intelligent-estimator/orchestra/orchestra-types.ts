@@ -237,4 +237,8 @@ export type IkOrchestraSnapshot = IkOrchestraSyncSnapshot & {
   refreshPhase: (kind?: IkOrchestraRefreshPhaseKind) => void;
   /** A08-P3 — Owner Gate G1/G2 actions. */
   ownerGate: IkOwnerGateApi;
+  /** FTO — Full Tender Walk ledger projection (audit · not business SSOT). */
+  fullTenderWalk: import("@/lib/intelligent-estimator/full-tender-walk").RunFullTenderWalkResult | null;
+  /** FTO — readiness projection (reuses isIkReadyToBid). */
+  readinessProjection: import("@/lib/intelligent-estimator/full-tender-walk").IkReadinessProjection | null;
 };

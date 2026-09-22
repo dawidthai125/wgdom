@@ -698,3 +698,26 @@ export type {
   IkG3BuildInput,
   IkG3PersistResult,
 } from "./ik-g3-final-bid";
+
+/** IK-FTO-01 — Full-Tender Walk coordination layer (≠ second pricing/research/cost engine). */
+export {
+  isIkFullTenderWalkEnabled,
+  runFullTenderWalk,
+  projectIkReadiness,
+  projectLineWalkState,
+  scheduleLineResearch,
+  researchCtaIsNotExecution,
+  buildAthClassificationKpi,
+  buildIkAnalysisCompletenessKpi,
+  resolveIkG3UiSourceLabel,
+  formatIkG3FinalBidStatusIsolatedPl,
+  getTenderWalkLedger,
+  upsertTenderWalkLedger,
+  IK_FULL_TENDER_WALK_LEDGER_KEY,
+} from "./full-tender-walk";
+export type {
+  IkFullWalkTenderLedger,
+  IkReadinessProjection,
+  IkResearchWalkOutcome,
+  RunFullTenderWalkResult,
+} from "./full-tender-walk";

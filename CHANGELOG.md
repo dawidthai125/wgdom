@@ -1,5 +1,12 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.234 — IK-FTO-01 Full Tender Walk (Land + Orchestra CONNECT) (2026-09-22)
+
+- Land `full-tender-walk/**` — coordination/audit/completeness ledger (≠ Cost / Finance / Research SSOT)
+- Cloud `kw-ik-full-tender-walk-ledger` + Orchestra CONNECT: `runFullTenderWalk` · `researchShouldExecuteLineIds` → existing `ikContinuation` + P5/P6 arm · `readinessProjection` reuses `isIkReadyToBid`
+- Minimal P7 `positionComplete` → walk · LINE HOLD ≠ TENDER STOP · GO-AUTO continuation preserved
+- Tests: `test-ik-fto-full-tender-walk.mjs` · `test-ik-fto-golden-e2e-chrobrego.mjs` · Equipment/Transport/Waste HOLD · Finance/G3 intact
+
 ## 2.66.233 — IK GO-AUTO-IDENTITY-01 (writeback · continuation · pack persist) (2026-09-22)
 
 - AID/AIR `mayPersistTrustedIdentity` → OfferBoq writeback via `runGatedIdentityPersist` (`auto_contract`) · CONFLICT/wrong unit = OWNER_EXCEPTION (bez auto-rozstrzygania konfliktu)

@@ -13,6 +13,22 @@ export const CHANGELOG: ChangelogRelease[] = [
 
   {
     date: "2026-09-22",
+    version: "2.66.234",
+    label: "IK — IK-FTO-01 Full Tender Walk (Land + Orchestra CONNECT)",
+    items: [
+      {
+        type: "new",
+        text: "IK-FTO-01: Full Tender Walk jako warstwa COORDINATION/AUDIT/COMPLETENESS (nie Cost/Finance/Research SSOT). Ledger kw-ik-full-tender-walk-ledger (persist + cloud merge). Orchestra: runFullTenderWalk · researchShouldExecuteLineIds → ikContinuation + P5/P6 arm · readinessProjection reuses isIkReadyToBid. Test: test-ik-fto-full-tender-walk.mjs · test-ik-fto-golden-e2e-chrobrego.mjs.",
+      },
+      {
+        type: "improve",
+        text: "CONNECT: P7 shadow positionComplete → walk ledger · LINE HOLD ≠ TENDER STOP · GO-AUTO continuation zachowane. Equipment/Transport/Waste = HOLD. Finance Gate / G3 / AUTO-G1 / OD-FTO UI poza scope.",
+      },
+    ],
+  },
+
+  {
+    date: "2026-09-22",
     version: "2.66.233",
     label: "IK — GO-AUTO-IDENTITY-01 (writeback · research continuation · pack persist)",
     items: [

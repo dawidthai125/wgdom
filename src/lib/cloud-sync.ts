@@ -244,6 +244,12 @@ import {
   normalizeWorkRateResearchCooldownStore,
 } from "@/lib/work-catalog/work-rate-research-cooldown";
 import {
+  IK_FULL_TENDER_WALK_LEDGER_KEY,
+  emptyIkFullWalkLedgerStoreForPersist,
+  mergeIkFullWalkLedgerDataKey,
+  normalizeIkFullWalkLedgerStore,
+} from "@/lib/intelligent-estimator/full-tender-walk/ledger-store";
+import {
   IDENTITY_CANDIDATE_STORAGE_KEY,
   emptyIdentityCandidateDurableStore,
   mergeIdentityCandidateDataKey,
@@ -344,6 +350,8 @@ export const DATA_KEYS = [
   "kw-wgdom-material-source-evidence",
   /** IK Full Autonomy GO#8 — work-rate research cooldown durable TTL. */
   "kw-work-rate-research-cooldown",
+  /** FTO — Full Tender Walk execution/audit ledger (≠ rates/BOM/finance). */
+  "kw-ik-full-tender-walk-ledger",
   /** IK Full Autonomy GO#1 — TechnologyPack durable (≠ prices). */
   "kw-technology-packs",
   /** GO-AUTO-IDENTITY-01 — Technology Evidence Knowledge durable (≠ pack/BOM invent). */
@@ -389,6 +397,7 @@ export const BOOTSTRAP_DEFERRED_KEYS = [
   "kw-labor-source-discovery",
   "kw-wgdom-material-source-evidence",
   "kw-work-rate-research-cooldown",
+  "kw-ik-full-tender-walk-ledger",
   "kw-technology-packs",
   "kw-technology-evidence-knowledge",
   "kw-identity-candidates",
@@ -3166,6 +3175,8 @@ export function mergeDataKey(
       return mergeMaterialSourceEvidenceDataKey(local, cloud);
     case "kw-work-rate-research-cooldown":
       return mergeWorkRateResearchCooldownDataKey(local, cloud);
+    case "kw-ik-full-tender-walk-ledger":
+      return mergeIkFullWalkLedgerDataKey(local, cloud);
     case "kw-technology-packs":
       return mergeTechnologyPackDataKey(local, cloud);
     case "kw-technology-evidence-knowledge":
@@ -3728,6 +3739,9 @@ export function coerceValueForCloudKey(key: string, value: unknown): unknown {
   if (key === WORK_RATE_RESEARCH_COOLDOWN_STORAGE_KEY || key === "kw-work-rate-research-cooldown") {
     return emptyWorkRateResearchCooldownStore();
   }
+  if (key === IK_FULL_TENDER_WALK_LEDGER_KEY || key === "kw-ik-full-tender-walk-ledger") {
+    return emptyIkFullWalkLedgerStoreForPersist();
+  }
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return emptyTechnologyPackDurableStore();
   }
@@ -3795,6 +3809,9 @@ function sanitizeValueForCloud(key: string, value: unknown): unknown {
   }
   if (key === WORK_RATE_RESEARCH_COOLDOWN_STORAGE_KEY || key === "kw-work-rate-research-cooldown") {
     return normalizeWorkRateResearchCooldownStore(coerced);
+  }
+  if (key === IK_FULL_TENDER_WALK_LEDGER_KEY || key === "kw-ik-full-tender-walk-ledger") {
+    return normalizeIkFullWalkLedgerStore(coerced);
   }
   if (key === TECHNOLOGY_PACK_STORAGE_KEY || key === "kw-technology-packs") {
     return normalizeTechnologyPackDurableStore(coerced);

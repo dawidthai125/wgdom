@@ -113,6 +113,14 @@ import {
 } from "./ik-owner-gate-actions";
 import { acceptIkMaterialResearchCandidate } from "@/lib/intelligent-estimator/ik-material-expert";
 import { acceptIkLaborResearchAndNotifyIdempotent } from "@/lib/ik-pricing-orchestrator/labor-research-bridge";
+import {
+  isIkFullTenderWalkEnabled,
+  projectIkReadiness,
+  runFullTenderWalk,
+  type IkReadinessProjection,
+  type RunFullTenderWalkResult,
+} from "@/lib/intelligent-estimator/full-tender-walk";
+import { pushIkFullWalkLedgerToCloudSafe } from "@/lib/intelligent-estimator/full-tender-walk/ledger-store";
 import { runAutonomousIdentityWritebackFromCompoundPhase } from "./ik-autonomous-identity-writeback";
 import {
   scheduleManyIkContinuations,
@@ -1330,6 +1338,125 @@ export function useIkOrchestra({
     ],
   );
 
+  /** IK-FTO-01 — Full Walk: visit every Master BOQ line · LINE HOLD ≠ TENDER STOP. */
+  const fullTenderWalk = useMemo((): RunFullTenderWalkResult | null => {
+    if (!isIkFullTenderWalkEnabled()) return null;
+    const masterLines = postIdentityExpert?.masterBoqLines ?? [];
+    const refs =
+      masterLines.length > 0
+        ? masterLines.map((l) => ({
+            lineId: l.line.lineId,
+            lp: l.line.lp != null ? String(l.line.lp) : null,
+            description: l.line.description ?? null,
+          }))
+        : (labor?.lines ?? []).map((l) => ({
+            lineId: l.lineId,
+            lp: null,
+            description: l.description ?? null,
+          }));
+    if (refs.length === 0) return null;
+    /** Minimal CONNECT — P7 shadow positionComplete (existing SSOT · no new resolver). */
+    const positionCompleteByLineId: Record<string, boolean> = {};
+    for (const row of positionCostBid?.shadow?.lines ?? []) {
+      if (row.positionComplete === true && row.lineId) {
+        positionCompleteByLineId[row.lineId] = true;
+      }
+    }
+    return runFullTenderWalk({
+      tenderId: String(effectiveItem.id || item.id || "").trim(),
+      lines: refs,
+      labor,
+      material,
+      executeResearchPermission: flags.p5ResearchOn === true,
+      persist: true,
+      positionCompleteByLineId,
+    });
+  }, [postIdentityExpert, labor, material, flags.p5ResearchOn, item.id, effectiveItem.id, positionCostBid]);
+
+  /**
+   * IK-FTO-01 — researchShouldExecuteLineIds → existing ikContinuation + P5/P6 arm
+   * (no Research Engine 2 · preserves GO-AUTO identity continuation path).
+   */
+  useEffect(() => {
+    if (!fullTenderWalk) return;
+    const tid = String(effectiveItem.id || "").trim();
+    if (!tid || !pkg) return;
+
+    const shouldExec = fullTenderWalk.researchShouldExecuteLineIds ?? [];
+    if (shouldExec.length > 0) {
+      scheduleManyIkContinuations({
+        tenderId: tid,
+        package: pkg,
+        lineIds: shouldExec,
+        domain: "labor",
+        reasonFingerprint: "fto_research_required",
+      });
+    }
+
+    const sidecar = loadIkContinuationFromPackage(getTenderPackage(tid) ?? pkg);
+    const plan = planIkContinuationResearchArm({ sidecar });
+    const armKey = [
+      tid,
+      plan.laborLineIds.join(","),
+      plan.materialLineIds.join(","),
+      plan.identityLineIds.join(","),
+      flags.p5ResearchOn ? "1" : "0",
+    ].join("|");
+    if (researchContinuationArmKeyRef.current === armKey) return;
+    researchContinuationArmKeyRef.current = armKey;
+
+    if (plan.identityLineIds.length > 0) {
+      knowledgeAttemptedRef.current = null;
+      setIdentityResearchEpoch((n) => n + 1);
+    }
+
+    if (plan.laborLineIds.length > 0 && flags.p5ResearchOn === true && flags.p5LaborOn === true) {
+      laborAttemptedRef.current = null;
+      setLaborRecalcEpoch((n) => n + 1);
+      let next = sidecar;
+      for (const lineId of plan.laborLineIds) {
+        const rec = next.records.find(
+          (r) => r.lineId === lineId && r.domain === "labor" && r.tenderId === tid,
+        );
+        if (!rec) continue;
+        const advanced = applyIkContinuationExecutorOutcome(rec, "no_change");
+        next = upsertIkContinuationRecord(next, advanced);
+      }
+      persistIkContinuationOnPackage({ tenderId: tid, package: pkg, sidecar: next });
+    }
+
+    if (plan.materialLineIds.length > 0 && flags.p6ResearchOn === true && flags.p6MaterialOn === true) {
+      materialAttemptedRef.current = null;
+      setMaterialRecalcEpoch((n) => n + 1);
+    }
+  }, [
+    fullTenderWalk,
+    effectiveItem.id,
+    pkg,
+    flags.p5ResearchOn,
+    flags.p5LaborOn,
+    flags.p6ResearchOn,
+    flags.p6MaterialOn,
+  ]);
+
+  useEffect(() => {
+    if (!fullTenderWalk) return;
+    void pushIkFullWalkLedgerToCloudSafe();
+  }, [fullTenderWalk?.ledger.updatedAt, fullTenderWalk?.ledger.walkId]);
+
+  const readinessProjection = useMemo((): IkReadinessProjection | null => {
+    if (!fullTenderWalk) return null;
+    return projectIkReadiness({
+      item: effectiveItem,
+      expert: postIdentityExpert,
+      p7: positionCostBid,
+      risk: riskDecision,
+      ledger: fullTenderWalk.ledger,
+      currentWalkId: fullTenderWalk.ledger.walkId,
+      currentWalkStartedAt: fullTenderWalk.ledger.startedAt,
+    });
+  }, [fullTenderWalk, effectiveItem, postIdentityExpert, positionCostBid, riskDecision]);
+
   return useMemo(
     () => ({
       effectiveItem,
@@ -1351,6 +1478,8 @@ export function useIkOrchestra({
       refreshF5AfterOwnerInput,
       refreshPhase,
       ownerGate,
+      fullTenderWalk,
+      readinessProjection,
     }),
     [
       effectiveItem,
@@ -1372,6 +1501,8 @@ export function useIkOrchestra({
       refreshF5AfterOwnerInput,
       refreshPhase,
       ownerGate,
+      fullTenderWalk,
+      readinessProjection,
     ],
   );
 }
