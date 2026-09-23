@@ -14,6 +14,10 @@ import {
   scoreTenderPackageRichness,
 } from "@/lib/multi-dwelling/canonical-identity-upgrade-merge";
 import { dwellingHasValidDocumentMapping } from "@/lib/multi-dwelling/package-gate";
+import {
+  assertMultiDwellingLiveCloudWriteAllowed,
+  isMultiDwellingCloudPushSoftDisabled,
+} from "@/lib/multi-dwelling/cloud-push-safety";
 import type {
   DwellingCostUnit,
   MultiDwellingPackageStore,
@@ -115,13 +119,57 @@ export function loadMultiDwellingPackageStore(): MultiDwellingPackageStore {
   }
 }
 
+/**
+ * Depth counter — when > 0, saveMultiDwellingPackageStore writes localStorage only
+ * (no fire-and-forget persistKey). Used by gated identity batch attach so N attaches
+ * cannot emit N intermediate RMW snapshots that blind-overwrite each other on KV.
+ * flushMultiDwellingPackageStoreToCloud bypasses this and always awaits one final push.
+ */
+let multiDwellingCloudPushSuspendDepth = 0;
+let multiDwellingCloudPushAttemptCountForTests = 0;
+
+export type SaveMultiDwellingPackageStoreOptions = {
+  /**
+   * Default true. When false — localStorage only (no cloud push).
+   * Also suppressed while runWithMultiDwellingCloudPushSuspended is active.
+   */
+  cloud?: boolean;
+};
+
+/** Run `fn` with automatic cloud push from save*() suspended (local-only). */
+export function runWithMultiDwellingCloudPushSuspended<T>(fn: () => T): T {
+  multiDwellingCloudPushSuspendDepth += 1;
+  try {
+    return fn();
+  } finally {
+    multiDwellingCloudPushSuspendDepth -= 1;
+  }
+}
+
+export function isMultiDwellingCloudPushSuspended(): boolean {
+  return multiDwellingCloudPushSuspendDepth > 0;
+}
+
+export function getMultiDwellingCloudPushAttemptCountForTests(): number {
+  return multiDwellingCloudPushAttemptCountForTests;
+}
+
+export function resetMultiDwellingCloudPushAttemptCountForTests(): void {
+  multiDwellingCloudPushAttemptCountForTests = 0;
+}
+
 export function saveMultiDwellingPackageStore(
   store: MultiDwellingPackageStore,
+  opts?: SaveMultiDwellingPackageStoreOptions,
 ): boolean {
   try {
     if (typeof localStorage === "undefined") return false;
     localStorage.setItem(MULTI_DWELLING_PACKAGE_LS_KEY, JSON.stringify(store));
-    void pushMultiDwellingPackageStoreToCloudSafe(store);
+    const wantCloud =
+      opts?.cloud !== false && multiDwellingCloudPushSuspendDepth === 0;
+    if (wantCloud) {
+      void pushMultiDwellingPackageStoreToCloudSafe(store);
+    }
     return true;
   } catch {
     return false;
@@ -184,12 +232,62 @@ export function mergeMultiDwellingPackageDataKey(local: unknown, cloud: unknown)
 async function pushMultiDwellingPackageStoreToCloudSafe(
   store: MultiDwellingPackageStore,
 ): Promise<void> {
+  multiDwellingCloudPushAttemptCountForTests += 1;
+  if (isMultiDwellingCloudPushSoftDisabled()) {
+    return;
+  }
+  assertMultiDwellingLiveCloudWriteAllowed("pushMultiDwellingPackageStoreToCloudSafe");
   try {
     const { persistKey, isSupabaseConfigured } = await import("@/lib/cloud-sync");
     if (!isSupabaseConfigured()) return;
     await persistKey(MULTI_DWELLING_PACKAGE_LS_KEY, store);
-  } catch {
+  } catch (e) {
+    if (String((e as Error)?.message || e).includes("WGDOM_LIVE_CLOUD_BLOCKED")) {
+      throw e;
+    }
     /* offline / test */
+  }
+}
+
+export type MultiDwellingCloudFlushResult = {
+  ok: boolean;
+  /** true when soft-disabled or Supabase not configured — no live write */
+  skipped?: boolean;
+  error?: string;
+  blocked?: boolean;
+};
+
+/**
+ * Single awaited cloud persist of the package store.
+ * Bypasses suspend depth (intended final flush after gated batch attach).
+ * Fail-closed in non-browser without WGDOM_ALLOW_LIVE_MULTI_DWELLING_CLOUD_PUSH=1.
+ */
+export async function flushMultiDwellingPackageStoreToCloud(
+  store?: MultiDwellingPackageStore,
+): Promise<MultiDwellingCloudFlushResult> {
+  multiDwellingCloudPushAttemptCountForTests += 1;
+  if (isMultiDwellingCloudPushSoftDisabled()) {
+    return { ok: true, skipped: true };
+  }
+  try {
+    assertMultiDwellingLiveCloudWriteAllowed("flushMultiDwellingPackageStoreToCloud");
+  } catch (e) {
+    return {
+      ok: false,
+      blocked: true,
+      error: String((e as Error)?.message ?? e),
+    };
+  }
+  const payload = store ?? loadMultiDwellingPackageStore();
+  try {
+    const { persistKey, isSupabaseConfigured } = await import("@/lib/cloud-sync");
+    if (!isSupabaseConfigured()) {
+      return { ok: true, skipped: true };
+    }
+    await persistKey(MULTI_DWELLING_PACKAGE_LS_KEY, payload);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: String((e as Error)?.message ?? e) };
   }
 }
 
@@ -222,14 +320,17 @@ function emitMultiDwellingPackageChanged(tenderId: string): void {
   }
 }
 
-export function upsertTenderPackage(pkg: TenderPackage): TenderPackage | null {
+export function upsertTenderPackage(
+  pkg: TenderPackage,
+  opts?: SaveMultiDwellingPackageStoreOptions,
+): TenderPackage | null {
   const tid = String(pkg.tenderId ?? "").trim();
   if (!tid) return null;
   const normalized = normalizePackage({ ...pkg, tenderId: tid });
   if (!normalized) return null;
   const store = loadMultiDwellingPackageStore();
   store.byTenderId[tid] = normalized;
-  if (!saveMultiDwellingPackageStore(store)) return null;
+  if (!saveMultiDwellingPackageStore(store, opts)) return null;
   emitMultiDwellingPackageChanged(tid);
   return normalized;
 }
@@ -375,6 +476,8 @@ export function attachOfferBoqToDwelling(opts: {
   tenderId: string;
   dwellingId: string;
   offerBoq: DwellingCostUnit["offerBoq"];
+  /** When false — local attach only (no fire-and-forget cloud). Default true. */
+  cloud?: boolean;
 }): { ok: true; package: TenderPackage } | { ok: false; reason: string } {
   const tid = String(opts.tenderId ?? "").trim();
   const dwellingId = normalizeDwellingId(opts.dwellingId);
@@ -402,7 +505,9 @@ export function attachOfferBoqToDwelling(opts: {
     subtotals: null,
   };
   pkg.dwellings = next;
-  const saved = upsertTenderPackage(pkg);
+  const saved = upsertTenderPackage(pkg, {
+    cloud: opts.cloud,
+  });
   if (!saved) return { ok: false, reason: "STORAGE_UNAVAILABLE" };
   return { ok: true, package: saved };
 }

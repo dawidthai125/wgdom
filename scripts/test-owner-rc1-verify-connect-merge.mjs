@@ -5,6 +5,8 @@
  *
  * ZERO production / cloud write.
  */
+process.env.WGDOM_DISABLE_MULTI_DWELLING_CLOUD_PUSH = "1";
+
 import {
   evaluateCanonicalIdentityUpgradeMerge,
   mergeMultiDwellingPackageStore,

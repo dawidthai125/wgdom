@@ -47,7 +47,24 @@ export {
   mergeMultiDwellingPackageStore,
   mergeMultiDwellingPackageDataKey,
   normalizeMultiDwellingPackageStore,
+  runWithMultiDwellingCloudPushSuspended,
+  flushMultiDwellingPackageStoreToCloud,
+  isMultiDwellingCloudPushSuspended,
+  getMultiDwellingCloudPushAttemptCountForTests,
+  resetMultiDwellingCloudPushAttemptCountForTests,
 } from "@/lib/multi-dwelling/store";
+
+export type {
+  SaveMultiDwellingPackageStoreOptions,
+  MultiDwellingCloudFlushResult,
+} from "@/lib/multi-dwelling/store";
+
+export {
+  isMultiDwellingLiveCloudWriteAllowed,
+  assertMultiDwellingLiveCloudWriteAllowed,
+  isMultiDwellingCloudPushSoftDisabled,
+  isWgdomNonBrowserRuntime,
+} from "@/lib/multi-dwelling/cloud-push-safety";
 
 export {
   evaluateCanonicalIdentityUpgradeMerge,

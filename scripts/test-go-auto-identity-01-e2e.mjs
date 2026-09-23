@@ -6,6 +6,8 @@
  *
  * npx vite-node scripts/test-go-auto-identity-01-e2e.mjs
  */
+process.env.WGDOM_DISABLE_MULTI_DWELLING_CLOUD_PUSH = "1";
+
 import {
   applyAutonomousIdentityLeafToLine,
   runAutonomousIdentityWritebackFromCompoundPhase,
@@ -286,7 +288,7 @@ const compoundPass = {
   microSequencingRequired: false,
 };
 
-const wb = runAutonomousIdentityWritebackFromCompoundPhase({
+const wb = await runAutonomousIdentityWritebackFromCompoundPhase({
   tenderId: TENDER_ID,
   package: getTenderPackage(TENDER_ID),
   compoundIdentity: compoundPass,
@@ -328,7 +330,7 @@ upsertTenderPackage({
   ],
 });
 
-const wbConflict = runAutonomousIdentityWritebackFromCompoundPhase({
+const wbConflict = await runAutonomousIdentityWritebackFromCompoundPhase({
   tenderId: TENDER_ID,
   package: getTenderPackage(TENDER_ID),
   compoundIdentity: conflictCompound,
@@ -358,7 +360,7 @@ upsertTenderPackage({
     },
   ],
 });
-const wbUnit = runAutonomousIdentityWritebackFromCompoundPhase({
+const wbUnit = await runAutonomousIdentityWritebackFromCompoundPhase({
   tenderId: TENDER_ID,
   package: getTenderPackage(TENDER_ID),
   compoundIdentity: unitCompound,

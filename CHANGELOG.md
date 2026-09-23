@@ -1,5 +1,16 @@
 # W&G DOM — changelog (skrót dla programistów)
 
+## 2.66.235 — IK multi-dwelling gated persist lost-update fix + C/D (2026-09-23)
+
+- `runGatedIdentityPersist`: attach ×N local-only (cloud push suspended) → jeden `flushMultiDwellingPackageStoreToCloud` finalnego package snapshot
+- Eliminuje fire-and-forget RMW 1/N·2/N nadpisujące 3/N na `kw-multi-dwelling-package-v1` (blind batch-set)
+- **C:** SUCCESS dopiero po `await cloudFlushPromise` (nie wystarczy Promise pending)
+- **D:** wymagany post-push CLOUD readback per target (workId/mappingId/attestation/protected) przed `gateStatus=success`
+- Orchestra / writeback: `runGatedIdentityPersistAwaitCloud` · `isGatedIdentityPersistSuccess`
+- Test harness fail-closed: `WGDOM_ALLOW_LIVE_MULTI_DWELLING_CLOUD_PUSH=1` opt-in · `assertMultiDwellingLiveCloudWriteAllowed`
+- Test: `test-multi-dwelling-cloud-persistence-loss-fix.mjs`
+- Bez zmian RECLASS / Safe Merge eligibility / Rate / BOM · LIVE CLOUD 0 w tej sesji
+
 ## docs — IK-IDENTITY-APPLY-MOPS-ELEC-RC1 CLOSEOUT (2026-09-22)
 
 - EPIC **CLOSED**: MOPS `08def932` · 6 Owner RC1 VERIFY_CONNECT lines (0407-01×3 + 0504-03×3) · identity durable + 6/6 `positionComplete`

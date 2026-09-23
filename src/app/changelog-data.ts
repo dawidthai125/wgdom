@@ -12,6 +12,22 @@ export interface ChangelogRelease {
 export const CHANGELOG: ChangelogRelease[] = [
 
   {
+    date: "2026-09-23",
+    version: "2.66.235",
+    label: "IK — multi-dwelling gated persist lost-update fix + C/D latch",
+    items: [
+      {
+        type: "fix",
+        text: "CLOUD PERSISTENCE LOSS: runGatedIdentityPersist — batch attach local-only (suspend fire-and-forget), potem JEDEN flushMultiDwellingPackageStoreToCloud finalnego snapshotu. Eliminuje RMW 1/N·2/N nadpisujące 3/N na kw-multi-dwelling-package-v1. Bez RECLASS/Safe Merge/Rate/BOM zmian · LIVE CLOUD 0.",
+      },
+      {
+        type: "fix",
+        text: "C+D: SUCCESS dopiero po await cloudFlushPromise + CLOUD readback per target (lineId/workId/mappingId/attestation/protected). gateStatus incomplete|success|fail · isGatedIdentityPersistSuccess. Orchestra/writeback: runGatedIdentityPersistAwaitCloud. Test harness: WGDOM_ALLOW_LIVE_MULTI_DWELLING_CLOUD_PUSH=1 opt-in · assertMultiDwellingLiveCloudWriteAllowed. Test: test-multi-dwelling-cloud-persistence-loss-fix.mjs.",
+      },
+    ],
+  },
+
+  {
     date: "2026-09-22",
     version: "2.66.234",
     label: "IK — IK-FTO-01 Full Tender Walk (Land + Orchestra CONNECT)",

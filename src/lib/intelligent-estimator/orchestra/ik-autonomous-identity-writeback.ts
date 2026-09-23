@@ -12,7 +12,8 @@ import { getTenderPackage } from "@/lib/multi-dwelling/store";
 import { AUTO_G1_MATCH_METHOD } from "./auto-g1-accept-contract";
 import {
   computeOfferBoqIdentityPayloadHash,
-  runGatedIdentityPersist,
+  runGatedIdentityPersistAwaitCloud,
+  isGatedIdentityPersistSuccess,
   type IkIdentityPersistOutcome,
 } from "./ik-identity-persist-glue";
 import type { IkIdentityPersistPlan } from "./ik-identity-phase";
@@ -252,12 +253,12 @@ function findDwellingLines(
  * Apply AID PASS patches → gated persist plans → runGatedIdentityPersist.
  * Idempotent when payload hash unchanged.
  */
-export function runAutonomousIdentityWritebackFromCompoundPhase(input: {
+export async function runAutonomousIdentityWritebackFromCompoundPhase(input: {
   tenderId: string;
   package?: TenderPackage | null;
   compoundIdentity: IkCompoundIdentityPhaseResult | null;
   nowIso?: string;
-}): AutonomousIdentityWritebackResult {
+}): Promise<AutonomousIdentityWritebackResult> {
   const empty: AutonomousIdentityWritebackResult = {
     version: IK_AUTONOMOUS_IDENTITY_WRITEBACK_VERSION,
     lineResults: [],
@@ -445,13 +446,13 @@ export function runAutonomousIdentityWritebackFromCompoundPhase(input: {
     });
   }
 
-  const persistOutcome = runGatedIdentityPersist({
+  const persistOutcome = await runGatedIdentityPersistAwaitCloud({
     tenderId: tid,
     package: pkg,
     plans,
   });
 
-  const wrote = persistOutcome.writes.length > 0;
+  const wrote = isGatedIdentityPersistSuccess(persistOutcome);
   if (wrote) {
     for (const lr of lineResults) {
       if (lr.patched && lr.state === "CONTRACT_PASS") {
@@ -463,6 +464,17 @@ export function runAutonomousIdentityWritebackFromCompoundPhase(input: {
       if (lr.state === "IDENTITY_PERSISTED") {
         lr.state = "TRUSTED_IDENTITY";
         lr.reasons = [...lr.reasons, "DOWNSTREAM_RELEASE"];
+      }
+    }
+  } else if (persistOutcome.writeCount > 0 || persistOutcome.gateStatus === "fail") {
+    for (const lr of lineResults) {
+      if (lr.patched && lr.state === "CONTRACT_PASS") {
+        lr.state = "OWNER_EXCEPTION";
+        lr.reasons = [
+          ...lr.reasons,
+          "GATED_PERSIST_CLOUD_INCOMPLETE",
+          persistOutcome.cloudFlushError || persistOutcome.cloudReadbackError || "FLUSH_OR_READBACK_FAIL",
+        ];
       }
     }
   }

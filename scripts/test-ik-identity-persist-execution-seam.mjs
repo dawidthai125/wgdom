@@ -1,3 +1,5 @@
+process.env.WGDOM_DISABLE_MULTI_DWELLING_CLOUD_PUSH = "1";
+
 /**
  * IdentityPhase → gated persist execution seam (TPI/729 CLLR durable).
  * Run: npx vite-node scripts/test-ik-identity-persist-execution-seam.mjs
@@ -121,6 +123,11 @@ ok(
   hookSrc.includes("shouldLatchIdentityPersistAttempt"),
 );
 ok(
+  "SRC-04b hook awaits runGatedIdentityPersistAwaitCloud",
+  hookSrc.includes("runGatedIdentityPersistAwaitCloud") &&
+    hookSrc.includes("isGatedIdentityPersistSuccess"),
+);
+ok(
   "SRC-05 persist effect deps include pkg",
   /\[identityPersistPlanKey, identityContext, effectiveItem, pkg\]/.test(hookSrc),
 );
@@ -133,7 +140,9 @@ const { computeIkOrchestraSyncSnapshot } = await import(
 );
 const {
   runGatedIdentityPersist,
+  runGatedIdentityPersistAwaitCloud,
   shouldLatchIdentityPersistAttempt,
+  isGatedIdentityPersistSuccess,
   computeOfferBoqIdentityPayloadHash,
 } = await import("../src/lib/intelligent-estimator/orchestra/ik-identity-persist-glue.ts");
 const { runIkIdentityPhase } = await import(
@@ -143,34 +152,83 @@ const { buildIkExpertAdmissionSummary } = await import(
   "../src/lib/intelligent-estimator/ik-expert-admission.ts"
 );
 
+function latchOutcome(partial) {
+  return {
+    planCount: partial.planCount ?? (partial.writes?.length || partial.skips?.length || 0),
+    writeCount: partial.writeCount ?? (partial.writes?.length || 0),
+    writesMatchPlans: partial.writesMatchPlans ?? true,
+    cloudFlush: partial.cloudFlush ?? "none",
+    cloudReadback: partial.cloudReadback ?? "none",
+    cloudReadbackOkCount: partial.cloudReadbackOkCount ?? 0,
+    cloudReadbackTargetCount: partial.cloudReadbackTargetCount ?? 0,
+    cloudReadbackLines: partial.cloudReadbackLines ?? [],
+    gateStatus: partial.gateStatus ?? "incomplete",
+    success: partial.success ?? false,
+    writes: partial.writes ?? [],
+    skips: partial.skips ?? [],
+  };
+}
+
 // --- Latch unit ---
 ok(
-  "LATCH-01 write → latch",
-  shouldLatchIdentityPersistAttempt({
-    writes: [{ dwellingId: "d", identityHash: "h" }],
-    skips: [],
-  }) === true,
+  "LATCH-01 pending writes → NO latch (C)",
+  shouldLatchIdentityPersistAttempt(
+    latchOutcome({
+      writes: [{ dwellingId: "d", identityHash: "h" }],
+      skips: [],
+      writeCount: 1,
+      cloudFlush: "pending",
+      gateStatus: "incomplete",
+      success: false,
+    }),
+  ) === false,
+);
+ok(
+  "LATCH-01b success → latch",
+  shouldLatchIdentityPersistAttempt(
+    latchOutcome({
+      writes: [{ dwellingId: "d", identityHash: "h" }],
+      skips: [],
+      writeCount: 1,
+      cloudFlush: "completed",
+      cloudReadback: "pass",
+      gateStatus: "success",
+      success: true,
+    }),
+  ) === true,
 );
 ok(
   "LATCH-02 IDENTICAL_PAYLOAD → latch",
-  shouldLatchIdentityPersistAttempt({
-    writes: [],
-    skips: [{ dwellingId: "d", reason: "IDENTICAL_PAYLOAD" }],
-  }) === true,
+  shouldLatchIdentityPersistAttempt(
+    latchOutcome({
+      writes: [],
+      skips: [{ dwellingId: "d", reason: "IDENTICAL_PAYLOAD" }],
+      gateStatus: "success",
+      success: true,
+    }),
+  ) === true,
 );
 ok(
   "LATCH-03 PACKAGE_NOT_FOUND → no latch (retry)",
-  shouldLatchIdentityPersistAttempt({
-    writes: [],
-    skips: [{ dwellingId: "d", reason: "PACKAGE_NOT_FOUND" }],
-  }) === false,
+  shouldLatchIdentityPersistAttempt(
+    latchOutcome({
+      writes: [],
+      skips: [{ dwellingId: "d", reason: "PACKAGE_NOT_FOUND" }],
+      gateStatus: "incomplete",
+      success: false,
+    }),
+  ) === false,
 );
 ok(
   "LATCH-04 DOCUMENT_MAPPING_REQUIRED → no latch",
-  shouldLatchIdentityPersistAttempt({
-    writes: [],
-    skips: [{ dwellingId: "d", reason: "DOCUMENT_MAPPING_REQUIRED" }],
-  }) === false,
+  shouldLatchIdentityPersistAttempt(
+    latchOutcome({
+      writes: [],
+      skips: [{ dwellingId: "d", reason: "DOCUMENT_MAPPING_REQUIRED" }],
+      gateStatus: "incomplete",
+      success: false,
+    }),
+  ) === false,
 );
 
 if (!anon) {
@@ -333,15 +391,16 @@ ok(
   phaseBCeiling[0],
 );
 
-// TEST C — gated persist write
+// TEST C — gated persist write (await flush + cloud readback)
 const plansForPersist = phaseA.context.persistPlans;
-const outcome1 = runGatedIdentityPersist({
+const outcome1 = await runGatedIdentityPersistAwaitCloud({
   tenderId,
   package: pkg,
   plans: plansForPersist,
   sessionGate: new Map(),
 });
 ok("TEST-C gated persist writes", outcome1.writes.length === 1, outcome1);
+ok("TEST-C success after cloud settle", isGatedIdentityPersistSuccess(outcome1), outcome1);
 ok("TEST-C latch after write", shouldLatchIdentityPersistAttempt(outcome1) === true);
 
 const after = getTenderPackage(tenderId);

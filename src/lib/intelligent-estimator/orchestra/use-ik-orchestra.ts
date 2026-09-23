@@ -67,8 +67,9 @@ import {
 } from "@/lib/intelligent-estimator/historical-executed/historical-ath-kl3-files";
 import { computeIkOrchestraSyncSnapshot } from "./ik-orchestra-engine";
 import {
-  runGatedIdentityPersist,
   shouldLatchIdentityPersistAttempt,
+  isGatedIdentityPersistSuccess,
+  runGatedIdentityPersistAwaitCloud,
   type IkIdentityPersistSessionGate,
 } from "./ik-identity-persist-glue";
 import {
@@ -596,7 +597,7 @@ export function useIkOrchestra({
   }, [manualOverrides]);
 
   // W2 — gated identity persist (NEVER inside sync useMemo).
-  // Latch only on terminal outcomes; retry when package/mapping appears (pkg dep).
+  // C+D: await flush + cloud readback before latch / SUCCESS.
   useEffect(() => {
     if (!identityPersistPlanKey || !identityContext?.persistPlans?.length) {
       return;
@@ -605,24 +606,34 @@ export function useIkOrchestra({
     if (!tenderId) return;
     if (persistAttemptKeyRef.current === identityPersistPlanKey) return;
 
-    const outcome = runGatedIdentityPersist({
-      tenderId,
-      package: pkg ?? getTenderPackage(tenderId),
-      plans: identityContext.persistPlans,
-      sessionGate: persistSessionGateRef.current,
-    });
-    if (shouldLatchIdentityPersistAttempt(outcome)) {
-      persistAttemptKeyRef.current = identityPersistPlanKey;
-    }
-    setIdentityPersistOutcome(outcome);
-    if (outcome.writes.length > 0) {
-      setPkgEpoch((n) => n + 1);
-    }
+    let cancelled = false;
+    const plans = identityContext.persistPlans;
+    void (async () => {
+      const outcome = await runGatedIdentityPersistAwaitCloud({
+        tenderId,
+        package: pkg ?? getTenderPackage(tenderId),
+        plans,
+        sessionGate: persistSessionGateRef.current,
+      });
+      if (cancelled) return;
+      if (shouldLatchIdentityPersistAttempt(outcome)) {
+        persistAttemptKeyRef.current = identityPersistPlanKey;
+      }
+      setIdentityPersistOutcome(outcome);
+      if (isGatedIdentityPersistSuccess(outcome)) {
+        setPkgEpoch((n) => n + 1);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [identityPersistPlanKey, identityContext, effectiveItem, pkg]);
 
-  // W3 — materialize F5 f5Gate/subtotals on LS after identity persist writes.
+  // W3 — materialize F5 f5Gate/subtotals on LS after identity persist SUCCESS only.
   useEffect(() => {
-    if (!identityPersistOutcome?.writes?.length) return;
+    if (!identityPersistOutcome || !isGatedIdentityPersistSuccess(identityPersistOutcome)) {
+      return;
+    }
     if (!identityPersistPlanKey) return;
     const tenderId = effectiveItem.id || effectiveItem.tenderId || "";
     if (!tenderId) return;
@@ -1044,28 +1055,35 @@ export function useIkOrchestra({
     if (autonomousIdentityWritebackKeyRef.current === fp) return;
     autonomousIdentityWritebackKeyRef.current = fp;
 
-    const wb = runAutonomousIdentityWritebackFromCompoundPhase({
-      tenderId: tid,
-      package: pkg,
-      compoundIdentity: compoundIdentityPhase,
-    });
-
-    if (wb.researchContinuationLineIds.length > 0) {
-      scheduleManyIkContinuations({
+    let cancelled = false;
+    void (async () => {
+      const wb = await runAutonomousIdentityWritebackFromCompoundPhase({
         tenderId: tid,
         package: pkg,
-        lineIds: wb.researchContinuationLineIds,
-        domain: "identity",
-        reasonFingerprint: "aid_need_research",
+        compoundIdentity: compoundIdentityPhase,
       });
-      setPkgEpoch((n) => n + 1);
-    }
+      if (cancelled) return;
 
-    if (wb.canonicalMutationPersisted) {
-      setIdentityPersistOutcome(wb.persistOutcome);
-      setPkgEpoch((n) => n + 1);
-      refreshPhase("catalog_accept");
-    }
+      if (wb.researchContinuationLineIds.length > 0) {
+        scheduleManyIkContinuations({
+          tenderId: tid,
+          package: pkg,
+          lineIds: wb.researchContinuationLineIds,
+          domain: "identity",
+          reasonFingerprint: "aid_need_research",
+        });
+        setPkgEpoch((n) => n + 1);
+      }
+
+      if (wb.canonicalMutationPersisted) {
+        setIdentityPersistOutcome(wb.persistOutcome);
+        setPkgEpoch((n) => n + 1);
+        refreshPhase("catalog_accept");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [compoundIdentityPhase, effectiveItem, pkg, refreshPhase]);
 
   /**
