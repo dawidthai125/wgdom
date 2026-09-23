@@ -123,6 +123,21 @@ export const MOPS_ELEC_RC1_MAP_0501_03: LaborIdentityMappingRow = baseRow({
     "MOPS RC-1 CREATE_CANDIDATE_KPL — KNR|5-08|0501-03 · unit kpl HARD · ≠ szt · ≠ 0504 mount · BOM HOLD",
 });
 
+/** RECLASS_STOLARKA — klamki → existing p2b DRZWI leaf (≠ CREATE / CONNECT / cw.knr). */
+export const MOPS_ELEC_RC1_MAP_KLAMKI_STOLARKA: LaborIdentityMappingRow = baseRow({
+  mappingId: "lim-mops-elec-rc1-klamki-stolarka",
+  workId: MOPS_ELEC_RC1_KLAMKI_WORK_ID,
+  categoryKey: "other",
+  aliases: [
+    MOPS_ELEC_RC1_EXACT_ALIASES.klamki,
+    getMopsElecRc1WorkSpec(MOPS_ELEC_RC1_KLAMKI_WORK_ID)!.namePl,
+  ],
+  catalogUnit: "szt",
+  observedUnit: "szt",
+  notesPl:
+    "MOPS RC-1 RECLASS_STOLARKA — Wymiana klamek z rozetami · out of electrical · ≠ legacy-elektryka-szt",
+});
+
 export function buildMopsElecRc1CreateMappings(
   approvedAtIso: string = MOPS_ELEC_RC1_IDENTITY_APPROVED_AT,
 ): readonly LaborIdentityMappingRow[] {
@@ -155,19 +170,7 @@ export function buildMopsElecRc1CreateMappings(
       notesPl:
         "MOPS RC-1 CREATE_CANDIDATE_POMIAR — KNR|4-03|1202-01 · ≠ knnr-wc-knnr-5-1301-01-pomiar · unit pomiar HARD",
     }),
-    baseRow({
-      mappingId: "lim-mops-elec-rc1-klamki-stolarka",
-      workId: MOPS_ELEC_RC1_KLAMKI_WORK_ID,
-      categoryKey: "other",
-      aliases: [
-        MOPS_ELEC_RC1_EXACT_ALIASES.klamki,
-        getMopsElecRc1WorkSpec(MOPS_ELEC_RC1_KLAMKI_WORK_ID)!.namePl,
-      ],
-      catalogUnit: "szt",
-      observedUnit: "szt",
-      notesPl:
-        "MOPS RC-1 RECLASS_STOLARKA — Wymiana klamek z rozetami · out of electrical · ≠ legacy-elektryka-szt",
-    }),
+    MOPS_ELEC_RC1_MAP_KLAMKI_STOLARKA,
   ];
   // stamp approvedAt if overridden
   return Object.freeze(

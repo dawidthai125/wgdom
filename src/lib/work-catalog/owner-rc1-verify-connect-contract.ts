@@ -118,6 +118,11 @@ export function hasOwnerRc1VerifyConnectAttestation(input: {
   if (String(input.matchedBy || "") !== "auto_contract") return false;
   const r = String(input.aiRationale || "");
   if (!r.includes(OWNER_RC1_VERIFY_CONNECT_ATTESTATION)) return false;
+  // CREATE / KPL / RECLASS / CLLR must not masquerade as CONNECT authority
+  if (r.includes("OWNER_RC1_CREATE_CANDIDATE")) return false;
+  if (r.includes("OWNER_RC1_RECLASS_STOLARKA")) return false;
+  if (r.includes("COMPOUND_LEAF_REBIND")) return false;
+  if (r.includes("CANONICAL_LEAF_REBIND")) return false;
   const mappingId = extractOwnerRc1VerifyConnectMappingIdFromRationale(r);
   if (!mappingId) return false;
   return isOwnerRc1VerifyConnectExactPair(leaf, mappingId);

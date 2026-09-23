@@ -13,6 +13,9 @@
  *
  * OWNER_RC1_CREATE_CANDIDATE_KPL_LEAF_UPGRADE_v1 — additive fail-closed class for
  * exactly one Owner-approved RC1 CREATE_CANDIDATE_KPL leaf (unit kpl HARD · ≠ szt CREATE).
+ *
+ * OWNER_RC1_RECLASS_STOLARKA_LEAF_UPGRADE_v1 — additive fail-closed class for
+ * exactly one Owner-approved RC1 RECLASS_STOLARKA leaf (klamki p2b · ≠ CREATE/CONNECT).
  */
 
 import type { OfferBoqDocument, OfferBoqLine } from "@/lib/tender-offer-boq";
@@ -30,6 +33,10 @@ import {
   hasOwnerRc1CreateCandidateKplAttestation,
   isOwnerRc1CreateCandidateKplLeafWorkId,
 } from "@/lib/work-catalog/owner-rc1-create-candidate-kpl-contract";
+import {
+  hasOwnerRc1ReclassStolarkaAttestation,
+  isOwnerRc1ReclassStolarkaLeafWorkId,
+} from "@/lib/work-catalog/owner-rc1-reclass-stolarka-contract";
 
 export type CanonicalIdentityUpgradeDecision =
   | "ACCEPT_CANONICAL_IDENTITY_UPGRADE"
@@ -128,8 +135,9 @@ export function isCanonicalLaborLeafWorkId(workId: string | null | undefined): b
  * existing cw.knr.*
  * OR Owner RC1 VERIFY_CONNECT allowlist (exactly 2 workIds)
  * OR Owner RC1 CREATE_CANDIDATE allowlist (exactly 1 workId — 0504-07 szt)
- * OR Owner RC1 CREATE_CANDIDATE_KPL allowlist (exactly 1 workId — 0501-03 kpl).
- * Does NOT widen /^knr-wc-/ · does NOT invent global CREATE / KPL class.
+ * OR Owner RC1 CREATE_CANDIDATE_KPL allowlist (exactly 1 workId — 0501-03 kpl)
+ * OR Owner RC1 RECLASS_STOLARKA allowlist (exactly 1 workId — klamki p2b).
+ * Does NOT widen /^knr-wc-/ · does NOT invent global CREATE / KPL / RECLASS / p2b class.
  */
 export function isIdentityUpgradeEligibleLeafWorkId(
   workId: string | null | undefined,
@@ -139,6 +147,7 @@ export function isIdentityUpgradeEligibleLeafWorkId(
     || isOwnerRc1VerifyConnectLeafWorkId(workId)
     || isOwnerRc1CreateCandidateLeafWorkId(workId)
     || isOwnerRc1CreateCandidateKplLeafWorkId(workId)
+    || isOwnerRc1ReclassStolarkaLeafWorkId(workId)
   );
 }
 
@@ -240,8 +249,15 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
   const localIsRc1Connect = isOwnerRc1VerifyConnectLeafWorkId(localWid);
   const localIsRc1Create = isOwnerRc1CreateCandidateLeafWorkId(localWid);
   const localIsRc1CreateKpl = isOwnerRc1CreateCandidateKplLeafWorkId(localWid);
+  const localIsRc1Reclass = isOwnerRc1ReclassStolarkaLeafWorkId(localWid);
 
-  if (!localIsCwKnr && !localIsRc1Connect && !localIsRc1Create && !localIsRc1CreateKpl) {
+  if (
+    !localIsCwKnr
+    && !localIsRc1Connect
+    && !localIsRc1Create
+    && !localIsRc1CreateKpl
+    && !localIsRc1Reclass
+  ) {
     return {
       decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
       reasons: ["LOCAL_NOT_CANONICAL_LEAF"],
@@ -269,7 +285,21 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
     };
   }
 
-  if (localIsRc1CreateKpl) {
+  if (localIsRc1Reclass) {
+    if (
+      !hasOwnerRc1ReclassStolarkaAttestation({
+        leafWorkId: localWid,
+        matchMethod: local.matchMethod,
+        matchedBy: local.matchedBy,
+        aiRationale: local.aiRationale,
+      })
+    ) {
+      return {
+        decision: "REJECT_UNSAFE_IDENTITY_UPGRADE",
+        reasons: ["MISSING_OWNER_RC1_RECLASS_STOLARKA_ATTESTATION"],
+      };
+    }
+  } else if (localIsRc1CreateKpl) {
     if (
       !hasOwnerRc1CreateCandidateKplAttestation({
         leafWorkId: localWid,
@@ -344,7 +374,10 @@ export function evaluateCanonicalIdentityUpgradeMerge(input: {
 
   reasons.push("SAME_LOGICAL_LINE");
   reasons.push("NON_IDENTITY_FIELDS_IDENTICAL");
-  if (localIsRc1CreateKpl) {
+  if (localIsRc1Reclass) {
+    reasons.push("LOCAL_OWNER_RC1_RECLASS_STOLARKA_LEAF");
+    reasons.push("OWNER_RC1_RECLASS_STOLARKA_ATTESTATION");
+  } else if (localIsRc1CreateKpl) {
     reasons.push("LOCAL_OWNER_RC1_CREATE_CANDIDATE_KPL_LEAF");
     reasons.push("OWNER_RC1_CREATE_CANDIDATE_KPL_ATTESTATION");
   } else if (localIsRc1Create) {

@@ -112,8 +112,9 @@ export function hasOwnerRc1CreateCandidateAttestation(input: {
   // Substring trap: OWNER_RC1_CREATE_CANDIDATE_KPL contains OWNER_RC1_CREATE_CANDIDATE
   if (r.includes("OWNER_RC1_CREATE_CANDIDATE_KPL")) return false;
   if (!r.includes(OWNER_RC1_CREATE_CANDIDATE_ATTESTATION)) return false;
-  // CONNECT / CLLR must not masquerade as CREATE authority
+  // CONNECT / RECLASS / CLLR must not masquerade as CREATE authority
   if (r.includes("OWNER_RC1_VERIFY_CONNECT")) return false;
+  if (r.includes("OWNER_RC1_RECLASS_STOLARKA")) return false;
   if (r.includes("COMPOUND_LEAF_REBIND")) return false;
   if (r.includes("CANONICAL_LEAF_REBIND")) return false;
   const mappingId = extractOwnerRc1CreateCandidateMappingIdFromRationale(r);

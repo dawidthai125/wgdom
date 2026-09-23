@@ -112,8 +112,9 @@ export function hasOwnerRc1CreateCandidateKplAttestation(input: {
   if (!r.includes(OWNER_RC1_CREATE_CANDIDATE_KPL_ATTESTATION)) return false;
   // Bare szt CREATE without _KPL must not authorize KPL (token boundary: require _KPL form)
   // If rationale has OWNER_RC1_CREATE_CANDIDATE but not ..._KPL — already failed above.
-  // Reject CONNECT / CLLR masquerade
+  // Reject CONNECT / RECLASS / CLLR masquerade
   if (r.includes("OWNER_RC1_VERIFY_CONNECT")) return false;
+  if (r.includes("OWNER_RC1_RECLASS_STOLARKA")) return false;
   if (r.includes("COMPOUND_LEAF_REBIND")) return false;
   if (r.includes("CANONICAL_LEAF_REBIND")) return false;
   const mappingId = extractOwnerRc1CreateCandidateKplMappingIdFromRationale(r);

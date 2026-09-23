@@ -172,6 +172,14 @@ export type {
   OwnerRc1CreateCandidateKplApplyResult,
 } from "./owner-rc1-create-candidate-kpl-apply";
 export {
+  applyOwnerRc1ReclassStolarkaIdentityToLine,
+  OWNER_RC1_RECLASS_STOLARKA_APPLY_VERSION,
+} from "./owner-rc1-reclass-stolarka-apply";
+export type {
+  OwnerRc1ReclassStolarkaApplyDecision,
+  OwnerRc1ReclassStolarkaApplyResult,
+} from "./owner-rc1-reclass-stolarka-apply";
+export {
   scheduleIkContinuation,
   scheduleManyIkContinuations,
   applyIkContinuationExecutorOutcome,
