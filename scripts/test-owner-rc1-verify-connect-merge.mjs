@@ -330,7 +330,15 @@ for (const [leaf, label] of [
   });
   const r = evaluateCanonicalIdentityUpgradeMerge({ cloudLine: cloud, localLine: local });
   assert(r.decision === "REJECT_UNSAFE_IDENTITY_UPGRADE", `N CREATE/OPEN ${label} REJECT`);
-  assert((r.reasons || []).includes("LOCAL_NOT_CANONICAL_LEAF"), `N ${label} NOT_CANONICAL`);
+  if (label === "0501-03") {
+    assert(
+      (r.reasons || []).includes("MISSING_OWNER_RC1_CREATE_CANDIDATE_KPL_ATTESTATION")
+        || (r.reasons || []).includes("LOCAL_NOT_CANONICAL_LEAF"),
+      `N ${label} requires KPL class (not CONNECT)`,
+    );
+  } else {
+    assert((r.reasons || []).includes("LOCAL_NOT_CANONICAL_LEAF"), `N ${label} NOT_CANONICAL`);
+  }
 }
 
 // ── NEGATIVE / REGRESSION 17: cw.knr still ACCEPT ────────────────

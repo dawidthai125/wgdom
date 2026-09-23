@@ -108,24 +108,27 @@ export const MOPS_ELEC_RC1_MAP_0504_07: LaborIdentityMappingRow = baseRow({
     "MOPS RC-1 CREATE_CANDIDATE — KNR|5-08|0504-07 IP44 · ≠ 0504-03 · ≠ p2b-montaz-opraw · ZERO OUR RATE until AUT-R1",
 });
 
+/** CREATE_CANDIDATE_KPL — MOPS 0501-03 podłoże → knr-wc-knr-5-08-0501-03-kpl (unit kpl HARD). */
+export const MOPS_ELEC_RC1_MAP_0501_03: LaborIdentityMappingRow = baseRow({
+  mappingId: "lim-mops-elec-rc1-0501-03-podloze-kpl",
+  workId: MOPS_ELEC_RC1_0501_03_WORK_ID,
+  categoryKey: "electrical",
+  aliases: [
+    MOPS_ELEC_RC1_EXACT_ALIASES["0501-03"],
+    getMopsElecRc1WorkSpec(MOPS_ELEC_RC1_0501_03_WORK_ID)!.namePl,
+  ],
+  catalogUnit: "kpl",
+  observedUnit: "kpl",
+  notesPl:
+    "MOPS RC-1 CREATE_CANDIDATE_KPL — KNR|5-08|0501-03 · unit kpl HARD · ≠ szt · ≠ 0504 mount · BOM HOLD",
+});
+
 export function buildMopsElecRc1CreateMappings(
   approvedAtIso: string = MOPS_ELEC_RC1_IDENTITY_APPROVED_AT,
 ): readonly LaborIdentityMappingRow[] {
   const rows: LaborIdentityMappingRow[] = [
     MOPS_ELEC_RC1_MAP_0504_07,
-    baseRow({
-      mappingId: "lim-mops-elec-rc1-0501-03-podloze-kpl",
-      workId: MOPS_ELEC_RC1_0501_03_WORK_ID,
-      categoryKey: "electrical",
-      aliases: [
-        MOPS_ELEC_RC1_EXACT_ALIASES["0501-03"],
-        getMopsElecRc1WorkSpec(MOPS_ELEC_RC1_0501_03_WORK_ID)!.namePl,
-      ],
-      catalogUnit: "kpl",
-      observedUnit: "kpl",
-      notesPl:
-        "MOPS RC-1 CREATE_CANDIDATE_KPL — KNR|5-08|0501-03 · unit kpl HARD · ≠ szt · ≠ 0504 mount · BOM HOLD",
-    }),
+    MOPS_ELEC_RC1_MAP_0501_03,
     baseRow({
       mappingId: "lim-mops-elec-rc1-0402-03-rcd-test",
       workId: MOPS_ELEC_RC1_0402_03_WORK_ID,

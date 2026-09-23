@@ -164,6 +164,14 @@ export type {
   OwnerRc1CreateCandidateApplyResult,
 } from "./owner-rc1-create-candidate-apply";
 export {
+  applyOwnerRc1CreateCandidateKplIdentityToLine,
+  OWNER_RC1_CREATE_CANDIDATE_KPL_APPLY_VERSION,
+} from "./owner-rc1-create-candidate-kpl-apply";
+export type {
+  OwnerRc1CreateCandidateKplApplyDecision,
+  OwnerRc1CreateCandidateKplApplyResult,
+} from "./owner-rc1-create-candidate-kpl-apply";
+export {
   scheduleIkContinuation,
   scheduleManyIkContinuations,
   applyIkContinuationExecutorOutcome,

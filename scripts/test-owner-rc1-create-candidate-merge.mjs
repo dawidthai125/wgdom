@@ -61,7 +61,7 @@ const MAP_CONNECT = MOPS_ELEC_RC1_MAP_0407_01.mappingId;
 const LEAF_CONNECT_0504 = MOPS_ELEC_RC1_CONNECT_0504_03_WORK_ID;
 const MAP_CONNECT_0504 = MOPS_ELEC_RC1_MAP_0504_03.mappingId;
 const CW_KNR = "cw.knr.knr-4-01.1204-02.m2";
-const OTHER_KNR_WC = "knr-wc-knr-5-08-0501-03-kpl";
+const OTHER_KNR_WC = "knr-wc-arbitrary-foobar-szt";
 
 function baseLine(overrides = {}) {
   return {
@@ -249,7 +249,7 @@ function createPatched(cloudLine, leaf = LEAF_CREATE, mappingId = MAP_CREATE) {
   );
 }
 
-// ── NEGATIVE 8: wrong CREATE leaf (0501-03) → REJECT ──────────────
+// ── NEGATIVE 8: wrong CREATE leaf (0501-03 KPL class) → REJECT under szt CREATE attest
 {
   const cloud = baseLine({
     description: MOPS_ELEC_RC1_EXACT_ALIASES["0501-03"],
@@ -265,7 +265,11 @@ function createPatched(cloudLine, leaf = LEAF_CREATE, mappingId = MAP_CREATE) {
   });
   const r = evaluateCanonicalIdentityUpgradeMerge({ cloudLine: cloud, localLine: local });
   assert(r.decision === "REJECT_UNSAFE_IDENTITY_UPGRADE", "N8 wrong CREATE leaf REJECT");
-  assert((r.reasons || []).includes("LOCAL_NOT_CANONICAL_LEAF"), "N8 0501-03 not allowlisted");
+  assert(
+    (r.reasons || []).includes("MISSING_OWNER_RC1_CREATE_CANDIDATE_KPL_ATTESTATION")
+      || (r.reasons || []).includes("LOCAL_NOT_CANONICAL_LEAF"),
+    "N8 0501-03 requires KPL class (not szt CREATE attest)",
+  );
 }
 
 // ── NEGATIVE 9: missing CREATE attestation → REJECT ──────────────
