@@ -50,6 +50,17 @@ Expert-effective = dostęp Staff do Przetargi (`tendersTabForStaffEnabled`) — 
 Bid Proposal · TRE-01 · TenderDecisionView · `kw-tender-decisions` · Intelligence Hub (nie SSOT decyzji).  
 **KEEP / MIGRATE** — **REMOVE** dopiero po audit + absolute L8 + Owner GO (S8 = HOLD).
 
+### LAST CLOSED (IK)
+
+| | |
+|--|--|
+| **LAST CLOSED** | **IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS** |
+| **Application** | **2.66.235 / `643bd6e0`** |
+| **Documentation** | **`f756b27b`** (DOCUMENTATION-ONLY) |
+| **Full IK Autonomy** | **NOT CLOSED** |
+| **Next** | **AUDIT** |
+
+
 ### CO JEST ZAMKNIĘTE?
 
 **S0–S9** · **TM-01 EPIC CLOSED** · Experts/Chief/Session/Dossier/EW/Validation/DW/Persist (P0).  

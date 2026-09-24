@@ -212,13 +212,20 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | Pole | Wartosc |
 |------|---------|
 | **Release** | **IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS** - **CLOSED** - **PRODUCTION VERIFIED** |
-| **Tip** | UI **2.66.235** - commit **`643bd6e0`** - baseline **`398b7c85`** - FF `398b7c85..643bd6e0` |
+| **Status** | **CLOSED** |
+| **C+D** | **CLOSED** |
+| **Application tip** | **`643bd6e0`** |
+| **Production** | **2.66.235** |
+| **Documentation closeout** | **`f756b27b`** (`f756b27b1538f4c3143b11a0f1c76c593fbce6c9`) — **DOCUMENTATION-ONLY** · **≠** application tip · **NO DEPLOY** |
+| **Tip (app)** | UI **2.66.235** - commit **`643bd6e0`** - baseline **`398b7c85`** - FF `398b7c85..643bd6e0` |
 | **C** | SUCCESS only after `await cloudFlushPromise` - `isGatedIdentityPersistSuccess` |
 | **D** | Required post-flush **CLOUD** readback (workId/mappingId/attestation/protected) |
 | **Lost-update** | Suspend xN attach -> **one** final flush - no intermediate fire-and-forget RMW |
 | **Guard** | Non-browser live `persistKey` requires `WGDOM_ALLOW_LIVE_MULTI_DWELLING_CLOUD_PUSH=1` - else `WGDOM_LIVE_CLOUD_BLOCKED` |
+| **Full IK Autonomy** | **NO / NOT CLOSED** |
+| **Finance** | **OPEN / `OWNER_FINANCE_NOT_OK`** |
 | **OUT** | Rate/Catalog - Finance - Payroll - Eq/Tr/Waste - Full Autonomy - PRE_EXISTING_RATE_DRIFT `0815-04` (13.15 vs 26.64) |
-| **Closeout** | [`IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md`](./IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md) |
+| **Closeout** | [`IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md`](./IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md) — RCA/evidence REUSE; do not re-litigate |
 | **NEXT** | **AUDIT, NOT IMPLEMENT** - no auto reapply - no Rate fix without Owner GO |
 
 ### 1.2 Vocabulary (nie mieszać)
@@ -275,6 +282,74 @@ Każdy nowy AI:
 NIE reopen zamkniętej gałęzi tylko dlatego, że raport jest w historii czatu.
 ════════════════════════════════════════════════════════
 ```
+
+### 1.4 IK SELF-SUFFICIENCY CONTRACT
+
+> **Rola:** kontrakt dokumentacyjny cold-startu · **nie** drugi Product North Star · **nie** drugi Decision Tree · **nie** drugi Master SSOT.
+> **Hierarchia:** §0 Full Autonomy · §3 Decision Tree Primacy · **§1.4 Self-Sufficiency** (docs must answer) · execution layers poniżej Tree.
+
+```text
+IK TREE = ARCHITECTURAL NORTH STAR
+
+Priority (canonical):
+  IK TREE / DECISION TREE
+    > ORCHESTRA
+      > EXPERTS / RESEARCH
+        > CATALOGS / EVIDENCE
+          > execution / persistence / helpers
+
+FTO is NOT above IK Tree.
+Persistence layer is NOT above IK Tree.
+Helper / resolver is NOT above IK Tree.
+Golden is NOT above IK Tree.
+Do NOT create a second Orchestra.
+Do NOT create a second SSOT.
+```
+
+Canonical IK documentation MUST enable a new agent (no chat memory) to answer:
+
+| # | Question | Where (canonical) |
+|---|----------|-------------------|
+| 1 | What is IK? | §0 · §2 · §4 |
+| 2 | What is the IK Tree / Decision Tree? | §3 · §7 · §9 · DF pointer |
+| 3 | What is the canonical execution hierarchy? | §27.0 · banner §1.3 · Reuse Map Law |
+| 4 | What is SSOT? | this Master · tip [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · sibling closeouts |
+| 5 | What is orchestration-only? | §4 Orchestra · Host ≠ sequencer · §27.0 |
+| 6 | What is Evidence? | §6 · §16A · Evidence ≠ OUR RATE until Accept |
+| 7 | What is Owner Policy? | §0 Owner = exception · §20 Owner Gates · Authority Policy |
+| 8 | What is CLOSED? | §1.2 Vocabulary · §25 CLOSED CHECKPOINTS · feature closeouts |
+| 9 | What is OPEN? | §1.2 · §24 CURRENT OPEN WORK |
+| 10 | What are the active Knowledge Gaps? | §24 · §16A KB-* · residual classes §34 — **do not invent closures** |
+| 11 | What paths are forbidden? | §5 HARD LOCKS · §23 · §28 · §30 STOP |
+| 12 | What is the required lifecycle? | below |
+
+**Required lifecycle (no shortcuts):**
+
+```text
+AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO
+  → IMPLEMENT → BUILD → TEST → OWNER VERIFICATION
+  → COMMIT → PUSH → PRODUCTION VERIFY → POST RELEASE → CLOSE
+```
+
+**HARD:** chat history ≠ architecture · `CHAT MEMORY != SSOT` · invent next epic **FORBIDDEN** without Owner GO.
+
+### 1.5 APPLICATION TIP vs DOCUMENTATION TIP
+
+| Layer | Value | Meaning |
+|-------|-------|---------|
+| **CURRENT APPLICATION** | **2.66.235** / **`643bd6e0`** | Production UI + shipped runtime · LIVE expected via `/version.json` |
+| **CURRENT DOCUMENTATION** | **`f756b27b`** | Documentation-only closeout commit on `main` |
+
+```text
+f756b27b = documentation-only closeout commit
+≠ application production tip
+≠ new deploy
+≠ UI version bump
+
+Production application remains:
+  2.66.235 / 643bd6e0
+```
+
 
 ---
 
@@ -2237,6 +2312,29 @@ DF: [`IK-ANALYSIS-OBSERVABILITY-PROJECTION-01-DESIGN-FREEZE.md`](./IK-ANALYSIS-O
 - Read-only pipeline / OfferBoq / finance proposal reasons
 - FULL dump restore **lokalnie** do PV observation (bez claim cloud SSOT)
 - Harness / unit tests na fixture
+
+### 22.3 PERSISTENCE IS PART OF AUTONOMY
+
+> **Architectural law** (execution / persistence safety contract) · **≠** new engine · **≠** second Orchestra / SSOT.
+> **Evidence (CLOSED):** [`IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md`](./IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md) · Master §1.1d · Reuse **GATED_IDENTITY_PERSIST (C+D)**.
+
+```text
+PERSISTENCE IS PART OF AUTONOMY
+
+WRITE_ACCEPTANCE != DURABLE_SUCCESS
+LOCAL_SUCCESS != CLOUD_SUCCESS
+
+Autonomous writeback is complete only after:
+
+  PLAN
+  → VALIDATED WRITE
+  → CLOUD FLUSH
+  → DURABLE CLOUD READBACK
+  → VERIFIED SUCCESS
+```
+
+Do **not** treat local `writes.length` / local attach alone as SUCCESS. Do **not** bypass cloud flush, durable readback, or live cloud guard. Persistence remains **below** IK Tree (Tree > Orchestra > Experts > Catalogs/Evidence > Persist).
+
 
 ---
 

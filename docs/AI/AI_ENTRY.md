@@ -44,6 +44,18 @@ Regresje LP po FEATURE zwykle wynikają z pominięcia tej ścieżki.
 **Jedyne źródło tipu w docs:** [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md)  
 **Live check:** `https://www.wgdom.fun/version.json`
 
+### Po standardowym Entry — IK tip separation (przed AUDIT)
+
+Po Entry + Gate agent **musi**:
+
+1. przeczytać Master SSOT ([`../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md`](../architecture/INTELLIGENT-ESTIMATOR-MASTER-SSOT.md) · §1.4 Self-Sufficiency);
+2. przeczytać AI Continuity ([`../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md`](../architecture/INTELLIGENT-ESTIMATOR-AI-CONTINUITY.md));
+3. ustalić **CURRENT APPLICATION TIP** (canonical docs / [`09_PRODUCTION_BASELINE.md`](09_PRODUCTION_BASELINE.md) + live `version.json` — **nie** hardcoduj numeru jako jedynego źródła);
+4. ustalić **CURRENT DOCUMENTATION TIP** (09 · DOCUMENTATION TIP);
+5. znaleźć ostatni **CLOSED** IK release (closeout pointer);
+6. dopiero potem rozpocząć **AUDIT**.
+
+
 ---
 
 ## 1. Obowiązkowa ścieżka czytania (kolejność)

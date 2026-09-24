@@ -34,6 +34,19 @@ CURRENT = ŚRODA A0.2 · TPI HYDRATION DESIGN-C CLOSED/PV · LINE-TOLERANT HISTO
 ACTIVE IMPLEMENT = NONE bez Owner GO · APP 2.66.235 · LIVE=fetch /version.json · expected 643bd6e · HISTORY LAST VERIFIED 32a90fef · HYDRATION VERIFY 75d0f09 · GLOBAL IK PV = NO · MODEL C FROZEN · DECISION C CLOSED / PV · Full Autonomy = NO · HARD minting UI OPEN
 ```
 
+## CURRENT CANONICAL (IK session knowledge)
+
+| | |
+|--|--|
+| **APPLICATION** | **2.66.235 / `643bd6e0`** |
+| **DOCUMENTATION** | **`f756b27b`** (DOCUMENTATION-ONLY · ≠ app tip · NO DEPLOY) |
+| **ACTIVE IMPLEMENT** | **NONE** |
+| **LAST CLOSED** | **IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS** |
+| **STATUS** | **CLOSED / PRODUCTION VERIFIED** |
+| **OPEN** | **`OWNER_FINANCE_NOT_OK`** · Full IK Autonomy = **NO** |
+| **NEXT** | **AUDIT** — agent must **not** invent next EPIC |
+
+
 ---
 
 ## Executive Summary
