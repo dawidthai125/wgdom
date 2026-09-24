@@ -11,6 +11,16 @@
 - Test: `test-multi-dwelling-cloud-persistence-loss-fix.mjs`
 - Bez zmian RECLASS / Safe Merge eligibility / Rate / BOM · LIVE CLOUD 0 w tej sesji
 
+## docs — IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS CLOSEOUT (2026-09-24)
+
+- Release **CLOSED / PRODUCTION VERIFIED**: UI **2.66.235** · commit **`643bd6e0`** · baseline **`398b7c85`** · FF `398b7c85..643bd6e0`
+- RCA: gated multi-dwelling identity batch intermediate package persist → fire-and-forget RMW lost-update (klamki `obl_d6175564` durable 2/3)
+- C: SUCCESS only after `await cloudFlushPromise` · D: required CLOUD readback · lost-update: suspend×N + one flush · live guard `WGDOM_LIVE_CLOUD_BLOCKED`
+- Validation: persistence **31/31** · seam **25/0** · GO-AUTO **27/0** · CONNECT **63/0** · RECLASS **77/0** · CREATE **80/0** · CREATE_KPL **62/0** · AID **22/0** · BUILD PASS
+- PV: `/version.json` match · bundle C/D/guard markers · cloud/prod data mutation **0**
+- OUT: Payroll · Finance · Rate/Catalog · Eq/Tr/Waste · Full Autonomy · **PRE_EXISTING_RATE_DRIFT** `cw.knr.knr-2-02.0815-04.m2` (13.15 vs 26.64)
+- SSOT: [`docs/architecture/IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md`](docs/architecture/IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md)
+
 ## docs — IK-IDENTITY-APPLY-MOPS-ELEC-RC1 CLOSEOUT (2026-09-22)
 
 - EPIC **CLOSED**: MOPS `08def932` · 6 Owner RC1 VERIFY_CONNECT lines (0407-01×3 + 0504-03×3) · identity durable + 6/6 `positionComplete`

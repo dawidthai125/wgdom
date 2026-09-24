@@ -207,6 +207,20 @@ Dopiero **Autonomous Accept** (kontrakt PASS) lub **Owner Exception Accept** zap
 | **Closeout** | [`IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md`](./IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md) |
 | **NEXT** | Identify next knowledge/identity cluster — **DO NOT AUTO-EXECUTE** |
 
+### 1.1d Status delta 2026-09-24 (KLAMKI cloud persistence loss - additive)
+
+| Pole | Wartosc |
+|------|---------|
+| **Release** | **IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS** - **CLOSED** - **PRODUCTION VERIFIED** |
+| **Tip** | UI **2.66.235** - commit **`643bd6e0`** - baseline **`398b7c85`** - FF `398b7c85..643bd6e0` |
+| **C** | SUCCESS only after `await cloudFlushPromise` - `isGatedIdentityPersistSuccess` |
+| **D** | Required post-flush **CLOUD** readback (workId/mappingId/attestation/protected) |
+| **Lost-update** | Suspend xN attach -> **one** final flush - no intermediate fire-and-forget RMW |
+| **Guard** | Non-browser live `persistKey` requires `WGDOM_ALLOW_LIVE_MULTI_DWELLING_CLOUD_PUSH=1` - else `WGDOM_LIVE_CLOUD_BLOCKED` |
+| **OUT** | Rate/Catalog - Finance - Payroll - Eq/Tr/Waste - Full Autonomy - PRE_EXISTING_RATE_DRIFT `0815-04` (13.15 vs 26.64) |
+| **Closeout** | [`IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md`](./IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md) |
+| **NEXT** | **AUDIT, NOT IMPLEMENT** - no auto reapply - no Rate fix without Owner GO |
+
 ### 1.2 Vocabulary (nie mieszać)
 
 | Status | Znaczenie |

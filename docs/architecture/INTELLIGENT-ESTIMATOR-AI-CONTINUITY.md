@@ -7,8 +7,9 @@
 > **Reuse:** [`INTELLIGENT-ESTIMATOR-REUSE-MAP.md`](./INTELLIGENT-ESTIMATOR-REUSE-MAP.md)
 > **Latest IK session:** [`IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md`](./IK-SESSION-CLOSEOUT-AUT-MAT-2026-09-14.md) — AUT-MAT Accept paint+Atlas · **≠** Global IK PV
 > **★★ IK-IDENTITY-APPLY-MOPS-ELEC-RC1 (2026-09-22):** **EPIC CLOSED** · source seam **`b64a5d8a`** · 6/6 CONNECT identity + 6/6 `positionComplete` · **≠** Full Autonomy · **≠** MOPS full tender · [`CLOSEOUT`](./IK-IDENTITY-APPLY-MOPS-ELEC-RC1-CLOSEOUT.md)
+> **★★ IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS (2026-09-24):** **CLOSED / PRODUCTION VERIFIED** · UI **2.66.235** · commit **`643bd6e0`** · C flush latch + D cloud readback + lost-update + live guard · **≠** Full Autonomy · **≠** Rate/Catalog · [`CLOSEOUT`](./IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md)
 > **CURRENT NODE:** **ŚRODA A0.2** · OPEN NODE (bid) **`OWNER_FINANCE_NOT_OK`** · GLOBAL IK PV **NO**
-> **CURRENT PRODUCTION:** LIVE = **FETCH** `/version.json` · tip documentary [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · AUT-MAT capability **`e43acb19`** / **2.66.212**
+> **CURRENT PRODUCTION:** LIVE = **FETCH** `/version.json` · expected **2.66.235 / `643bd6e`** · tip documentary [`../AI/09_PRODUCTION_BASELINE.md`](../AI/09_PRODUCTION_BASELINE.md) · AUT-MAT capability **`e43acb19`** / **2.66.212** (HISTORY capability tip)
 > **★★ STORAGE-TIER1 (2026-09-19):** **EPIC CLOSED / PV** @ **2.66.231 / `16bfb9f3`** · IDB FULL → LS INDEX → Cloud LEAN · flag ON · min 2.66.231 · downgrade **UNSUPPORTED** · Phase 22 docs-only · [`EPIC-CLOSEOUT`](./STORAGE-TIER1-PIPELINE-CONTRACT-01-EPIC-CLOSEOUT.md) · Master §10.5.1
 > **CLOSED CASE:** **CHROBREGO** 56/0 — **NIE reopen**
 > **Sesja hist.:** [`IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md`](./IK-MASTER-CONTINUITY-HANDOFF-2026-08-24.md)
@@ -31,7 +32,8 @@ AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-
 
 | | |
 |--|--|
-| **LIVE PRODUCTION** | **FETCH** `/version.json` · runtime authority |
+| **LIVE PRODUCTION** | **FETCH** `/version.json` · expected **2.66.235 / `643bd6e`** |
+| **KLAMKI persistence loss** | **CLOSED / PV** @ **`643bd6e0`** · [`CLOSEOUT`](./IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md) · **≠** Full Autonomy · **≠** 0815-04 Rate drift |
 | **AUT-MAT Accept capability** | **`e43acb19`** / **2.66.212** · paint+Atlas PriceMemory · closeout linked above · **≠** Global IK PV |
 | **OPEN NODE (bid path)** | **`OWNER_FINANCE_NOT_OK`** (downstream symptom) |
 | **TPI Full IK E2E** | **OPEN / NOT VERIFIED** |
@@ -39,6 +41,7 @@ AUTONOMY-08 = OPEN · Experience Phase 5 = NOT AUTHORIZED · W3–W6 = NOT auto-
 | **Reference** | Master §15 · §24 · §27 · Reuse Map · Data Flow · [`09`](../AI/09_PRODUCTION_BASELINE.md) · Storage §10.5.1 |
 | **STORAGE-TIER1** | **CLOSED / PV** · **2.66.231 / `16bfb9f3`** · INDEX ≠ FULL · no prod mutation in Phase 22 |
 | **NOT CLAIMED** | **GLOBAL IK PRODUCTION VERIFIED** · Full Autonomy · BidCutover PASS · entire IK FINAL |
+| **KLAMKI closeout SSOT** | [`IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md`](./IK-IDENTITY-KLAMKI-CLOUD-PERSISTENCE-LOSS-CLOSEOUT.md) · **≠** Full Autonomy |
 
 ---
 
