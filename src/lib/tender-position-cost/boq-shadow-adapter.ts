@@ -92,6 +92,8 @@ export type ShadowWorkIdentityStatus =
   | "AMBIGUOUS"
   | "INVALID_UNIT"
   | "NOISE_SKIP"
+  /** IK-CLOSURE-WAVE1 — Owner-gated exclude from current billable (mirror NOISE_SKIP). */
+  | "OWNER_SCOPE_HOLD_SKIP"
   | "EQUIPMENT_GAP"
   | "EQUIPMENT_RESOLVED"
   | "TRANSPORT_GAP"
@@ -116,6 +118,8 @@ export type ShadowGapCode =
   | "TRANSPORT_OWNER_INPUT_INVALID"
   | "AUXILIARY_OUT_OF_SCOPE"
   | "POMINIETO_NOISE"
+  /** Owner-approved EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE — accounted skip ≠ COMPLETE. */
+  | "POMINIETO_OWNER_SCOPE_HOLD"
   | "NIEPRAWIDLOWA_ILOSC"
   | "BOQ_QUANTITY_HOLD";
 
@@ -137,9 +141,18 @@ const GAP_LABEL_PL: Record<ShadowGapCode, string> = {
   TRANSPORT_OWNER_INPUT_INVALID: "TRANSPORT — Owner Input INVALID (jednostka/stawka)",
   AUXILIARY_OUT_OF_SCOPE: "TRANSPORT / AUXILIARY — OUT OF SCOPE",
   POMINIETO_NOISE: "POZYCJA NOISE — POMINIĘTA",
+  POMINIETO_OWNER_SCOPE_HOLD:
+    "OWNER — WYŁĄCZONE Z BIEŻĄCEGO BILLABLE SCOPE (≠ COMPLETE)",
   NIEPRAWIDLOWA_ILOSC: "NIEPRAWIDŁOWA ILOŚĆ POZYCJI",
   BOQ_QUANTITY_HOLD: "BOQ QUANTITY — semantyczny HOLD (S4-B)",
 };
+
+/** Cutover/aggregate: statuses excluded from current billable scope (not priced). */
+export function isShadowNonBillableSkipStatus(
+  status: ShadowWorkIdentityStatus,
+): boolean {
+  return status === "NOISE_SKIP" || status === "OWNER_SCOPE_HOLD_SKIP";
+}
 
 /** Metody identity uznane za pewne (bez category_heuristic / unmatched). */
 const TRUSTED_MATCH: ReadonlySet<OfferBoqMatchMethod> = new Set([
@@ -213,6 +226,8 @@ export type ShadowBoqPositionCostResult = {
     completeLineCount: number;
     gapLineCount: number;
     skippedNoiseCount: number;
+    /** WAVE1 — Owner-gated EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE skips. */
+    skippedOwnerScopeHoldCount: number;
     laborCostPln: number | null;
     materialCostPln: number | null;
     /** SUM(resolved equipment totals) — 0 only when no Equipment lines resolved. */
@@ -487,6 +502,11 @@ export type ComputeShadowPositionCostForLineInput = {
    * Pass `estimate` for P7 / UI / research provisional preview.
    */
   pricingAuthority?: PositionPricingAuthority;
+  /**
+   * IK-CLOSURE-WAVE1 — Owner-approved lineIds excluded from current billable scope.
+   * Must come from ownerApproved===true records only (caller responsibility).
+   */
+  ownerExcludedLineIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 /** S5-A — Owner Input quantity must use existing S4-B resolver (no alternate SSOT). */
@@ -605,6 +625,48 @@ export function computeShadowPositionCostForOfferBoqLine(
 ): ShadowPositionCostLineResult {
   const { line, store, nowMs } = input;
   const gaps: ShadowGapCode[] = [];
+
+  // WAVE1 — Owner-gated billable exclusion FIRST (≠ COMPLETE · ≠ auto from HOLD).
+  const excludedSet = resolveOwnerExcludedLineIdSet(input.ownerExcludedLineIds ?? null);
+  const lineId = String(line.lineId || "").trim();
+  if (lineId && excludedSet.has(lineId)) {
+    pushGap(gaps, "POMINIETO_OWNER_SCOPE_HOLD");
+    const unitRaw = String(line.unit ?? "").trim();
+    return {
+      lineId: line.lineId,
+      lp: line.lp,
+      description: line.description,
+      quantity: line.quantity,
+      unitRaw,
+      identity: {
+        status: "OWNER_SCOPE_HOLD_SKIP",
+        statusLabelPl: GAP_LABEL_PL.POMINIETO_OWNER_SCOPE_HOLD,
+        workId: null,
+        unit: null,
+        unitRaw,
+        matchMethod: line.matchMethod ?? null,
+        matchConfidence: line.matchConfidence ?? null,
+        gaps: [...gaps],
+        ownerUnitCompatibility: null,
+      },
+      gaps: [...gaps],
+      gapLabelsPl: gaps.map((g) => GAP_LABEL_PL[g]),
+      bom: null,
+      ourRate: null,
+      materialsResolved: [],
+      position: null,
+      engineInput: null,
+      legacyLineTotalPln:
+        line.lineTotalPln != null && Number.isFinite(line.lineTotalPln)
+          ? line.lineTotalPln
+          : null,
+      positionComplete: false,
+      equipment: null,
+      transport: null,
+      provisionalAttestation: null,
+    };
+  }
+
   const identity = resolveWorkIdentityFromOfferBoqLine(line);
   for (const g of identity.gaps) pushGap(gaps, g);
 
@@ -1117,7 +1179,21 @@ export type ComputeShadowBoqPositionCostsInput = {
    * GO86 B+C — default `finance`. Estimate/P7 must pass `estimate`.
    */
   pricingAuthority?: PositionPricingAuthority;
+  /**
+   * IK-CLOSURE-WAVE1 — Owner-approved lineIds excluded from current billable scope.
+   */
+  ownerExcludedLineIds?: ReadonlySet<string> | readonly string[] | null;
 };
+
+function resolveOwnerExcludedLineIdSet(
+  raw: ComputeShadowBoqPositionCostsInput["ownerExcludedLineIds"],
+): ReadonlySet<string> {
+  if (!raw) return new Set();
+  if (raw instanceof Set) return raw;
+  return new Set(
+    [...raw].map((id) => String(id || "").trim()).filter(Boolean),
+  );
+}
 
 function resolveEphemeralCostBasisForLine(
   byLineId:
@@ -1150,6 +1226,9 @@ export function computeShadowPositionCostsForOfferBoq(
     input.packs ?? listAllPacks(),
     input.ephemeralBomBasisByLineId ?? null,
   );
+  const ownerExcludedLineIds = resolveOwnerExcludedLineIdSet(
+    input.ownerExcludedLineIds ?? null,
+  );
   const lines = (input.doc.lines ?? []).map((line, lineIndex) =>
     computeShadowPositionCostForOfferBoqLine({
       line,
@@ -1171,12 +1250,14 @@ export function computeShadowPositionCostsForOfferBoq(
         input.ephemeralCostBasisByLineId ?? null,
         line.lineId,
       ),
+      ownerExcludedLineIds,
     }),
   );
 
   let completeLineCount = 0;
   let gapLineCount = 0;
   let skippedNoiseCount = 0;
+  let skippedOwnerScopeHoldCount = 0;
   let laborSum = 0;
   let materialSum = 0;
   let totalSum = 0;
@@ -1188,6 +1269,10 @@ export function computeShadowPositionCostsForOfferBoq(
   for (const row of lines) {
     if (row.identity.status === "NOISE_SKIP") {
       skippedNoiseCount += 1;
+      continue;
+    }
+    if (row.identity.status === "OWNER_SCOPE_HOLD_SKIP") {
+      skippedOwnerScopeHoldCount += 1;
       continue;
     }
     if (
@@ -1249,6 +1334,7 @@ export function computeShadowPositionCostsForOfferBoq(
       completeLineCount,
       gapLineCount,
       skippedNoiseCount,
+      skippedOwnerScopeHoldCount,
       laborCostPln: anyCost && allCompleteForAgg ? round2(laborSum) : anyCost ? round2(laborSum) : null,
       materialCostPln:
         anyCost && allCompleteForAgg ? round2(materialSum) : anyCost ? round2(materialSum) : null,

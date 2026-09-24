@@ -431,6 +431,7 @@ function fakeExpert(masterBoqLines, graphsByDwelling, graph) {
           completeLineCount: 0,
           gapLineCount: 1,
           skippedNoiseCount: 0,
+          skippedOwnerScopeHoldCount: 0,
           laborCostPln: null,
           materialCostPln: null,
           equipmentCostPln: 0,

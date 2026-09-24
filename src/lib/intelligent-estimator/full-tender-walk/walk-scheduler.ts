@@ -31,6 +31,11 @@ export type RunFullTenderWalkInput = {
   nowIso?: string;
   persist?: boolean;
   positionCompleteByLineId?: Record<string, boolean>;
+  /**
+   * IK-CLOSURE-WAVE1 — Owner-approved lineIds (ownerApproved===true only).
+   * Maps to OWNER_EXCEPTION + EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE · ≠ POSITION_COMPLETE.
+   */
+  ownerExcludedLineIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 export type RunFullTenderWalkResult = {
@@ -79,16 +84,24 @@ export function runFullTenderWalk(input: RunFullTenderWalkInput): RunFullTenderW
   const researchShouldExecuteLineIds: string[] = [];
   let silentSkips = 0;
 
+  const excludedSet = (() => {
+    const raw = input.ownerExcludedLineIds;
+    if (!raw) return new Set<string>();
+    if (raw instanceof Set) return raw;
+    return new Set([...raw].map((id) => String(id || "").trim()).filter(Boolean));
+  })();
+
   for (const ref of input.lines) {
     const labor = laborById.get(ref.lineId) ?? null;
     const material = materialById.get(ref.lineId) ?? null;
+    const ownerExcluded = excludedSet.has(String(ref.lineId || "").trim());
     const sched = scheduleLineResearch({
       labor,
       executeResearchPermission: input.executeResearchPermission,
       identityAllowsResearch: labor?.classify?.allowLaborResearch,
       researchAlreadyExecuted: labor?.candidate != null || (labor?.researchKey != null && labor.rateStatus === "RESEARCH_PENDING"),
     });
-    if (sched.shouldExecuteResearch) {
+    if (sched.shouldExecuteResearch && !ownerExcluded) {
       researchShouldExecuteLineIds.push(ref.lineId);
     }
     const projected = projectLineWalkState({
@@ -96,14 +109,20 @@ export function runFullTenderWalk(input: RunFullTenderWalkInput): RunFullTenderW
       labor,
       material,
       allowLaborResearch: labor?.classify?.allowLaborResearch,
-      positionComplete: input.positionCompleteByLineId?.[ref.lineId],
+      positionComplete: ownerExcluded
+        ? false
+        : input.positionCompleteByLineId?.[ref.lineId],
       researchExecuted: sched.outcome === "RESEARCH_EXECUTED",
       researchFailed: sched.outcome === "RESEARCH_FAILED",
+      ownerExcludedFromBillableScope: ownerExcluded,
     });
     // Force research outcome from scheduler (authoritative for observability)
-    const researchOutcome = sched.outcome;
-    const status =
-      researchOutcome === "RESEARCH_BLOCKED_BY_IDENTITY"
+    const researchOutcome = ownerExcluded
+      ? "RESEARCH_NOT_REQUIRED"
+      : sched.outcome;
+    const status = ownerExcluded
+      ? "OWNER_EXCEPTION"
+      : researchOutcome === "RESEARCH_BLOCKED_BY_IDENTITY"
         ? "IDENTITY_HOLD"
         : projected.status;
 

@@ -99,6 +99,24 @@ export type TenderPackage = {
   documentToDwelling: Record<string, string>;
   /** GO-AUTO-IDENTITY-01 — durable continuation sidecar (optional). */
   ikContinuation?: TenderPackageIkContinuation | null;
+  /**
+   * IK-CLOSURE-WAVE1 — Owner-gated EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE.
+   * Wrapper only · OfferBoq untouched · ownerApproved===true required per record.
+   */
+  ikBillableScopeExclusions?: {
+    schemaVersion: 1;
+    records: Array<{
+      tenderId: string;
+      lineId: string;
+      dwellingId: string;
+      ownerApproved: true;
+      approvedAt: string;
+      approvedBy: string | null;
+      reason: "EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE";
+      notes: string | null;
+    }>;
+    updatedAt: string;
+  } | null;
 };
 
 export type PackageGateFailReason =

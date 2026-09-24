@@ -41,6 +41,10 @@ import {
 } from "./ik-labor-expert";
 import type { IkEphemeralBomBasis } from "./ik-bom-gap-research";
 import { synchronizePackageOfferBoqsFromMasterLines } from "@/lib/intelligent-estimator/boq-offer-master-sync";
+import {
+  listOwnerApprovedExcludedLineIds,
+  loadOwnerBillableScopeExclusionFromPackage,
+} from "@/lib/intelligent-estimator/full-tender-walk/owner-billable-scope-exclusion";
 
 export const IK_P7_POSITION_COST_BID_SCHEMA_VERSION = 1 as const;
 
@@ -402,6 +406,10 @@ export function runIkP7PositionCostBid(opts: {
         opts.ephemeralBomBasisByCompositeKey,
         "DEFAULT",
       ),
+      ownerExcludedLineIds: listOwnerApprovedExcludedLineIds({
+        sidecar: loadOwnerBillableScopeExclusionFromPackage(opts.package ?? null),
+        tenderId,
+      }),
     },
   });
 

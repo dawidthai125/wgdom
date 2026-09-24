@@ -38,6 +38,21 @@ export {
   buildIkAnalysisCompletenessKpi,
 } from "./completeness-kpi";
 export type { AthClassificationKpi, IkAnalysisCompletenessKpi } from "./completeness-kpi";
+export {
+  IK_OWNER_BILLABLE_SCOPE_EXCLUSION_REASON,
+  emptyOwnerBillableScopeExclusionSidecar,
+  isOwnerApprovedBillableScopeExclusion,
+  listOwnerApprovedExcludedLineIds,
+  loadOwnerBillableScopeExclusionFromPackage,
+  normalizeOwnerBillableScopeExclusionSidecar,
+  persistOwnerBillableScopeExclusionOnPackage,
+  removeOwnerBillableScopeExclusion,
+  upsertOwnerBillableScopeExclusion,
+} from "./owner-billable-scope-exclusion";
+export type {
+  IkOwnerBillableScopeExclusionRecord,
+  IkOwnerBillableScopeExclusionSidecar,
+} from "./owner-billable-scope-exclusion";
 
 import { isIkEntryEnabled } from "@/lib/intelligent-estimator/ik-entry-flag";
 

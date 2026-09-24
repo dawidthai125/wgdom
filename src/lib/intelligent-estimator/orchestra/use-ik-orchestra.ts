@@ -121,6 +121,10 @@ import {
   type IkReadinessProjection,
   type RunFullTenderWalkResult,
 } from "@/lib/intelligent-estimator/full-tender-walk";
+import {
+  listOwnerApprovedExcludedLineIds,
+  loadOwnerBillableScopeExclusionFromPackage,
+} from "@/lib/intelligent-estimator/full-tender-walk/owner-billable-scope-exclusion";
 import { pushIkFullWalkLedgerToCloudSafe } from "@/lib/intelligent-estimator/full-tender-walk/ledger-store";
 import { runAutonomousIdentityWritebackFromCompoundPhase } from "./ik-autonomous-identity-writeback";
 import {
@@ -1380,16 +1384,22 @@ export function useIkOrchestra({
         positionCompleteByLineId[row.lineId] = true;
       }
     }
+    const tenderId = String(effectiveItem.id || item.id || "").trim();
+    const ownerExcludedLineIds = listOwnerApprovedExcludedLineIds({
+      sidecar: loadOwnerBillableScopeExclusionFromPackage(pkg),
+      tenderId,
+    });
     return runFullTenderWalk({
-      tenderId: String(effectiveItem.id || item.id || "").trim(),
+      tenderId,
       lines: refs,
       labor,
       material,
       executeResearchPermission: flags.p5ResearchOn === true,
       persist: true,
       positionCompleteByLineId,
+      ownerExcludedLineIds,
     });
-  }, [postIdentityExpert, labor, material, flags.p5ResearchOn, item.id, effectiveItem.id, positionCostBid]);
+  }, [postIdentityExpert, labor, material, flags.p5ResearchOn, item.id, effectiveItem.id, positionCostBid, pkg]);
 
   /**
    * IK-FTO-01 — researchShouldExecuteLineIds → existing ikContinuation + P5/P6 arm

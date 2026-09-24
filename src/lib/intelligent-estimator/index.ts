@@ -714,9 +714,17 @@ export {
   getTenderWalkLedger,
   upsertTenderWalkLedger,
   IK_FULL_TENDER_WALK_LEDGER_KEY,
+  IK_OWNER_BILLABLE_SCOPE_EXCLUSION_REASON,
+  listOwnerApprovedExcludedLineIds,
+  upsertOwnerBillableScopeExclusion,
+  isOwnerApprovedBillableScopeExclusion,
+  loadOwnerBillableScopeExclusionFromPackage,
+  persistOwnerBillableScopeExclusionOnPackage,
 } from "./full-tender-walk";
 export type {
   IkFullWalkTenderLedger,
+  IkOwnerBillableScopeExclusionRecord,
+  IkOwnerBillableScopeExclusionSidecar,
   IkReadinessProjection,
   IkResearchWalkOutcome,
   RunFullTenderWalkResult,

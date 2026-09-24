@@ -30,6 +30,10 @@ import type {
   PackageGateResult,
   TenderPackage,
 } from "@/lib/multi-dwelling/types";
+import {
+  listOwnerApprovedExcludedLineIds,
+  loadOwnerBillableScopeExclusionFromPackage,
+} from "@/lib/intelligent-estimator/full-tender-walk/owner-billable-scope-exclusion";
 
 function roundPln(n: number): number {
   return Math.round(n * 100) / 100;
@@ -105,6 +109,8 @@ export type EvaluateDwellingOpts = {
     | ReadonlyMap<string, import("@/lib/intelligent-estimator/ik-bom-gap-research").IkEphemeralBomBasis>
     | Readonly<Record<string, import("@/lib/intelligent-estimator/ik-bom-gap-research").IkEphemeralBomBasis>>
     | null;
+  /** IK-CLOSURE-WAVE1 — Owner-approved billable-scope exclusions. */
+  ownerExcludedLineIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 /**
@@ -128,6 +134,7 @@ export function evaluateDwellingPositionCost(opts: EvaluateDwellingOpts): {
     boqDependencyGraph: opts.boqDependencyGraph ?? null,
     ephemeralCostBasisByLineId: opts.ephemeralCostBasisByLineId ?? null,
     ephemeralBomBasisByLineId: opts.ephemeralBomBasisByLineId ?? null,
+    ownerExcludedLineIds: opts.ownerExcludedLineIds ?? null,
   });
   return {
     dwellingId,
@@ -157,8 +164,22 @@ export function evaluateAllDwellingsInPackage(
     resolveEphemeralCostBasisByLineId?: ResolveEphemeralCostBasisByLineId;
     /** IK F5 Auto Gap — per-dwelling ephemeral BOM map. */
     resolveEphemeralBomBasisByLineId?: ResolveEphemeralBomBasisByLineId;
+    /**
+     * IK-CLOSURE-WAVE1 — optional override. Default: load Owner-approved
+     * exclusions from pkg.ikBillableScopeExclusions.
+     */
+    ownerExcludedLineIds?: ReadonlySet<string> | readonly string[] | null;
   },
 ): TenderPackage {
+  const sidecar = loadOwnerBillableScopeExclusionFromPackage(pkg);
+  const fromPkg = listOwnerApprovedExcludedLineIds({
+    sidecar,
+    tenderId: pkg.tenderId,
+  });
+  const ownerExcludedLineIds =
+    opts.ownerExcludedLineIds
+    ?? (fromPkg.length > 0 ? fromPkg : null);
+
   const dwellings: DwellingCostUnit[] = pkg.dwellings.map((d) => {
     if (!d.offerBoq || !(d.offerBoq.lines?.length > 0)) {
       return {
@@ -174,6 +195,13 @@ export function evaluateAllDwellingsInPackage(
       maps?.[dwKey]
       ?? (maps != null ? null : opts.boqDependencyGraph)
       ?? null;
+    const dwExcluded =
+      ownerExcludedLineIds
+      ?? listOwnerApprovedExcludedLineIds({
+        sidecar,
+        tenderId: pkg.tenderId,
+        dwellingId: d.dwellingId,
+      });
     const ev = evaluateDwellingPositionCost({
       tenderId: pkg.tenderId,
       dwellingId: d.dwellingId,
@@ -186,6 +214,7 @@ export function evaluateAllDwellingsInPackage(
         opts.resolveEphemeralCostBasisByLineId?.(dwKey) ?? null,
       ephemeralBomBasisByLineId:
         opts.resolveEphemeralBomBasisByLineId?.(dwKey) ?? null,
+      ownerExcludedLineIds: dwExcluded,
     });
     return {
       ...d,

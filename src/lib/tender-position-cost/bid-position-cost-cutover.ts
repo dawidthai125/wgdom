@@ -24,6 +24,7 @@ import type { WorkCatalogStore } from "@/lib/work-catalog/types";
 import type { EphemeralResearchBasis } from "@/lib/tender-position-cost/position-cost-basis";
 import {
   computeShadowPositionCostsForOfferBoq,
+  isShadowNonBillableSkipStatus,
   type ShadowBoqPositionCostResult,
   type ShadowGapCode,
   type ShadowPositionCostLineResult,
@@ -37,6 +38,8 @@ export type BidCutoverGateResult = {
   completeLineCount: number;
   gapLineCount: number;
   skippedNoiseCount: number;
+  /** IK-CLOSURE-WAVE1 — Owner-gated EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE. */
+  skippedOwnerScopeHoldCount: number;
   /** EQUIPMENT-01 / GO-1: Equipment lines (≠ Transport/Auxiliary). */
   equipmentGapCount: number;
   /** MODEL-1B: Bid Transport gaps (explicit bid_candidate only). */
@@ -84,6 +87,11 @@ export type PositionCostCutoverOpts = {
     | ReadonlyMap<string, import("@/lib/intelligent-estimator/ik-bom-gap-research").IkEphemeralBomBasis>
     | Readonly<Record<string, import("@/lib/intelligent-estimator/ik-bom-gap-research").IkEphemeralBomBasis>>
     | null;
+  /**
+   * IK-CLOSURE-WAVE1 — Owner-approved lineIds excluded from current billable scope.
+   * Must be filtered by ownerApproved===true upstream.
+   */
+  ownerExcludedLineIds?: ReadonlySet<string> | readonly string[] | null;
 };
 
 export type LegacyVsPositionCostBidCompare = {
@@ -142,6 +150,7 @@ export function evaluateBidCutoverGate(
   let completeLineCount = 0;
   let gapLineCount = 0;
   let skippedNoiseCount = 0;
+  let skippedOwnerScopeHoldCount = 0;
   let equipmentGapCount = 0;
   let transportGapCount = 0;
   let auxiliaryGapCount = 0;
@@ -149,6 +158,15 @@ export function evaluateBidCutoverGate(
   for (const line of shadow.lines) {
     if (line.identity.status === "NOISE_SKIP") {
       skippedNoiseCount += 1;
+      continue;
+    }
+    if (line.identity.status === "OWNER_SCOPE_HOLD_SKIP") {
+      skippedOwnerScopeHoldCount += 1;
+      collectLineGaps(line, gapCodes);
+      continue;
+    }
+    // Defensive: any future non-billable skip status
+    if (isShadowNonBillableSkipStatus(line.identity.status)) {
       continue;
     }
     billableLineCount += 1;
@@ -249,6 +267,7 @@ export function evaluateBidCutoverGate(
     completeLineCount,
     gapLineCount,
     skippedNoiseCount,
+    skippedOwnerScopeHoldCount,
     equipmentGapCount,
     transportGapCount,
     auxiliaryGapCount,
@@ -323,6 +342,7 @@ export function computePositionCostShadowAndGate(
     ensureOwnerQuestions: opts.ensureOwnerQuestions,
     ephemeralCostBasisByLineId: opts.ephemeralCostBasisByLineId ?? null,
     ephemeralBomBasisByLineId: opts.ephemeralBomBasisByLineId ?? null,
+    ownerExcludedLineIds: opts.ownerExcludedLineIds ?? null,
     // GO86 — BidCutover is always finance-authoritative (fail-closed).
     pricingAuthority: "finance",
   });

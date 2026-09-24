@@ -24,6 +24,7 @@ function emptyAgg() {
     completeLineCount: 0,
     gapLineCount: 0,
     skippedNoiseCount: 0,
+    skippedOwnerScopeHoldCount: 0,
     laborCostPln: null,
     materialCostPln: null,
     equipmentCostPln: 0,

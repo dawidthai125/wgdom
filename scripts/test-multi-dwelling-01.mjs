@@ -705,6 +705,7 @@ function fakePassGate() {
     completeLineCount: 1,
     gapLineCount: 0,
     skippedNoiseCount: 0,
+    skippedOwnerScopeHoldCount: 0,
     equipmentGapCount: 0,
     transportGapCount: 0,
     auxiliaryGapCount: 0,

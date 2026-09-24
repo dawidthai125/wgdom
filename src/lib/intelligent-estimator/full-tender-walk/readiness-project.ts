@@ -76,8 +76,14 @@ export function projectIkReadiness(input: ProjectIkReadinessInput): IkReadinessP
     summaryPl =
       "TENDER_FINANCE_FAILED — CutoverGate FAIL. G3 Owner Override nie oznacza gotowości oferty.";
   } else if (partial) {
+    const holds = input.ledger?.counts.hold ?? 0;
+    const ownerEx = input.ledger?.counts.ownerException ?? 0;
     summaryPl =
-      "TENDER_PARTIAL — analiza linii zakończona częściowo. To nie jest kompletna wycena IK.";
+      ownerEx > 0
+        ? `TENDER_PARTIAL — ${ownerEx} linii OWNER_EXCEPTION / EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE (≠ COMPLETE). To nie jest kompletna wycena IK.`
+        : holds > 0
+          ? `TENDER_PARTIAL — ${holds} linii HOLD widocznych. To nie jest kompletna wycena IK.`
+          : "TENDER_PARTIAL — analiza linii zakończona częściowo. To nie jest kompletna wycena IK.";
   } else if (tenderStatus === "TENDER_ANALYSIS_RUNNING") {
     summaryPl = `Pełna analiza w toku (${linesVisited}/${linesTotal} linii).`;
   } else {

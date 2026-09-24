@@ -26,6 +26,11 @@ export type ProjectLineWalkInput = {
   researchFailed?: boolean;
   hasTechnologyPack?: boolean | null;
   materialRequired?: boolean;
+  /**
+   * IK-CLOSURE-WAVE1 — Owner-approved EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE.
+   * Must be pre-filtered (ownerApproved===true). ≠ POSITION_COMPLETE.
+   */
+  ownerExcludedFromBillableScope?: boolean;
 };
 
 export type ProjectLineWalkResult = {
@@ -49,6 +54,17 @@ function identityOk(
 }
 
 export function projectLineWalkState(input: ProjectLineWalkInput): ProjectLineWalkResult {
+  // WAVE1 — Owner billable exclusion is terminal for pricing, not COMPLETE.
+  if (input.ownerExcludedFromBillableScope === true) {
+    return {
+      status: "OWNER_EXCEPTION",
+      stage: "finance",
+      researchOutcome: "RESEARCH_NOT_REQUIRED",
+      blocker: "EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE",
+      nextAction: "owner_scope_hold_visible_not_priced",
+    };
+  }
+
   const idState = identityOk(input.labor, input.material);
   if (idState === "pending" && !input.labor && !input.material) {
     return {

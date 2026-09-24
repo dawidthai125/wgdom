@@ -38,6 +38,7 @@ const SKIP_TRACK: ReadonlySet<ShadowGapCode> = new Set([
   "TRANSPORT_OWNER_INPUT_INVALID",
   "AUXILIARY_OUT_OF_SCOPE",
   "POMINIETO_NOISE",
+  "POMINIETO_OWNER_SCOPE_HOLD",
 ]);
 
 function trim(v: unknown): string {

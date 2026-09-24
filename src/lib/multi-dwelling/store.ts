@@ -91,6 +91,10 @@ function normalizePackage(raw: unknown): TenderPackage | null {
     p.ikContinuation && typeof p.ikContinuation === "object"
       ? (p.ikContinuation as TenderPackage["ikContinuation"])
       : null;
+  const ikBillableScopeExclusions =
+    p.ikBillableScopeExclusions && typeof p.ikBillableScopeExclusions === "object"
+      ? (p.ikBillableScopeExclusions as TenderPackage["ikBillableScopeExclusions"])
+      : null;
   return {
     tenderId,
     expectedDwellingCount: expected,
@@ -101,6 +105,7 @@ function normalizePackage(raw: unknown): TenderPackage | null {
       : {}),
     documentToDwelling,
     ...(ikContinuation ? { ikContinuation } : {}),
+    ...(ikBillableScopeExclusions ? { ikBillableScopeExclusions } : {}),
   };
 }
 

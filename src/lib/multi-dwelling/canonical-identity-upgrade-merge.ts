@@ -565,11 +565,42 @@ export function mergeTenderPackageOnScoreTie(
     };
   }
 
+  // WAVE1 — Owner billable-scope exclusions (union by tender|dwelling|line; require ownerApproved).
+  let ikBillableScopeExclusions =
+    cloudPkg.ikBillableScopeExclusions ?? localPkg.ikBillableScopeExclusions ?? null;
+  if (localPkg.ikBillableScopeExclusions && cloudPkg.ikBillableScopeExclusions) {
+    const map = new Map<
+      string,
+      (typeof localPkg.ikBillableScopeExclusions.records)[number]
+    >();
+    for (const r of [
+      ...cloudPkg.ikBillableScopeExclusions.records,
+      ...localPkg.ikBillableScopeExclusions.records,
+    ]) {
+      if (r.ownerApproved !== true) continue;
+      if (r.reason !== "EXCLUDED_FROM_CURRENT_BILLABLE_SCOPE") continue;
+      const key = `${r.tenderId}|${r.dwellingId}|${r.lineId}`;
+      const prev = map.get(key);
+      if (!prev || r.approvedAt > prev.approvedAt) map.set(key, r);
+    }
+    const updatedAt =
+      localPkg.ikBillableScopeExclusions.updatedAt
+      > cloudPkg.ikBillableScopeExclusions.updatedAt
+        ? localPkg.ikBillableScopeExclusions.updatedAt
+        : cloudPkg.ikBillableScopeExclusions.updatedAt;
+    ikBillableScopeExclusions = {
+      schemaVersion: 1,
+      records: [...map.values()],
+      updatedAt,
+    };
+  }
+
   return {
     ...cloudPkg,
     dwellings,
     // documentToDwelling / mode / expected count stay cloud (structural ownership)
     documentToDwelling: { ...(cloudPkg.documentToDwelling ?? {}) },
     ...(ikContinuation ? { ikContinuation } : {}),
+    ...(ikBillableScopeExclusions ? { ikBillableScopeExclusions } : {}),
   };
 }
