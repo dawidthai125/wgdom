@@ -337,17 +337,25 @@ AUDIT → RCA → PLAN → DESIGN FREEZE → ARCH REVIEW → OWNER GO
 
 | Layer | Value | Meaning |
 |-------|-------|---------|
-| **CURRENT APPLICATION** | **2.66.235** / **`643bd6e0`** | Production UI + shipped runtime · LIVE expected via `/version.json` |
-| **CURRENT DOCUMENTATION** | **`f756b27b`** | Documentation-only closeout commit on `main` |
+| **LIVE PRODUCTION** (`/version.json` · FETCH) | **2.66.235** / **`eab7b17`** | Runtime authority · audit 2026-09-25 |
+| **FEATURE TIP (KLAMKI C+D app)** | **2.66.235** / **`643bd6e0`** | Application feature tip · **≠** necessarily current LIVE SHA |
+| **LOCAL CODE TIP** (may lead LIVE) | **`4daeab73`** | Unpushed / ahead work may exist · **≠** production · **≠** SSOT drift |
+| **CURRENT DOCUMENTATION** | **`f756b27b`** (+ later docs on `main`) | Documentation-only closeouts · **NO DEPLOY** claim |
 
 ```text
-f756b27b = documentation-only closeout commit
-≠ application production tip
-≠ new deploy
-≠ UI version bump
+CODE TIP ≠ PRODUCTION
+≠ automatic SSOT DRIFT
 
-Production application remains:
-  2.66.235 / 643bd6e0
+Master SSOT file parity (**pre-amend audit** 2026-09-25):
+  LOCAL WORKTREE = LOCAL HEAD = origin/main = LIVE tip
+  blob ca45a27f… → SSOT_PARITY = GREEN
+  (this amend changes local worktree only until Owner commit)
+
+f756b27b / later docs-only commits
+≠ new deploy mandate
+≠ UI version bump by themselves
+
+LIVE tip = FETCH version.json (do not hardcode stale SHA as CURRENT LIVE).
 ```
 
 
@@ -1421,6 +1429,53 @@ LABOR plane
 **G2 Labor:** Chief **NOT** required. Routine REUSE = **AUTO_RATE** under contract (GO23) · **AUT-R1 IMPLEMENTED** for Research/Evidence→OUR RATE when §0.2 PASS · Owner Accept = **exception** · CHROBREGO m² **CLOSED/PASS** (benchmark) · Orchestra wire **PRODUCTION VERIFIED** on TPI/729 (B2 @ `923ea4b3`) · GO79 ACCEPT/REUSE=2 of 89 (**data residual ≠ „Owner must click 87×” as product plan**).
 **P5:** remains on authoritative **`lookupWorkRate`** · G2 RATE attestation does **not** replace Catalog First / Evidence / Research / AUT-R1 path.
 
+### 14.1 Dual plane — MONEY ≠ TECH/BOM ≠ P7 (WAVE2-D)
+
+```text
+A. MONEY PLANE
+   Identity + OUR RATE + Quantity
+   laborCostPln = qty × OUR_RATE_PLN_PER_BOQ_UNIT
+   OUR RATE (runtime money) = PLN / BOQ unit  ·  ≠ automatic PLN/r-g
+
+B. TECHNOLOGY / BOM / KNOWLEDGE PLANE
+   TechnologyPack · BOM · discovery/normative evidence · LABOR_ONLY_AUTO_BOM_V1 · Owner knowledge
+   BRAK_TECHNOLOGII_BOM may remain even when MONEY can compute
+
+C. P7 READINESS PLANE
+   Position / bid prepare completeness · may require Tech/BOM knowledge
+   ≠ rewrite isIkReadyToBid · ≠ second P7 gate
+```
+
+| Rule | SSOT |
+|------|------|
+| Money when CURRENT OUR RATE + identity + qty | **ALLOWED** (money plane) |
+| Missing **laborNorm** | **≠** automatic MONEY CALCULATION IMPOSSIBLE |
+| laborNorm role | Technology / BOM / normative evidence / LABOR_ONLY_AUTO_BOM_V1 — **≠** money unit |
+| Missing Technology/BOM | May yield **BRAK_TECHNOLOGII_BOM** / P7 incompleteness — **≠** auto „money impossible” |
+| KNR / KNNR / RMS | Evidence source for tech/BOM/laborNorm — **≠** sole prerequisite for Money when OUR RATE CURRENT |
+| Hard | **MONEY ≠ KNOWLEDGE COMPLETENESS ≠ P7 READINESS** · no new engine · existing gates UNCHANGED |
+
+### 14.2 Negation scope — Work Rate Research (WAVE2-E.5)
+
+| Field | Value |
+|-------|--------|
+| **Contract** | `WORK-RATE-RESEARCH-NEGATION-SCOPE-01` |
+| **Commit** | **`4daeab73`** — `fix(ik): add work-rate research negation scope` |
+| **Status** | **IMPLEMENTED** · Owner verified · **committed** · tests **35/35 PASS** |
+| **DF (detail)** | [`WORK-RATE-RESEARCH-NEGATION-SCOPE-01-DESIGN-FREEZE.md`](./WORK-RATE-RESEARCH-NEGATION-SCOPE-01-DESIGN-FREEZE.md) |
+| **Scope** | Negation-aware family · synonym eligibility · upstream filter · **AUT-R1 UNCHANGED** · **no** new engine · **no** source expansion · **no** OUR RATE / Tech/BOM / production mutation |
+
+```text
+POSITIVE_SCOPE + NEGATIVE_SCOPE
+
+IF synonym action ∈ NEGATIVE_SCOPE → synonym INELIGIBLE
+IF family regex matches only inside negated `bez …` span → do NOT activate that family
+
+Example (fixed):
+  BOQ „… bez zaprawiania bruzd …”
+  MUST NOT route as positive „szpachlowanie bruzd po kablach”
+```
+
 ---
 
 ## 15. MATERIAL + Catalog + PM + Accept path
@@ -1517,6 +1572,27 @@ Research is part of the **normal autonomous workflow** (rozpoznaj brak → legal
 **NIE** tylko „przygotuj materiał dla Ownera”.
 
 Research-on-Miss (AUTONOMY-08 P2) = **CLOSED/PV** (capability) · live may be NOT OBSERVABLE gdy IK OFF.
+
+### 16.2a Work-rate Research residuals (WAVE2-E) — engine EXISTS
+
+**WAVE2-E:** Research-on-Miss **works** · **NEW_ENGINE = NO** · residuals ≠ „Research Engine missing”.
+
+| Residual | Meaning |
+|----------|---------|
+| **QUERY_GENERATION_GAP** | Query may fail to represent BOQ semantic scope (literal keywords insufficient) |
+| **SEMANTIC_VALIDATION_GAP** | Candidate found ≠ same scope as BOQ · require **BOQ SCOPE ↔ CANDIDATE SCOPE** |
+| **SOURCE_COVERAGE_GAP** | MATCH_EMPTY may mean missing source/alias/family/query coverage — **≠** engine failure · **do not invent** |
+
+```text
+SOURCE PAGE FOUND ≠ VALIDATED SCOPE
+
+Name / price / unit / similar text alone ≠ sufficient match proof.
+Semantic validation required before promotion / Accept path.
+
+AUT-R1 = evidence/accept contract for labor Candidate
+≠ substitute for BOQ ↔ candidate semantic scope validation
+(negation/family/synonym eligibility = upstream · §14.2)
+```
 
 ### 16.3 COMPOUND held
 
@@ -2103,6 +2179,8 @@ Knowledge reuse **MUST** reduce: Supabase reads/writes · external research · d
 
 **Flags:** P7/P8 `"AUTO"|"OFF"|"ON"` (B-POLICY). OFF wins.
 **Line-tolerant:** qty≤0 → GAP `NIEPRAWIDLOWA_ILOSC` · P8 NOT READY on unresolved/gaps · G3 refuse when unresolved/gaps/`packageGatePass===false`.
+
+**Dual plane (see §14.1):** F5/P7 may still surface Tech/BOM / completeness gaps while **Money Plane** can compute `qty × OUR_RATE_PLN_PER_BOQ_UNIT` when OUR RATE CURRENT. **P7 readiness ≠ money impossibility.** Existing P7/`isIkReadyToBid` gates **UNCHANGED**.
 
 **CHROBREGO G3:** CLOSED/PERSISTED — **≠** TPI Final Bid · **≠** Środa Final Bid.
 
@@ -2814,6 +2892,9 @@ FORBIDDEN shortcuts:
 | Provider block / stale source | mark stale · do not promote · seek corroboration · Owner Exception if unsafe |
 | Multi-source conflict | fail-closed · no averaging when contract disallows · Owner Exception |
 | External research success | write into **existing** Evidence/Knowledge · DISCOVERED→CORROBORATED→VALIDATED→REUSABLE |
+| **QUERY_GENERATION_GAP** (§16.2a) | Fail-closed / refine query · **≠** invent rate · **≠** claim engine missing |
+| **SEMANTIC_VALIDATION_GAP** / page≠scope | Reject / HOLD candidate · AUT-R1 **does not** replace BOQ↔candidate scope check |
+| **SOURCE_COVERAGE_GAP** / MATCH_EMPTY | Coverage residual · **≠** invent · **≠** automatic engine failure |
 
 ---
 
