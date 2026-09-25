@@ -784,6 +784,15 @@ export {
 } from "@/lib/work-catalog/work-rate-synonyms";
 
 export {
+  extractResearchNegativeScope,
+  isActionNegated,
+  isSynonymIneligibleForNegativeScope,
+  maskNegatedResearchSpans,
+  softNegationScopeText,
+  type ResearchTextScope,
+} from "@/lib/work-catalog/work-rate-negation-scope";
+
+export {
   LABOR_IDENTITY_MAPPING_MATCH_MODE,
   LABOR_IDENTITY_MAPPING_MAX_ALIASES,
   LABOR_IDENTITY_MAPPING_TABLE_VERSION,

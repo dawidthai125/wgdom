@@ -7,6 +7,7 @@
  */
 
 import type { WorkRateAuthorizedSourceId } from "@/lib/work-catalog/work-rate-legal";
+import { maskNegatedResearchSpans } from "@/lib/work-catalog/work-rate-negation-scope";
 import {
   WORK_RATE_CANONICAL_CENNIK_URL,
   isWorkRateSelectiveUrlAllowed,
@@ -268,7 +269,11 @@ export function resolveWorkRateWorkFamily(input: {
   workId?: string;
   namePl?: string;
 }): WorkRateWorkFamily {
-  const blob = softWorkRateFamilyText(`${input.workId || ""} ${input.namePl || ""}`);
+  // NEGATION-SCOPE-01: classify on positive-only soft blob (mask `bez …` spans).
+  // Preserves true "zaprawianie bruzd"; blocks "bez zaprawiania bruzd" → grooves.
+  const blob = maskNegatedResearchSpans(
+    softWorkRateFamilyText(`${input.workId || ""} ${input.namePl || ""}`),
+  );
   if (/malow|paint|farba/.test(blob)) return "painting";
   if (/grunt/.test(blob)) return "priming";
   // Grooves before plaster — "szpachlowanie bruzd…" must not route as plaster.

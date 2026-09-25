@@ -1,7 +1,15 @@
 /**
  * WORK-RATE-RESEARCH-DISCOVERY-01 — Owner-curated synonym table.
  * DISCOVERY + MATCHING only · NEVER invent PLN / Candidate / OUR RATE.
+ *
+ * NEGATION-SCOPE-01: listWorkRateMatchNamesPl drops synonyms whose action
+ * is in NEGATIVE_SCOPE (fail-closed).
  */
+
+import {
+  extractResearchNegativeScope,
+  isSynonymIneligibleForNegativeScope,
+} from "@/lib/work-catalog/work-rate-negation-scope";
 
 export type WorkRateOwnerSynonymRow = {
   canonicalWorkFamily:
@@ -160,6 +168,8 @@ function norm(s: string): string {
 /**
  * Alternate match names for parser — includes namePl + matching synonyms
  * whose concept overlaps the expected name (deterministic).
+ *
+ * NEGATION-SCOPE-01: synonyms asserting NEGATIVE_SCOPE actions are INELIGIBLE.
  */
 export function listWorkRateMatchNamesPl(expectedNamePl: string): string[] {
   const expected = String(expectedNamePl || "").trim();
@@ -167,8 +177,19 @@ export function listWorkRateMatchNamesPl(expectedNamePl: string): string[] {
   const out = [expected];
   const seen = new Set([norm(expected)]);
   const en = norm(expected);
+  const negativeScope = extractResearchNegativeScope(expected);
   for (const row of WORK_RATE_OWNER_SYNONYMS) {
     if (!row.allowedForMatching) continue;
+    if (
+      isSynonymIneligibleForNegativeScope({
+        synonym: row.synonym,
+        canonicalConcept: row.canonicalConcept,
+        canonicalWorkFamily: row.canonicalWorkFamily,
+        scope: negativeScope,
+      })
+    ) {
+      continue;
+    }
     const syn = row.synonym.trim();
     const concept = norm(row.canonicalConcept);
     const sn = norm(syn);
